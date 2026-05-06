@@ -1,0 +1,16 @@
+{
+  "name": "gestion-presupuesto-server",
+  "version": "1.0.0",
+  "description": "Backend API para Gestion Presupuesto",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3"
+  }
+}

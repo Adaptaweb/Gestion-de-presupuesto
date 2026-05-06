@@ -1,0 +1,41 @@
+name: gestion-presupuesto
+
+services:
+  app:
+    image: gestion-presupuesto:latest
+    build: .
+    container_name: gestion-presupuesto
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # MUY IMPORTANTE: Mapeamos la ruta física donde CasaOS guardará tus datos
+      - /DATA/AppData/gestion-presupuesto/datos.db:/app/server/datos.db
+    x-casaos:
+      envs: []
+      ports:
+        - container: "3000"
+          description:
+            en_us: Web UI Port
+      volumes:
+        - container: /app/server/datos.db
+          description:
+            en_us: Database File
+      icon: "https://cdn-icons-png.flaticon.com/512/2933/2933116.png"
+      title:
+        custom: "Finance Master"
+      description:
+        en_us: "Gestión de Presupuesto Personal"
+      index: "/"
+      author: "Alejandro"
+      port_map: "3000"
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: "app"
+  description:
+    en_us: "Aplicación completa de gestión de presupuesto con backend local en SQLite."
+  title:
+    custom: "Finance Master"
