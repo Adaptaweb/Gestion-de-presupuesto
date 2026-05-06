@@ -205,6 +205,8 @@ app.get('/api/data', authenticateToken, (req, res) => {
       ahorrosData[a.cuenta_id][a.mes] = { deposito: a.deposito, gasto: a.gasto };
     });
 
+    console.log(`[GET /api/data] User ${userId}: cuentasAhorro=${cuentasAhorro.length}, ahorrosData entries=${ahorrosDataRows.length}`, JSON.stringify(ahorrosData));
+
     const subsRows = db.prepare('SELECT * FROM suscripciones WHERE user_id = ?').all(userId);
     const pagosSubsRows = db.prepare('SELECT ps.* FROM pagos_suscripciones ps JOIN suscripciones s ON ps.suscripcion_id = s.id WHERE s.user_id = ?').all(userId);
     const suscripciones = subsRows.map(s => {
@@ -270,23 +272,43 @@ app.post('/api/sync', authenticateToken, (req, res) => {
       }
     }
 
-    if (cuentasAhorro) {
-      db.prepare('DELETE FROM cuentas_ahorro WHERE user_id = ?').run(userId);
-      const insertCuenta = db.prepare('INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES (?, ?, ?, ?)');
-      for (const c of cuentasAhorro) {
-        insertCuenta.run(c.id, userId, c.nombre, c.banco);
-      }
-    }
+    if (cuentasAhorro !== undefined || ahorrosData !== undefined) {
+      db.exec('PRAGMA foreign_keys = OFF');
 
-    if (ahorrosData) {
-      db.prepare('DELETE FROM ahorros_data WHERE id IN (SELECT ad.id FROM ahorros_data ad JOIN cuentas_ahorro c ON ad.cuenta_id = c.id WHERE c.user_id = ?)').run(userId);
-      const insertAhorro = db.prepare('INSERT INTO ahorros_data (id, cuenta_id, mes, deposito, gasto) VALUES (?, ?, ?, ?, ?)');
-      let i = 0;
-      for (const [cuentaId, data] of Object.entries(ahorrosData)) {
-        for (const [mes, a] of Object.entries(data)) {
-          insertAhorro.run(`ahorro-${userId}-${i++}`, cuentaId, mes, a.deposito || 0, a.gasto || 0);
+      if (cuentasAhorro !== undefined) {
+        db.prepare('DELETE FROM ahorros_data WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = ?)').run(userId);
+        db.prepare('DELETE FROM cuentas_ahorro WHERE user_id = ?').run(userId);
+
+        if (cuentasAhorro.length > 0) {
+          const insertCuenta = db.prepare('INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES (?, ?, ?, ?)');
+          for (const c of cuentasAhorro) {
+            insertCuenta.run(c.id, userId, c.nombre, c.banco);
+          }
+          console.log(`[SYNC] cuentasAhorro: ${cuentasAhorro.length} cuentas saved`);
+        } else {
+          console.log(`[SYNC] cuentasAhorro: cleared (empty array)`);
         }
       }
+
+      if (ahorrosData !== undefined) {
+        if (Object.keys(ahorrosData).length > 0) {
+          db.prepare('DELETE FROM ahorros_data WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = ?)').run(userId);
+          const insertAhorro = db.prepare('INSERT OR REPLACE INTO ahorros_data (id, cuenta_id, mes, deposito, gasto) VALUES (?, ?, ?, ?, ?)');
+          let i = 0;
+          for (const [cuentaId, data] of Object.entries(ahorrosData)) {
+            for (const [mes, a] of Object.entries(data)) {
+              insertAhorro.run(`ahorro-${userId}-${cuentaId}-${mes.replace(/\s/g, '-')}`, cuentaId, mes, a.deposito || 0, a.gasto || 0);
+              i++;
+            }
+          }
+          console.log(`[SYNC] ahorrosData: ${i} entries saved`);
+        } else {
+          db.prepare('DELETE FROM ahorros_data WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = ?)').run(userId);
+          console.log(`[SYNC] ahorrosData: cleared (empty object)`);
+        }
+      }
+
+      db.exec('PRAGMA foreign_keys = ON');
     }
 
     if (suscripciones) {

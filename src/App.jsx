@@ -67,6 +67,7 @@ import {
   Percent,
   Calculator,
   ClipboardList,
+  Check,
   ClipboardCheck,
   BookOpen,
   BookMarked,
@@ -112,7 +113,10 @@ import {
   Star,
   Globe,
   Radio,
-  Headphones
+  Headphones,
+  PieChart,
+  CalendarDays,
+  Activity
 } from 'lucide-react';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
@@ -419,9 +423,11 @@ const SUBSCRIPTION_ICONS = [
 ];
 
 const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState(null);
+  const [syncStatus, setSyncStatus] = useState('idle');
 
   const [months, setMonths] = useState(INITIAL_MONTHS);
   const [deudas, setDeudas] = useState([]);
@@ -463,10 +469,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         if (data.sueldos && Object.keys(data.sueldos).length > 0) setSueldos(data.sueldos);
         if (data.cuentasAhorro && data.cuentasAhorro.length > 0) {
           setCuentasAhorro(data.cuentasAhorro);
+          console.log('[LOAD] cuentasAhorro:', data.cuentasAhorro);
         } else {
-          setCuentasAhorro([{ id: `acc-${Date.now()}`, nombre: 'Ahorro Principal', banco: 'Banco Estado' }]);
+          setCuentasAhorro([]);
+          console.log('[LOAD] No cuentasAhorro in DB');
         }
-        if (data.ahorrosData && Object.keys(data.ahorrosData).length > 0) setAhorrosData(data.ahorrosData);
+        if (data.ahorrosData && Object.keys(data.ahorrosData).length > 0) {
+          setAhorrosData(data.ahorrosData);
+          console.log('[LOAD] ahorrosData loaded:', JSON.stringify(data.ahorrosData));
+        } else {
+          console.log('[LOAD] No ahorrosData in DB');
+        }
         if (data.suscripciones && data.suscripciones.length > 0) setSuscripciones(data.suscripciones);
         setLoadingData(false);
       })
@@ -489,6 +502,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const filteredMonths = useMemo(() => {
     return months.filter(m => m.endsWith(selectedYear));
   }, [months, selectedYear]);
+
+  useEffect(() => {
+    if (filteredMonths.length > 0 && !dashboardMonth) {
+      const now = new Date();
+      const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const prevMonthName = MONTH_NAMES[prevMonth.getMonth()];
+      const prevYearStr = prevMonth.getFullYear().toString();
+      const prevMonthStr = `${prevMonthName} ${prevYearStr}`;
+      if (filteredMonths.includes(prevMonthStr)) {
+        setDashboardMonth(prevMonthStr);
+      } else {
+        setDashboardMonth(filteredMonths[0]);
+      }
+    }
+  }, [filteredMonths]);
 
   const [isAddingDebt, setIsAddingDebt] = useState(false);
   const [isAddingFixed, setIsAddingFixed] = useState(false);
@@ -530,6 +558,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     iconUrl: ''
   });
   const [subscriptionIconSearch, setSubscriptionIconSearch] = useState('');
+  const [dashSections, setDashSections] = useState({ cuotas: true, subs: true, fijos: true });
+  const toggleDashSection = (key) => setDashSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const filteredDebtIcons = useMemo(() => {
     if (!debtIconSearch.trim()) return PRESET_ICONS;
@@ -550,6 +580,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   }, [subscriptionIconSearch]);
 
   const isInitialMount = useRef(true);
+  const syncTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -558,10 +589,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     }
     if (loadingData) return;
 
-    fetch('/api/sync', {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = setTimeout(() => {
+      const syncPayload = {
         deudas,
         months,
         gastosFijos,
@@ -569,10 +599,44 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         cuentasAhorro,
         ahorrosData,
         suscripciones
-      })
-    }).catch(err => console.error('Sync error:', err));
+      };
 
-  }, [deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, loadingData]);
+      console.log('[SYNC] Sending payload:', JSON.stringify({
+        deudasCount: deudas.length,
+        monthsCount: months.length,
+        gastosFijosCount: gastosFijos.length,
+        sueldosKeys: Object.keys(sueldos).length,
+        cuentasAhorroCount: cuentasAhorro.length,
+        ahorrosDataKeys: Object.keys(ahorrosData).length,
+        suscripcionesCount: suscripciones.length
+      }));
+
+      setSyncStatus('saving');
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(syncPayload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            console.error('[SYNC] Server error:', data.error);
+            setSyncStatus('error');
+          } else {
+            console.log('[SYNC] Success:', data);
+            setSyncStatus('saved');
+          }
+          setTimeout(() => setSyncStatus('idle'), 2000);
+        })
+        .catch(err => {
+          console.error('[SYNC] Network error:', err);
+          setSyncStatus('error');
+          setTimeout(() => setSyncStatus('idle'), 3000);
+        });
+    }, 1000);
+
+    return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); };
+  }, [deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones]);
 
   const toDateVal = (s) => {
     if (!s) return 0;
@@ -914,7 +978,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const handleSaveAccount = (e) => {
     e.preventDefault();
     if (!newAccount.nombre || !newAccount.banco) return;
-    setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}` }]);
+    setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
     setIsAddingAccount(false);
     setNewAccount({ nombre: '', banco: '' });
   };
@@ -1073,20 +1137,29 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               Consultar IA ✨
             </button>
 
-            <div className="flex bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 rounded-xl shadow-sm">
-              {availableYears.map(year => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${selectedYear === year ? `${theme.btnPrimary} text-white shadow-md` : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                >
-                  {year}
-                </button>
-              ))}
+            <div className="relative">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 pr-8 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer shadow-sm"
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+              <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
             <button onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm">
               <Calendar size={18} /> +1 Mes
             </button>
+            {syncStatus !== 'idle' && (
+              <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}>
+                {syncStatus === 'saving' ? <Loader2 size={14} className="animate-spin" /> : syncStatus === 'saved' ? <ClipboardCheck size={14} /> : <X size={14} />}
+                {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : 'Error'}
+              </div>
+            )}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
@@ -1125,6 +1198,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
         <div className="flex gap-4 mb-8 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] w-fit">
           <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${activeTab === 'dashboard' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+          >
+            <LayoutDashboard size={18} /> Dashboard
+          </button>
+          <button
             onClick={() => setActiveTab('general')}
             className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${activeTab === 'general' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
           >
@@ -1137,6 +1216,526 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             <PiggyBank size={18} /> Gestión de Ahorros
           </button>
         </div>
+
+        {activeTab === 'dashboard' && !!dashboardMonth && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h2 className="text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-3">
+                <LayoutDashboard className={theme.tabText} /> Resumen Mensual
+              </h2>
+              <div className="relative">
+                <select
+                  value={dashboardMonth}
+                  onChange={(e) => setDashboardMonth(e.target.value)}
+                  className={`appearance-none bg-white dark:bg-slate-800 border-2 ${theme.borderAccent} rounded-xl px-4 py-2 pr-10 font-bold text-sm outline-none cursor-pointer ${theme.tabText}`}
+                >
+                  {filteredMonths.map(mes => (
+                    <option key={mes} value={mes}>{mes}</option>
+                  ))}
+                </select>
+                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {(() => {
+              const mes = dashboardMonth;
+              const totalCuotas = totalesMensuales[mes]?.cuotas || 0;
+              const totalGastos = totalesMensuales[mes]?.gastos || 0;
+              const totalSubs = totalesMensuales[mes]?.suscripciones || 0;
+              const sueldo = totalesMensuales[mes]?.sueldo || 0;
+              const disponibleExtras = sueldo - (totalCuotas + totalGastos + totalSubs);
+              const totalGastado = totalCuotas + totalGastos + totalSubs;
+              const pctCuotas = sueldo > 0 ? (totalCuotas / sueldo) * 100 : 0;
+              const pctGastos = sueldo > 0 ? (totalGastos / sueldo) * 100 : 0;
+              const pctSubs = sueldo > 0 ? (totalSubs / sueldo) * 100 : 0;
+              const pctGastado = sueldo > 0 ? (totalGastado / sueldo) * 100 : 0;
+              const pctDisponible = sueldo > 0 ? Math.max(0, (disponibleExtras / sueldo) * 100) : 0;
+              const saludColor = pctGastado < 60 ? 'text-emerald-500' : pctGastado < 80 ? 'text-amber-500' : 'text-rose-500';
+              const saludLabel = pctGastado < 60 ? 'Saludable' : pctGastado < 80 ? 'Moderado' : 'Alerta';
+              const saludBg = pctGastado < 60 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : pctGastado < 80 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400';
+
+              const cuotasActivas = deudas.filter(d => {
+                const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
+                return isMonthInRange(mes, d.mesInicio, mesTermino, d.isContribuciones);
+              }).sort((a, b) => (a.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0) - (b.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0));
+
+              const cuotasPagadasMes = cuotasActivas.filter(d => d.pagos?.[mes]?.estado === 'PAGADA').length;
+              const cuotasPendientesMes = cuotasActivas.length - cuotasPagadasMes;
+
+              const subsActivas = suscripciones.filter(s => {
+                const startVal = toDateVal(s.mesInicio);
+                const mesVal = toDateVal(mes);
+                if (s.billingCycle === 'mensual') return mesVal >= startVal && mesVal < startVal + s.durationYears * 12;
+                for (let i = 0; i < s.durationYears; i++) { if (mesVal === startVal + i * 12) return true; }
+                return false;
+              }).sort((a, b) => (a.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0) - (b.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0));
+
+              const proximosCobros = subsActivas.map(s => ({ nombre: s.descripcion, monto: s.pagos?.[mes]?.monto || s.valor || 0, dia: s.diaPago || 1 }))
+                .sort((a, b) => a.dia - b.dia);
+              const cobrosPorDia = {};
+              proximosCobros.forEach(c => { if (!cobrosPorDia[c.dia]) cobrosPorDia[c.dia] = []; cobrosPorDia[c.dia].push(c); });
+
+              const gastosFijosList = gastosFijos.map(g => ({ ...g, pagado: g.pagos?.[mes]?.estado === 'PAGADA', monto: g.pagos?.[mes]?.monto || 0 }))
+                .sort((a, b) => (a.pagado ? 1 : 0) - (b.pagado ? 1 : 0));
+              const gastosPagados = gastosFijosList.filter(g => g.pagado).length;
+
+              const donutSegments = [
+                { label: 'Cuotas', value: totalCuotas, pct: pctCuotas, color: theme.bgLight.replace('/50', ''), darkColor: theme.bgLightDark },
+                { label: 'G. Fijos', value: totalGastos, pct: pctGastos, color: 'bg-slate-400', darkColor: 'dark:bg-slate-500' },
+                { label: 'Suscripciones', value: totalSubs, pct: pctSubs, color: 'bg-rose-400', darkColor: 'dark:bg-rose-400' },
+                { label: 'Disponible', value: Math.max(0, disponibleExtras), pct: pctDisponible, color: 'bg-emerald-400', darkColor: 'dark:bg-emerald-400' }
+              ].filter(s => s.value > 0);
+
+              const donutColors = [
+                THEME_COLOR_HEX[themeColor],
+                '#94a3b8',
+                '#fb7185',
+                '#34d399'
+              ];
+
+              return (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className={`rounded-2xl p-5 shadow-lg text-white ${theme.btnPrimary.replace('hover:bg-', 'bg-').replace('hover:bg-', '')} relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card`}>
+                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <CreditCard className="text-white/90" size={16} />
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Cuotas</span>
+                        </div>
+                        <div className="text-2xl font-mono font-black mb-1.5">{formatCurrency(totalCuotas)}</div>
+                        <div className="flex items-center gap-2 text-xs opacity-85">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{cuotasPagadasMes} pagadas</span>
+                          <span>·</span>
+                          <span>{cuotasPendientesMes} pendientes</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl p-5 shadow-lg text-white bg-slate-600 dark:bg-slate-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
+                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <Receipt className="text-white/90" size={16} />
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Gastos Fijos</span>
+                        </div>
+                        <div className="text-2xl font-mono font-black mb-1.5">{formatCurrency(totalGastos)}</div>
+                        <div className="flex items-center gap-2 text-xs opacity-85">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{gastosPagados} pagados</span>
+                          <span>·</span>
+                          <span>{gastosFijos.length - gastosPagados} pendientes</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl p-5 shadow-lg text-white bg-rose-600 dark:bg-rose-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
+                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <RefreshCw className="text-white/90" size={16} />
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Suscripciones</span>
+                        </div>
+                        <div className="text-2xl font-mono font-black mb-1.5">{formatCurrency(totalSubs)}</div>
+                        <div className="flex items-center gap-2 text-xs opacity-85">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{subsActivas.length} activas</span>
+                          {proximosCobros.length > 0 && <span>·</span>}
+                          {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={`rounded-2xl p-5 shadow-lg text-white relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card ${disponibleExtras >= 0 ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700'}`}>
+                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <Wallet className="text-white/90" size={16} />
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Disponible</span>
+                        </div>
+                        <div className={`text-2xl font-mono font-black mb-1.5 ${disponibleExtras < 0 ? 'animate-pulse' : ''}`}>{formatCurrency(disponibleExtras)}</div>
+                        <div className="flex items-center gap-2 text-xs opacity-85">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{pctDisponible.toFixed(0)}% libre</span>
+                          <span>·</span>
+                          <span className="font-bold">{saludLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      <button onClick={() => toggleDashSection('cuotas')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-xl ${theme.bgLight} ${theme.bgLightDark}`}>
+                            <CreditCard className={theme.tabText} size={18} />
+                          </div>
+                          <div className="text-left">
+                            <span className="text-sm font-black text-slate-700 dark:text-slate-200">Cuotas Activas</span>
+                            <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${theme.badgeBg} ${theme.badgeBgDark} ${theme.badgeText} dark:${theme.badgeTextDark}`}>{cuotasActivas.length} este mes</span>
+                          </div>
+                        </div>
+                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${dashSections.cuotas ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      {dashSections.cuotas && (
+                        <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4 animate-slide-down">
+                          {cuotasActivas.map(d => {
+                            const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
+                            let pagadas = 0; let cur = toDateVal(d.mesInicio); const end = toDateVal(mesTermino);
+                            while (cur <= end) { const m = fromDateVal(cur); if (!d.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(m.split(' ')[0])) { if (d.pagos?.[m]?.estado === 'PAGADA') pagadas++; } cur++; }
+                            const totalD = d.isContribuciones ? 4 : d.cuotasTotales;
+                            const pctD = totalD > 0 ? (pagadas / totalD) * 100 : 0;
+                            return (
+                              <div key={d.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
+                                  <div className={theme.tabText}>{renderDebtIcon(d)}</div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate">{d.descripcion}</span>
+                                    {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Legal</span>}
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                      <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
+                                  </div>
+                                </div>
+                                <span className="text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(d.valorCuota)}</span>
+                              </div>
+                            );
+                          })}
+                          {cuotasActivas.length > 0 && (
+                            <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
+                              <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
+                              <span className={`text-sm font-mono font-black ${theme.tabText}`}>{formatCurrency(totalCuotas)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      <div className="p-5">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+                            <PieChart className="text-emerald-500 dark:text-emerald-400" size={18} />
+                          </div>
+                          <span className="text-sm font-black text-slate-700 dark:text-slate-200">Distribución</span>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="relative w-32 h-32 flex-shrink-0">
+                            <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donutSegments.map((s, i) => {
+                              return `${donutColors[i]} ${i === 0 ? '0' : donutSegments.slice(0, i).reduce((a, x) => a + x.pct, 0)}% ${donutSegments.slice(0, i + 1).reduce((a, x) => a + x.pct, 0)}%`;
+                            }).join(', ')})` }}></div>
+                            <div className="absolute inset-3 rounded-full bg-white dark:bg-slate-800 flex flex-col items-center justify-center shadow-inner">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gastado</span>
+                              <span className="text-lg font-mono font-black text-slate-800 dark:text-slate-100">{pctGastado.toFixed(0)}%</span>
+                            </div>
+                          </div>
+                          <div className="space-y-2.5 flex-1">
+                            {(() => {
+                              const textColors = [theme.tabText, 'text-slate-500 dark:text-slate-400', 'text-rose-500 dark:text-rose-400', 'text-emerald-500 dark:text-emerald-400'];
+                              return donutSegments.map((s, i) => (
+                              <div key={i} className="flex items-center justify-between group/legend hover:bg-slate-50 dark:hover:bg-slate-700/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-3 h-3 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-800" style={{ backgroundColor: donutColors[i] }}></div>
+                                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{s.label}</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className={`text-xs font-mono font-black ${textColors[i]}`}>{formatCurrency(s.value)}</span>
+                                  <span className="text-[10px] font-bold text-slate-400 ml-1.5">{s.pct.toFixed(0)}%</span>
+                                </div>
+                              </div>
+                            ));
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      <button onClick={() => toggleDashSection('subs')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/30">
+                            <RefreshCw className="text-rose-500 dark:text-rose-400" size={18} />
+                          </div>
+                          <div className="text-left">
+                            <span className="text-sm font-black text-slate-700 dark:text-slate-200">Suscripciones</span>
+                            <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300`}>{subsActivas.length} activas</span>
+                          </div>
+                        </div>
+                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${dashSections.subs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      {dashSections.subs && (
+                        <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4 animate-slide-down">
+                          {subsActivas.map(s => {
+                            const monto = s.pagos?.[mes]?.monto || s.valor || 0;
+                            return (
+                              <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
+                                  <div className="text-rose-500 dark:text-rose-400">{renderSubscriptionIcon(s)}</div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
+                                  </div>
+                                  <span className="text-[10px] font-bold text-slate-400">Cobra día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                                </div>
+                                <span className="text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(monto)}</span>
+                              </div>
+                            );
+                          })}
+                          {subsActivas.length > 0 && (
+                            <>
+                              <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <CalendarDays size={14} className="text-slate-400" />
+                                  <span className="text-[10px] font-black text-slate-400 uppercase">Próximos cobros</span>
+                                </div>
+                                <div className="space-y-1.5">
+                                  {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
+                                    <div key={dia} className="flex items-center gap-2 text-xs">
+                                      <span className="w-16 font-bold text-slate-500 dark:text-slate-400">Día {dia}</span>
+                                      <span className="text-slate-400">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
+                                <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
+                                <span className="text-sm font-mono font-black text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      <button onClick={() => toggleDashSection('fijos')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700">
+                            <Receipt className="text-slate-500 dark:text-slate-400" size={18} />
+                          </div>
+                          <div className="text-left">
+                            <span className="text-sm font-black text-slate-700 dark:text-slate-200">Gastos Fijos</span>
+                            <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300`}>{gastosFijos.length} activos</span>
+                          </div>
+                        </div>
+                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${dashSections.fijos ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      {dashSections.fijos && (
+                        <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4 animate-slide-down">
+                          {gastosFijosList.map(g => (
+                            <div key={g.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
+                                <div className={theme.tabText}>{renderFixedIcon(g)}</div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate block">{g.descripcion}</span>
+                              </div>
+                              <span className="text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(g.monto)}</span>
+                            </div>
+                          ))}
+                          {gastosFijosList.length > 0 && (
+                            <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
+                              <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
+                              <span className="text-sm font-mono font-black text-slate-500 dark:text-slate-400">{formatCurrency(totalGastos)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-5 hover:shadow-xl transition-shadow duration-300 animate-fade-in">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl ${saludBg}`}>
+                          <Activity className={saludColor} size={18} />
+                        </div>
+                        <span className="text-sm font-black text-slate-700 dark:text-slate-200">Salud Financiera</span>
+                      </div>
+                      <span className={`text-xs font-black px-3 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden relative">
+                          <div className="absolute inset-0 flex">
+                            <div className="h-full bg-emerald-400" style={{ width: '60%' }}></div>
+                            <div className="h-full bg-amber-400" style={{ width: '20%' }}></div>
+                            <div className="h-full bg-rose-400" style={{ width: '20%' }}></div>
+                          </div>
+                          <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition-all duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
+                        </div>
+                        <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-1">
+                          <span>0%</span>
+                          <span className="text-emerald-500">60%</span>
+                          <span className="text-amber-500">80%</span>
+                          <span>100%</span>
+                        </div>
+                      </div>
+                      <div className="text-right min-w-[100px]">
+                        <div className={`text-2xl font-mono font-black ${saludColor}`}>{pctGastado.toFixed(0)}%</div>
+                        <div className="text-[9px] font-bold text-slate-400 uppercase">gastado</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    console.log('[PROJECTION] cuentasAhorro:', cuentasAhorro);
+                    console.log('[PROJECTION] ahorrosData:', JSON.stringify(ahorrosData));
+                    console.log('[PROJECTION] balancesPorCuenta keys:', Object.keys(balancesPorCuenta));
+
+                    const totalAhorroActual = cuentasAhorro.reduce((acc, c) => {
+                      return acc + (balancesPorCuenta[c.id]?.[mes]?.acumulado || 0);
+                    }, 0);
+
+                    const sortedMonths = [...filteredMonths].sort((a, b) => toDateVal(a) - toDateVal(b));
+                    const last6Months = sortedMonths.slice(-6);
+                    const depositsByMonth = last6Months.map(m =>
+                      cuentasAhorro.reduce((acc, c) => acc + (ahorrosData[c.id]?.[m]?.deposito || 0), 0)
+                    );
+                    const activeDeposits = depositsByMonth.filter(d => d > 0);
+                    const promedioMensual = activeDeposits.length > 0 ? activeDeposits.reduce((a, b) => a + b, 0) / activeDeposits.length : 0;
+
+                    console.log('[PROJECTION] totalAhorroActual:', totalAhorroActual);
+                    console.log('[PROJECTION] sortedMonths:', sortedMonths);
+                    console.log('[PROJECTION] last6Months:', last6Months);
+                    console.log('[PROJECTION] depositsByMonth:', depositsByMonth);
+                    console.log('[PROJECTION] promedioMensual:', promedioMensual);
+
+                    const proyeccion3Meses = totalAhorroActual + (promedioMensual * 3);
+                    const proyeccion6Meses = totalAhorroActual + (promedioMensual * 6);
+
+                    const maxDeposit = Math.max(...depositsByMonth, 1);
+                    const trendUp = depositsByMonth.length >= 2 && depositsByMonth[depositsByMonth.length - 1] > depositsByMonth[depositsByMonth.length - 2];
+
+                    const hasNoData = totalAhorroActual === 0 && promedioMensual === 0;
+
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                          <div className="p-5">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+                                <PiggyBank className="text-emerald-500 dark:text-emerald-400" size={18} />
+                              </div>
+                              <span className="text-sm font-black text-slate-700 dark:text-slate-200">Resumen de Ahorros</span>
+                            </div>
+                            {hasNoData ? (
+                              <div className="text-center py-6">
+                                <PiggyBank className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={36} />
+                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Sin datos de ahorro aún</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Ve a la pestaña <span className="font-bold text-emerald-500">Gestión de Ahorros</span> para registrar depósitos o gastos.</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                                  <span className="text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Balance total</span>
+                                  <div className="text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalAhorroActual)}</div>
+                                </div>
+                                <div className="space-y-2">
+                                  {cuentasAhorro.map(c => {
+                                    const saldo = balancesPorCuenta[c.id]?.[mes]?.acumulado || 0;
+                                    return (
+                                      <div key={c.id} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/30">
+                                        <div>
+                                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{c.nombre}</span>
+                                          <span className="text-[10px] text-slate-400 ml-2">{c.banco}</span>
+                                        </div>
+                                        <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(saldo)}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                          <div className="p-5">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
+                                <TrendingUp className="text-indigo-500 dark:text-indigo-400" size={18} />
+                              </div>
+                              <span className="text-sm font-black text-slate-700 dark:text-slate-200">Proyección de Ahorro</span>
+                              {promedioMensual > 0 && (
+                                <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${trendUp ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                                  {trendUp ? 'Tendencia +' : 'Estable'}
+                                </span>
+                              )}
+                            </div>
+
+                            {hasNoData ? (
+                              <div className="text-center py-6">
+                                <TrendingUp className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={36} />
+                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Sin historial de depósitos</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Registra depósitos en al menos un mes para ver tu proyección.</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="mb-4">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Promedio mensual</span>
+                                    <span className="text-xs font-mono font-black text-slate-600 dark:text-slate-300">{formatCurrency(promedioMensual)}</span>
+                                  </div>
+                                  <div className="flex gap-1 items-end h-8">
+                                    {depositsByMonth.map((d, i) => (
+                                      <div
+                                        key={i}
+                                        className="flex-1 rounded-sm bg-indigo-200 dark:bg-indigo-800/50 transition-all hover:bg-indigo-400 dark:hover:bg-indigo-600"
+                                        style={{ height: `${Math.max((d / maxDeposit) * 100, 4)}%` }}
+                                        title={last6Months[i]}
+                                      ></div>
+                                    ))}
+                                  </div>
+                                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                                    {last6Months.map((m, i) => (
+                                      <span key={i} className="flex-1 text-center truncate">{m.split(' ')[0].substring(0, 3)}</span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">3 meses</span>
+                                    <div className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion3Meses)}</div>
+                                  </div>
+                                  <div className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">6 meses</span>
+                                    <div className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion6Meses)}</div>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              );
+            })()}
+          </div>
+        )}
 
         {activeTab === 'general' ? (
           <>
@@ -1169,6 +1768,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </th>
                         );
                       })}
+                          <th className={`p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-slate-700 ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                        <div className="flex items-center justify-center gap-1">
+                          <TrendingUp size={12} className={theme.tabText} />
+                          <span className={`text-[10px] font-black uppercase tracking-tighter ${theme.tabText}`}>Progreso</span>
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1291,10 +1896,43 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                               );
                             }
                           })}
+                          {item.tipo === 'cuota' ? (
+                            <td className={`p-3 border-l border-slate-50 dark:border-slate-700/50 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-10`}>
+                              {(() => {
+                                const mesTermino = calculateEndDate(item.mesInicio, item.cuotasTotales, item.isContribuciones);
+                                let cur = toDateVal(item.mesInicio);
+                                const end = toDateVal(mesTermino);
+                                let pagadas = 0;
+                                while (cur <= end) {
+                                  const mName = fromDateVal(cur);
+                                  if (!item.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(mName.split(' ')[0])) {
+                                    if (item.pagos?.[mName]?.estado === 'PAGADA') pagadas++;
+                                  }
+                                  cur++;
+                                }
+                                const totalCuotas = item.cuotasTotales;
+                                const faltantes = totalCuotas - pagadas;
+                                const pct = totalCuotas > 0 ? (pagadas / totalCuotas) * 100 : 0;
+                                return (
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className={`text-[10px] font-black ${theme.tabText}`}>{pagadas}/{totalCuotas} pagadas</span>
+                                    <div className="w-full h-2 bg-slate-200/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
+                                      <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
+                                    </div>
+                                    <span className={`text-[9px] font-bold ${theme.tabText} opacity-60`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
+                                  </div>
+                                );
+                              })()}
+                            </td>
+                          ) : (
+                            <td className={`p-3 border-l border-slate-50 dark:border-slate-700/50 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-10`}>
+                              <span className={`text-xs ${theme.tabText} opacity-30`}>—</span>
+                            </td>
+                          )}
                         </tr>
                       ))
                     ) : (
-                      <tr><td colSpan={filteredMonths.length + 1} className="p-24 text-center text-slate-300 font-bold italic">No hay registros para mostrar</td></tr>
+                      <tr><td colSpan={filteredMonths.length + 2} className="p-24 text-center text-slate-300 font-bold italic">No hay registros para mostrar</td></tr>
                     )}
                   </tbody>
                   <tfoot className="bg-slate-900 text-white font-black">
@@ -1313,6 +1951,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
+                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                      </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
                       <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
@@ -1329,6 +1970,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
+                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                      </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
                       <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
@@ -1345,6 +1989,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
+                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                      </td>
                     </tr>
                     <tr className={`border-t-4 ${theme.borderAccent} divide-x divide-slate-800`}>
                       <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
@@ -1370,6 +2017,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
+                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                      </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800 bg-slate-950">
                       <td className="p-4 sticky left-0 bg-slate-950 z-30 border-r border-slate-800 flex items-center gap-3">
@@ -1386,13 +2036,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
+                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                      </td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
             </div>
           </>
-        ) : (
+        ) : activeTab === 'ahorros' ? (
           <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <h2 className="text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-3">
@@ -1520,7 +2173,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
         {isAddingDebt && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
