@@ -1,0 +1,11 @@
+node_modules/
+dist/
+server/node_modules/
+server/data/
+server/datos.db
+.git/
+*.md
+AGENTS.md
+add_dark_mode.js
+.env
+.env.local

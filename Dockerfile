@@ -14,12 +14,15 @@ RUN npm run build
 FROM node:22-alpine
 WORKDIR /app
 
-# Copiar archivos del Backend
+# Instalar dependencias del Backend
 COPY server/package.json server/package-lock.json* ./server/
-RUN cd server && npm install
+RUN cd server && npm install --omit=dev
 
-# Copiar el backend y los archivos compilados del frontend
-COPY server/ ./server/
+# Copiar el backend (solo archivos necesarios)
+COPY server/index.js server/db.js ./server/
+RUN mkdir -p /app/server/data
+
+# Copiar los archivos compilados del frontend
 COPY --from=build /app/dist ./dist
 
 # Variables de entorno

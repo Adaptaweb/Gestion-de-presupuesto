@@ -8,19 +8,28 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-gestion-presupuesto-secret-2026-prod}
+      - PORT=3000
     volumes:
-      # MUY IMPORTANTE: Mapeamos la ruta física donde CasaOS guardará tus datos
-      - /DATA/AppData/gestion-presupuesto/datos.db:/app/server/datos.db
+      # Volumen persistente para la base de datos SQLite
+      # Se monta el directorio data/ completo para evitar problemas de ruta
+      - /DATA/AppData/gestion-presupuesto/data:/app/server/data
     x-casaos:
-      envs: []
+      envs:
+        - name: JWT_SECRET
+          description:
+            en_us: "Secret key for JWT token signing. Change this to a random string for production security."
+          default: "gestion-presupuesto-secret-2026-prod"
       ports:
         - container: "3000"
           description:
             en_us: Web UI Port
       volumes:
-        - container: /app/server/datos.db
+        - container: /app/server/data
           description:
-            en_us: Database File
+            en_us: Database Directory (SQLite)
       icon: "https://cdn-icons-png.flaticon.com/512/2933/2933116.png"
       title:
         custom: "Finance Master"
