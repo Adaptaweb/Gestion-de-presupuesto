@@ -205,7 +205,15 @@ app.get('/api/data', authenticateToken, (req, res) => {
       ahorrosData[a.cuenta_id][a.mes] = { deposito: a.deposito, gasto: a.gasto };
     });
 
-    res.json({ months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData });
+    const subsRows = db.prepare('SELECT * FROM suscripciones WHERE user_id = ?').all(userId);
+    const pagosSubsRows = db.prepare('SELECT ps.* FROM pagos_suscripciones ps JOIN suscripciones s ON ps.suscripcion_id = s.id WHERE s.user_id = ?').all(userId);
+    const suscripciones = subsRows.map(s => {
+      const pagos = {};
+      pagosSubsRows.filter(p => p.suscripcion_id === s.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
+      return { ...s, pagos };
+    });
+
+    res.json({ months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error loading data' });
@@ -215,7 +223,7 @@ app.get('/api/data', authenticateToken, (req, res) => {
 // DATA: Full sync for authenticated user
 app.post('/api/sync', authenticateToken, (req, res) => {
   const userId = req.user.id;
-  const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData } = req.body;
+  const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones } = req.body;
   
   db.exec('BEGIN TRANSACTION');
   try {
@@ -277,6 +285,20 @@ app.post('/api/sync', authenticateToken, (req, res) => {
       for (const [cuentaId, data] of Object.entries(ahorrosData)) {
         for (const [mes, a] of Object.entries(data)) {
           insertAhorro.run(`ahorro-${userId}-${i++}`, cuentaId, mes, a.deposito || 0, a.gasto || 0);
+        }
+      }
+    }
+
+    if (suscripciones) {
+      db.prepare('DELETE FROM suscripciones WHERE user_id = ?').run(userId);
+      const insertSub = db.prepare('INSERT INTO suscripciones (id, user_id, descripcion, valor, billingCycle, diaPago, mesInicio, durationYears, iconType, iconValue, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+      const insertPagoSub = db.prepare('INSERT INTO pagos_suscripciones (suscripcion_id, mes, monto, estado) VALUES (?, ?, ?, ?)');
+      for (const s of suscripciones) {
+        insertSub.run(s.id, userId, s.descripcion, s.valor, s.billingCycle, s.diaPago || null, s.mesInicio, s.durationYears, s.iconType || 'default', s.iconValue || '', s.iconUrl || '');
+        if (s.pagos) {
+          for (const [mes, pago] of Object.entries(s.pagos)) {
+            insertPagoSub.run(s.id, mes, pago.monto || s.valor || 0, pago.estado);
+          }
         }
       }
     }
