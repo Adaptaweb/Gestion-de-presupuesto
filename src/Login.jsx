@@ -36,7 +36,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-dark-darker flex items-center justify-center p-4 font-sans transition-colors duration-300">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="bg-indigo-600 p-4 rounded-2xl shadow-lg shadow-indigo-200 inline-block mb-4">
@@ -46,7 +46,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Inicia sesión para continuar</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl shadow-slate-200 dark:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 p-8">
+        <div className="bg-white dark:bg-dark-normal rounded-[2rem] shadow-2xl shadow-slate-200 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-xl text-sm font-bold">
@@ -63,7 +63,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
                   placeholder="tu@email.com"
                 />
               </div>
@@ -78,7 +78,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
                   placeholder="••••••••"
                 />
               </div>
@@ -108,3 +108,4 @@ const Login = ({ onLogin, onGoToRegister }) => {
 };
 
 export default Login;
+

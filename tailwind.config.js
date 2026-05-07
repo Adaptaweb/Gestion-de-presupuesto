@@ -7,6 +7,14 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      colors: {
+        dark: {
+          darker: '#171717',
+          normal: '#262626',
+          lighter: '#3e3e3e',
+          lightest: '#4a4a4a',
+        },
+      },
       animation: {
         'slide-down': 'slideDown 0.25s ease-out',
         'fade-in': 'fadeIn 0.3s ease-out',
