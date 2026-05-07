@@ -420,7 +420,8 @@ const BANCOS_CHILE = [
   { id: 'banco-consorcio', nombre: 'Banco Consorcio', logo: '/bancos/banco-consorcio.png', tipos: ['visa', 'mastercard'] },
   { id: 'tenpo', nombre: 'Tenpo', logo: '/bancos/tenpo.png', tipos: ['visa', 'mastercard'] },
   { id: 'mach', nombre: 'Mach', logo: '/bancos/mach.png', tipos: ['visa', 'mastercard'] },
-  { id: 'lider', nombre: 'Banco Líder', logo: '/bancos/lider.png', tipos: ['visa', 'mastercard'] }
+  { id: 'lider', nombre: 'Banco Líder', logo: '/bancos/lider.png', tipos: ['visa', 'mastercard'] },
+  { id: 'mercadopago', nombre: 'Mercado Pago', logo: '/bancos/mercadopago.png', tipos: ['visa', 'mastercard'] }
 ];
 
 const SUBSCRIPTION_ICONS = [
@@ -444,6 +445,114 @@ const SUBSCRIPTION_ICONS = [
   { id: 'cloud', icon: Cloud, label: 'Cloud', keywords: 'cloud almacenamiento nube icloud google drive' },
   { id: 'layout', icon: LayoutDashboard, label: 'Otro', keywords: 'otro general varios' }
 ];
+
+const CHILE_PRESET_ICONS = {
+  bancos: [
+    { id: 'banco_bice', label: 'Banco BICE', path: '/chile-icons/bancos/banco_bice.png', keywords: 'bice banco' },
+    { id: 'banco_de_chile', label: 'Banco de Chile', path: '/chile-icons/bancos/banco_de_chile.png', keywords: 'banco chile' },
+    { id: 'banco_do_brasil', label: 'Banco do Brasil', path: '/chile-icons/bancos/banco_do_brasil.png', keywords: 'brasil banco' },
+    { id: 'banco_estado', label: 'BancoEstado', path: '/chile-icons/bancos/banco_estado.png', keywords: 'estado banco' },
+    { id: 'banco_falabella', label: 'Banco Falabella', path: '/chile-icons/bancos/banco_falabella.png', keywords: 'falabella banco' },
+    { id: 'banco_internacional', label: 'Banco Internacional', path: '/chile-icons/bancos/banco_internacional.png', keywords: 'internacional banco' },
+    { id: 'banco_ripley', label: 'Banco Ripley', path: '/chile-icons/bancos/banco_ripley.png', keywords: 'ripley banco' },
+    { id: 'banco_security', label: 'Banco Security', path: '/chile-icons/bancos/banco_security.png', keywords: 'security banco' },
+    { id: 'bbva', label: 'BBVA', path: '/chile-icons/bancos/bbva.png', keywords: 'bbva banco' },
+    { id: 'bci', label: 'BCI', path: '/chile-icons/bancos/bci.png', keywords: 'bci banco credito inversiones' },
+    { id: 'consorcio', label: 'Consorcio', path: '/chile-icons/bancos/consorcio.png', keywords: 'consorcio banco' },
+    { id: 'coopeuch', label: 'Coopeuch', path: '/chile-icons/bancos/coopeuch.png', keywords: 'coopeuch banco' },
+    { id: 'corpbanca', label: 'Corpbanca', path: '/chile-icons/bancos/corpbanca.png', keywords: 'corpbanca banco itau' },
+    { id: 'hsbc', label: 'HSBC', path: '/chile-icons/bancos/hsbc.png', keywords: 'hsbc banco' },
+    { id: 'itau', label: 'Itaú', path: '/chile-icons/bancos/itau.png', keywords: 'itau banco corpbanca' },
+    { id: 'paris', label: 'París', path: '/chile-icons/bancos/paris.png', keywords: 'paris banco' },
+    { id: 'prepago_los_heroes', label: 'Prepago Los Héroes', path: '/chile-icons/bancos/prepago_los_heroes.png', keywords: 'prepago heroes heroes' },
+    { id: 'santander', label: 'Santander', path: '/chile-icons/bancos/santander.png', keywords: 'santander banco' },
+    { id: 'scotiabank', label: 'Scotiabank', path: '/chile-icons/bancos/scotiabank.png', keywords: 'scotiabank banco' },
+    { id: 'mercadopago', label: 'Mercado Pago', path: '/chile-icons/medios-pago/mercadopago.png', keywords: 'mercadopago banco pago' },
+  ],
+  isapres: [
+    { id: 'banmedica', label: 'Banmédica', path: '/chile-icons/isapres/banmedica.png', keywords: 'banmedica isapre salud' },
+    { id: 'colmena', label: 'Colmena', path: '/chile-icons/isapres/colmena.png', keywords: 'colmena isapre salud' },
+    { id: 'consalud', label: 'Consalud', path: '/chile-icons/isapres/consalud.png', keywords: 'consalud isapre salud' },
+    { id: 'cruz_blanca', label: 'Cruz Blanca', path: '/chile-icons/isapres/cruz_blanca.png', keywords: 'cruz blanca isapre salud' },
+    { id: 'vidatres', label: 'Vida Tres', path: '/chile-icons/isapres/vidatres.png', keywords: 'vidatres vida tres isapre salud' },
+  ],
+  afp: [
+    { id: 'capital', label: 'Capital', path: '/chile-icons/afp/capital.png', keywords: 'capital afp' },
+    { id: 'cuprum', label: 'Cuprum', path: '/chile-icons/afp/cuprum.png', keywords: 'cuprum afp' },
+    { id: 'habitat', label: 'Habitat', path: '/chile-icons/afp/habitat.png', keywords: 'habitat afp' },
+    { id: 'modelo', label: 'Modelo', path: '/chile-icons/afp/modelo.png', keywords: 'modelo afp' },
+    { id: 'plan_vital', label: 'PlanVital', path: '/chile-icons/afp/plan_vital.png', keywords: 'plan vital afp' },
+    { id: 'provida', label: 'Provida', path: '/chile-icons/afp/provida.png', keywords: 'provida afp' },
+    { id: 'sura', label: 'SURA', path: '/chile-icons/afp/sura.png', keywords: 'sura afp' },
+  ],
+  telefonia: [
+    { id: 'claro', label: 'Claro', path: '/chile-icons/telefonia/claro.png', keywords: 'claro telefono celular' },
+    { id: 'entel', label: 'Entel', path: '/chile-icons/telefonia/entel.png', keywords: 'entel telefono celular' },
+    { id: 'movistar', label: 'Movistar', path: '/chile-icons/telefonia/movistar.png', keywords: 'movistar telefono celular' },
+    { id: 'virgin', label: 'Virgin', path: '/chile-icons/telefonia/virgin.png', keywords: 'virgin telefono celular' },
+    { id: 'wom', label: 'WOM', path: '/chile-icons/telefonia/wom.png', keywords: 'wom telefono celular' },
+  ],
+  gas: [
+    { id: 'abastible', label: 'Abastible', path: '/chile-icons/gas/abastible.png', keywords: 'abastible gas' },
+    { id: 'gasco', label: 'Gasco', path: '/chile-icons/gas/gasco.png', keywords: 'gasco gas' },
+    { id: 'lipigas', label: 'Lipigas', path: '/chile-icons/gas/lipigas.png', keywords: 'lipigas gas' },
+    { id: 'metrogas', label: 'Metrogas', path: '/chile-icons/gas/metrogas.png', keywords: 'metrogas gas' },
+  ],
+  agua: [
+    { id: 'aguas_andinas', label: 'Aguas Andinas', path: '/chile-icons/agua/aguas_andinas.png', keywords: 'aguas andinas agua' },
+    { id: 'aguas_nuevas', label: 'Aguas Nuevas', path: '/chile-icons/agua/aguas_nuevas.png', keywords: 'aguas nuevas agua' },
+    { id: 'essbio', label: 'Essbio', path: '/chile-icons/agua/essbio.png', keywords: 'essbio agua' },
+    { id: 'nuevosur', label: 'Nuevosur', path: '/chile-icons/agua/nuevosur.png', keywords: 'nuevosur agua' },
+  ],
+  tickets: [
+    { id: 'amipass', label: 'Amipass', path: '/chile-icons/tickets/amipass.png', keywords: 'amipass ticket restaurant' },
+    { id: 'cornershop', label: 'Cornershop', path: '/chile-icons/tickets/cornershop.png', keywords: 'cornershop delivery' },
+    { id: 'edenred', label: 'Edenred', path: '/chile-icons/tickets/edenred.png', keywords: 'edenred ticket restaurant' },
+    { id: 'glovo', label: 'Glovo', path: '/chile-icons/tickets/glovo.png', keywords: 'glovo delivery' },
+    { id: 'pedidos_ya', label: 'PedidosYa', path: '/chile-icons/tickets/pedidos_ya.png', keywords: 'pedidos ya delivery' },
+    { id: 'rappi', label: 'Rappi', path: '/chile-icons/tickets/rappi.png', keywords: 'rappi delivery' },
+    { id: 'sodexo', label: 'Sodexo', path: '/chile-icons/tickets/sodexo.png', keywords: 'sodexo ticket restaurant' },
+    { id: 'ticket_restaurant', label: 'Ticket Restaurant', path: '/chile-icons/tickets/ticket_restaurant.png', keywords: 'ticket restaurant' },
+    { id: 'uber_eats', label: 'Uber Eats', path: '/chile-icons/tickets/uber_eats.png', keywords: 'uber eats delivery' },
+  ],
+  'medios-pago': [
+    { id: 'fpay', label: 'Fpay', path: '/chile-icons/medios-pago/fpay.png', keywords: 'fpay pago' },
+    { id: 'khipu', label: 'Khipu', path: '/chile-icons/medios-pago/khipu.png', keywords: 'khipu pago' },
+    { id: 'mach', label: 'Mach', path: '/chile-icons/medios-pago/mach.png', keywords: 'mach pago banco' },
+    { id: 'mercadopago', label: 'Mercado Pago', path: '/chile-icons/medios-pago/mercadopago.png', keywords: 'mercadopago mercado pago' },
+    { id: 'multicaja', label: 'Multicaja', path: '/chile-icons/medios-pago/multicaja.png', keywords: 'multicaja pago' },
+    { id: 'one_pay', label: 'OnePay', path: '/chile-icons/medios-pago/one_pay.png', keywords: 'onepay one pay pago' },
+    { id: 'paypal', label: 'PayPal', path: '/chile-icons/medios-pago/paypal.png', keywords: 'paypal pago' },
+    { id: 'redcompra', label: 'Redcompra', path: '/chile-icons/medios-pago/redcompra.png', keywords: 'redcompra pago' },
+    { id: 'transbank', label: 'Transbank', path: '/chile-icons/medios-pago/transbank.png', keywords: 'transbank pago' },
+    { id: 'webpay', label: 'Webpay', path: '/chile-icons/medios-pago/webpay.png', keywords: 'webpay pago' },
+  ],
+  tarjetas: [
+    { id: 'american_express', label: 'American Express', path: '/chile-icons/tarjetas/american_express.png', keywords: 'american express tarjeta credito' },
+    { id: 'dinners_club', label: "Dinner's Club", path: '/chile-icons/tarjetas/dinners_club.png', keywords: 'dinners club tarjeta credito' },
+    { id: 'magna', label: 'Magna', path: '/chile-icons/tarjetas/magna.png', keywords: 'magna tarjeta credito' },
+    { id: 'master_card', label: 'MasterCard', path: '/chile-icons/tarjetas/master_card.png', keywords: 'mastercard tarjeta credito' },
+    { id: 'visa', label: 'Visa', path: '/chile-icons/tarjetas/visa.png', keywords: 'visa tarjeta credito' },
+  ],
+};
+
+const CHILE_CATEGORY_LABELS = {
+  bancos: 'Bancos',
+  isapres: 'Isapres',
+  afp: 'AFP',
+  telefonia: 'Telefonía',
+  gas: 'Gas',
+  agua: 'Agua',
+  tickets: 'Tickets/Delivery',
+  'medios-pago': 'Medios de Pago',
+  tarjetas: 'Tarjetas',
+};
+
+const getAhorroBankInfo = (bankName) => {
+  if (!bankName) return null;
+  const n = bankName.toLowerCase().trim();
+  return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
+};
 
 const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -544,6 +653,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const [isAddingDebt, setIsAddingDebt] = useState(false);
   const [isAddingFixed, setIsAddingFixed] = useState(false);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [bancoSearch, setBancoSearch] = useState('');
@@ -574,8 +684,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   });
 
   const [newAccount, setNewAccount] = useState({ nombre: '', banco: '' });
+  const [accountBancoSearch, setAccountBancoSearch] = useState('');
   const [debtIconSearch, setDebtIconSearch] = useState('');
   const [fixedIconSearch, setFixedIconSearch] = useState('');
+  const [debtChileCat, setDebtChileCat] = useState('bancos');
+  const [fixedChileCat, setFixedChileCat] = useState('agua');
+  const [subChileCat, setSubChileCat] = useState('medios-pago');
   const [suscripciones, setSuscripciones] = useState([]);
   const [isAddingSub, setIsAddingSub] = useState(false);
   const [newSub, setNewSub] = useState({
@@ -1020,6 +1134,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       });
       setDebtIconSearch('');
       setBancoSearch('');
+      if (item.iconType === 'chile_preset' && item.iconValue) {
+        const [cat] = item.iconValue.split(':');
+        if (cat && CHILE_PRESET_ICONS[cat]) setDebtChileCat(cat);
+      }
       setIsAddingDebt(true);
     } else if (item.tipo === 'suscripcion') {
       setNewSub({
@@ -1034,6 +1152,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         iconUrl: item.iconUrl || ''
       });
       setSubscriptionIconSearch('');
+      if (item.iconType === 'chile_preset' && item.iconValue) {
+        const [cat] = item.iconValue.split(':');
+        if (cat && CHILE_PRESET_ICONS[cat]) setSubChileCat(cat);
+      }
       setIsAddingSub(true);
     } else {
       setNewFixed({
@@ -1045,6 +1167,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         iconUrl: item.iconUrl || ''
       });
       setFixedIconSearch('');
+      if (item.iconType === 'chile_preset' && item.iconValue) {
+        const [cat] = item.iconValue.split(':');
+        if (cat && CHILE_PRESET_ICONS[cat]) setFixedChileCat(cat);
+      }
       setIsAddingFixed(true);
     }
   };
@@ -1065,9 +1191,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const handleSaveAccount = (e) => {
     e.preventDefault();
     if (!newAccount.nombre || !newAccount.banco) return;
-    setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
+    if (editingAccount) {
+      setCuentasAhorro(cuentasAhorro.map(c => c.id === editingAccount.id ? { ...newAccount, id: c.id } : c));
+    } else {
+      setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
+    }
     setIsAddingAccount(false);
+    setEditingAccount(null);
     setNewAccount({ nombre: '', banco: '' });
+    setAccountBancoSearch('');
   };
 
   const handleContribucionesChange = (e) => {
@@ -1115,10 +1247,20 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     }));
   };
 
+  const renderChileIcon = (item) => {
+    if (item.iconType !== 'chile_preset') return null;
+    const [cat, id] = (item.iconValue || ':').split(':');
+    const icon = CHILE_PRESET_ICONS[cat]?.find(i => i.id === id);
+    if (icon) return <img src={icon.path} className="w-full h-full object-contain" alt={icon.label} title={icon.label} />;
+    return null;
+  };
+
   const renderFixedIcon = (item) => {
     if (item.iconType === 'url' && item.iconUrl) {
       return <img src={item.iconUrl} className="w-full h-full object-contain" alt="Icon" />;
     }
+    const chileIcon = renderChileIcon(item);
+    if (chileIcon) return chileIcon;
     const Preset = PRESET_ICONS.find(i => i.id === (item.iconValue || 'layout'))?.icon || LayoutDashboard;
     return <Preset size={18} />;
   };
@@ -1131,6 +1273,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       const Preset = PRESET_ICONS.find(i => i.id === (item.iconValue || 'layout'))?.icon;
       if (Preset) return <Preset size={18} />;
     }
+    const chileIcon = renderChileIcon(item);
+    if (chileIcon) return chileIcon;
     return <CreditCard size={18} className="text-indigo-400" />;
   };
 
@@ -1138,6 +1282,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     if (item.iconType === 'url' && item.iconUrl) {
       return <img src={item.iconUrl} className="w-full h-full object-contain" alt="Icon" />;
     }
+    const chileIcon = renderChileIcon(item);
+    if (chileIcon) return chileIcon;
     const SubIcon = SUBSCRIPTION_ICONS.find(i => i.id === (item.iconValue || 'layout'))?.icon;
     if (SubIcon) return <SubIcon size={18} />;
     return <RefreshCw size={18} className="text-violet-400" />;
@@ -1745,9 +1891,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                     const saldo = balancesPorCuenta[c.id]?.[mes]?.acumulado || 0;
                                     return (
                                       <div key={c.id} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/30">
-                                        <div>
-                                          <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{c.nombre}</span>
-                                          <span className="text-[9px] sm:text-[10px] text-slate-400 ml-1 sm:ml-2">{c.banco}</span>
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                          {(() => { const bi = getAhorroBankInfo(c.banco); return bi ? <img src={bi.logo} alt={c.banco} className="w-5 h-3 sm:w-6 sm:h-4 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} /> : null; })()}
+                                          <div className="min-w-0">
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 block truncate">{c.nombre}</span>
+                                            <span className="text-[9px] sm:text-[10px] text-slate-400">{c.banco}</span>
+                                          </div>
                                         </div>
                                         <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(saldo)}</span>
                                       </div>
@@ -2183,11 +2332,26 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-slate-100 dark:border-slate-700 font-black text-[9px] sm:text-xs uppercase tracking-widest" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>
                             <div className="flex justify-between items-center w-full">
                               <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                                <Building2 size={10} /> <span className="truncate">{cuenta.banco} - {cuenta.nombre}</span>
+                                {(() => { const bi = getAhorroBankInfo(cuenta.banco); return bi ? <img src={bi.logo} alt={cuenta.banco} className="w-6 h-4 sm:w-8 sm:h-5 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} /> : <Building2 size={10} />; })()}
+                                <span className="truncate">{cuenta.banco} - {cuenta.nombre}</span>
                               </div>
-                              <button onClick={() => setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id))} className="text-slate-300 hover:text-rose-500 transition-colors p-1 flex-shrink-0">
-                                <Trash2 size={14} />
-                              </button>
+                              <div className="flex items-center gap-0.5 flex-shrink-0">
+                                <button onClick={() => {
+                                  setNewAccount({ nombre: cuenta.nombre, banco: cuenta.banco });
+                                  setAccountBancoSearch('');
+                                  setEditingAccount(cuenta);
+                                  setIsAddingAccount(true);
+                                }} className="text-slate-300 hover:text-emerald-500 transition-colors p-1" title="Editar">
+                                  <Pencil size={14} />
+                                </button>
+                                <button onClick={() => {
+                                  setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
+                                  const { [cuenta.id]: _, ...rest } = ahorrosData;
+                                  setAhorrosData(rest);
+                                }} className="text-slate-300 hover:text-rose-500 transition-colors p-1" title="Eliminar">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </div>
                           </td>
                           {filteredMonths.map((mes, idx) => {
@@ -2358,9 +2522,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2">
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Por defecto</button>
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Chile</button>
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL</button>
                   </div>
 
@@ -2385,6 +2550,27 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         )) : (
                           <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {newDebt.iconType === 'chile_preset' && (
+                    <div>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {['bancos', 'tarjetas'].map(cat => (
+                          <button key={cat} type="button" onClick={() => setDebtChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${debtChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                        {CHILE_PRESET_ICONS[debtChileCat]?.map(i => {
+                          const val = `${debtChileCat}:${i.id}`;
+                          return (
+                            <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === val ? `${theme.borderTheme} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                              <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                              <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -2425,12 +2611,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                   <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Chile</button>
                   <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL</button>
                 </div>
 
-                {newFixed.iconType === 'preset' ? (
+                {newFixed.iconType === 'preset' && (
                   <div>
                     <div className="relative mb-2 sm:mb-3">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -2453,7 +2640,30 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                       )}
                     </div>
                   </div>
-                ) : (
+                )}
+
+                {newFixed.iconType === 'chile_preset' && (
+                  <div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
+                        <button key={cat} type="button" onClick={() => setFixedChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${fixedChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                      {CHILE_PRESET_ICONS[fixedChileCat]?.map(i => {
+                        const val = `${fixedChileCat}:${i.id}`;
+                        return (
+                          <button key={i.id} type="button" onClick={() => setNewFixed({ ...newFixed, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newFixed.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                            <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                            <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {newFixed.iconType === 'url' && (
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
                     <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
@@ -2471,9 +2681,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  <PiggyBank className="text-emerald-600" size={20} /> Nueva Cuenta de Ahorro
+                  <PiggyBank className="text-emerald-600" size={20} /> {editingAccount ? 'Editar Cuenta de Ahorro' : 'Nueva Cuenta de Ahorro'}
                 </h3>
-                <button onClick={() => setIsAddingAccount(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+                <button onClick={() => { setIsAddingAccount(false); setEditingAccount(null); setNewAccount({ nombre: '', banco: '' }); setAccountBancoSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
               <form onSubmit={handleSaveAccount} className="space-y-3 sm:space-y-4">
                 <div>
@@ -2482,9 +2692,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 </div>
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
-                  <input required value={newAccount.banco} onChange={e => setNewAccount({ ...newAccount, banco: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" placeholder="Ej: Banco de Chile, MACH, Fintual..." />
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                    <input
+                      type="text"
+                      value={accountBancoSearch}
+                      onChange={(e) => setAccountBancoSearch(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200"
+                      placeholder="Buscar banco..."
+                    />
+                  </div>
+                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-36 overflow-y-auto pr-1 custom-scrollbar">
+                    {(accountBancoSearch
+                      ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(accountBancoSearch.toLowerCase()))
+                      : BANCOS_CHILE
+                    ).map(b => (
+                      <button key={b.id} type="button" onClick={() => { setNewAccount({ ...newAccount, banco: b.nombre }); setAccountBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newAccount.banco === b.nombre ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                        <img src={b.logo} alt={b.nombre} className="w-10 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                        <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{b.nombre}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {newAccount.banco && (
+                    <div className="mt-2 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2">
+                      <img src={getAhorroBankInfo(newAccount.banco)?.logo || ''} alt={newAccount.banco} className="w-8 h-5 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{newAccount.banco}</span>
+                      <button type="button" onClick={() => { setNewAccount({ ...newAccount, banco: '' }); setAccountBancoSearch(''); }} className="ml-auto text-slate-400 hover:text-rose-500 p-0.5"><X size={14} /></button>
+                    </div>
+                  )}
                 </div>
-                <button type="submit" className="w-full bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition-all mt-3 sm:mt-4">Crear Cuenta</button>
+                <button type="submit" className="w-full bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition-all mt-3 sm:mt-4">{editingAccount ? 'Guardar Cambios' : 'Crear Cuenta'}</button>
               </form>
             </div>
           </div>
@@ -2540,29 +2777,58 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
-                  <div className="relative mb-2 sm:mb-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input
-                      type="text"
-                      value={subscriptionIconSearch}
-                      onChange={(e) => setSubscriptionIconSearch(e.target.value)}
-                      className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
-                      placeholder="Buscar icono..."
-                    />
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL</button>
                   </div>
-                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
-                    {filteredSubscriptionIcons.length > 0 ? filteredSubscriptionIcons.map(i => (
-                      <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
-                        <i.icon size={14} />
-                        <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
-                      </button>
-                    )) : (
-                      <div className="col-span-5 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
-                    )}
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`flex-1 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL Imagen</button>
-                  </div>
+
+                  {newSub.iconType === 'preset' && (
+                    <div>
+                      <div className="relative mb-2 sm:mb-3">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                        <input
+                          type="text"
+                          value={subscriptionIconSearch}
+                          onChange={(e) => setSubscriptionIconSearch(e.target.value)}
+                          className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                          placeholder="Buscar icono..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                        {filteredSubscriptionIcons.length > 0 ? filteredSubscriptionIcons.map(i => (
+                          <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                            <i.icon size={14} />
+                            <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                          </button>
+                        )) : (
+                          <div className="col-span-5 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {newSub.iconType === 'chile_preset' && (
+                    <div>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {['medios-pago', 'telefonia', 'tickets'].map(cat => (
+                          <button key={cat} type="button" onClick={() => setSubChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${subChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                        {CHILE_PRESET_ICONS[subChileCat]?.map(i => {
+                          const val = `${subChileCat}:${i.id}`;
+                          return (
+                            <button key={i.id} type="button" onClick={() => setNewSub({ ...newSub, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === val && newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                              <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                              <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {newSub.iconType === 'url' && (
                     <input value={newSub.iconUrl} onChange={e => setNewSub({ ...newSub, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200 mt-2`} placeholder="https://ejemplo.com/logo.png" />
                   )}
