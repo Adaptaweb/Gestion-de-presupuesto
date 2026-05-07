@@ -1058,20 +1058,20 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-2 md:p-4 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <div className="max-w-[98%] mx-auto">
+      <div className="max-w-[98%] lg:max-w-[1400px] mx-auto">
 
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-6">
-          <div className="flex items-center gap-4">
-            <div className={`${theme.headerIcon} p-3 rounded-2xl shadow-lg ${theme.headerIconShadow}`}>
-              <TrendingDown className="text-white" size={32} />
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-6">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className={`${theme.headerIcon} p-2 md:p-3 rounded-2xl shadow-lg ${theme.headerIconShadow}`}>
+              <TrendingDown className="text-white" size={24} />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Finance Master</h1>
-              <p className="text-slate-500 dark:text-slate-400 font-medium tracking-tight">Gestión Inteligente de Egresos</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Finance Master</h1>
+              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium tracking-tight hidden sm:block">Gestión Inteligente de Egresos</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
             <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-xl shadow-sm">
               <User size={16} className="text-slate-400" />
               <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{user.name}</span>
@@ -1083,44 +1083,44 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             {user.role === 'admin' && (
               <button
                 onClick={onOpenAdmin}
-                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm"
+                className="flex items-center gap-1.5 md:gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all shadow-sm"
               >
-                <Users size={18} /> Usuarios
+                <Users size={16} /> <span className="hidden sm:inline">Usuarios</span>
               </button>
             )}
 
             <div className="relative">
               <button
                 onClick={() => setShowColorPicker(!showColorPicker)}
-                className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
                 title="Cambiar color del tema"
               >
-                <Palette size={18} />
+                <Palette size={16} />
               </button>
               {showColorPicker && (
-                <div className="fixed right-4 top-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-4 z-[100] w-72 animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 sm:right-4 top-12 sm:top-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-4 z-[100] w-64 sm:w-72 animate-in fade-in zoom-in-95 duration-200">
                   <div className="flex justify-between items-center mb-3">
                     <p className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Color del tema</p>
                     <button onClick={() => setShowColorPicker(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={14} /></button>
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-3">
                     {THEME_COLORS.map(color => (
                       <button
                         key={color}
                         onClick={() => { setThemeColor(color); setShowColorPicker(false); localStorage.setItem('themeColor', color); }}
-                        className="flex flex-col items-center gap-1.5 group"
+                        className="flex flex-col items-center gap-1 sm:gap-1.5 group"
                       >
                         <div
-                          className={`w-10 h-10 rounded-full transition-all flex items-center justify-center ${themeColor === color ? 'ring-[3px] ring-offset-2 ring-slate-400 dark:ring-offset-slate-800 scale-110' : 'hover:scale-110 group-hover:shadow-lg'}`}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all flex items-center justify-center ${themeColor === color ? 'ring-[3px] ring-offset-2 ring-slate-400 dark:ring-offset-slate-800 scale-110' : 'hover:scale-110 group-hover:shadow-lg'}`}
                           style={{ backgroundColor: THEME_COLOR_HEX[color] }}
                         >
                           {themeColor === color && (
-                            <svg className="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                         </div>
-                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors capitalize">{color === 'indigo' ? 'Índigo' : color === 'blue' ? 'Azul' : color === 'emerald' ? 'Esmeralda' : color === 'purple' ? 'Púrpura' : color === 'rose' ? 'Rosa' : color === 'amber' ? 'Ámbar' : color === 'teal' ? 'Cian' : 'Gris'}</span>
+                        <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors capitalize">{color === 'indigo' ? 'Índigo' : color === 'blue' ? 'Azul' : color === 'emerald' ? 'Esmeralda' : color === 'purple' ? 'Púrpura' : color === 'rose' ? 'Rosa' : color === 'amber' ? 'Ámbar' : color === 'teal' ? 'Cian' : 'Gris'}</span>
                       </button>
                     ))}
                   </div>
@@ -1131,17 +1131,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             <button
               onClick={generateFinancialAdvice}
               disabled={isAiLoading}
-              className={`flex items-center gap-2 ${theme.btnPrimary} text-white px-5 py-2.5 rounded-2xl text-sm font-black shadow-lg ${theme.shadowBtn} transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100`}
+              className={`flex items-center gap-1.5 md:gap-2 ${theme.btnPrimary} text-white px-3 md:px-5 py-2 md:py-2.5 rounded-xl md:rounded-2xl text-xs md:text-sm font-black shadow-lg ${theme.shadowBtn} transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100`}
             >
-              {isAiLoading ? <Loader2 className="animate-spin" size={18} /> : <BrainCircuit size={18} />}
-              Consultar IA ✨
+              {isAiLoading ? <Loader2 className="animate-spin" size={16} /> : <BrainCircuit size={16} />}
+              <span className="hidden sm:inline">Consultar IA ✨</span><span className="sm:hidden">IA ✨</span>
             </button>
 
             <div className="relative">
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 pr-8 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer shadow-sm"
+                className="appearance-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 md:px-4 py-2 pr-8 rounded-xl text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer shadow-sm"
               >
                 {availableYears.map(year => (
                   <option key={year} value={year}>{year}</option>
@@ -1151,8 +1151,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-            <button onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm">
-              <Calendar size={18} /> +1 Mes
+            <button onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])} className="flex items-center gap-1.5 md:gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all shadow-sm">
+              <Calendar size={16} /> <span className="hidden sm:inline">+1 Mes</span>
             </button>
             {syncStatus !== 'idle' && (
               <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}>
@@ -1160,35 +1160,37 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : 'Error'}
               </div>
             )}
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
-              className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-            >
-              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <button
-              onClick={onLogout}
-              className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm"
-              title="Cerrar sesión"
-            >
-              <LogOut size={18} />
-            </button>
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
+                className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+              >
+                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button
+                onClick={onLogout}
+                className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+                title="Cerrar sesión"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           </div>
         </header>
 
         {aiAdvice && (
-          <div className={`mb-8 ${theme.bgLight} ${theme.bgLightDark} border-2 ${theme.badgeBg} ${theme.badgeBgDark} rounded-[2rem] p-6 relative animate-in fade-in slide-in-from-top-4 duration-500`}>
-            <button onClick={() => setAiAdvice(null)} className={`absolute top-4 right-4 ${theme.iconAccent} ${theme.iconAccentDark} hover:${theme.tabText} transition-colors`}>
-              <X size={20} />
+          <div className={`mb-4 md:mb-8 ${theme.bgLight} ${theme.bgLightDark} border-2 ${theme.badgeBg} ${theme.badgeBgDark} rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 relative animate-in fade-in slide-in-from-top-4 duration-500`}>
+            <button onClick={() => setAiAdvice(null)} className={`absolute top-2 sm:top-4 right-2 sm:right-4 ${theme.iconAccent} ${theme.iconAccentDark} hover:${theme.tabText} transition-colors`}>
+              <X size={18} />
             </button>
-            <div className="flex gap-4">
-              <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl h-fit shadow-sm">
-                <Sparkles className={theme.tabText} size={24} />
+            <div className="flex gap-2 sm:gap-4">
+              <div className="bg-white dark:bg-slate-800 p-2 sm:p-3 rounded-xl sm:rounded-2xl h-fit shadow-sm flex-shrink-0">
+                <Sparkles className={theme.tabText} size={20} />
               </div>
-              <div className="flex-1">
-                <h4 className={`${theme.badgeText} dark:${theme.badgeTextDark} font-black text-lg mb-2`}>Consejo de tu Analista IA ✨</h4>
-                <div className={`${theme.badgeText}/80 dark:${theme.badgeTextDark}/80 text-sm leading-relaxed whitespace-pre-wrap font-medium`}>
+              <div className="flex-1 min-w-0 pr-4 sm:pr-0">
+                <h4 className={`${theme.badgeText} dark:${theme.badgeTextDark} font-black text-sm sm:text-lg mb-1 sm:mb-2`}>Consejo de tu Analista IA ✨</h4>
+                <div className={`${theme.badgeText}/80 dark:${theme.badgeTextDark}/80 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-medium`}>
                   {aiAdvice}
                 </div>
               </div>
@@ -1196,38 +1198,38 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </div>
         )}
 
-        <div className="flex gap-4 mb-8 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] w-fit">
+        <div className="flex gap-1 sm:gap-2 md:gap-4 mb-4 md:mb-8 bg-slate-200/50 dark:bg-slate-800/50 p-1 sm:p-1.5 rounded-xl sm:rounded-[1.5rem] w-full md:w-fit overflow-x-auto">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${activeTab === 'dashboard' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'dashboard' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
           >
-            <LayoutDashboard size={18} /> Dashboard
+            <LayoutDashboard size={16} /> <span className="hidden sm:inline">Dashboard</span><span className="sm:hidden">Dash</span>
           </button>
           <button
             onClick={() => setActiveTab('general')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${activeTab === 'general' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'general' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
           >
-            <ListChecks size={18} /> Detalle General
+            <ListChecks size={16} /> <span className="hidden sm:inline">Detalle General</span><span className="sm:hidden">Detalle</span>
           </button>
           <button
             onClick={() => setActiveTab('ahorros')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all ${activeTab === 'ahorros' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'ahorros' ? `bg-white dark:bg-slate-700 ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
           >
-            <PiggyBank size={18} /> Gestión de Ahorros
+            <PiggyBank size={16} /> <span className="hidden sm:inline">Gestión de Ahorros</span><span className="sm:hidden">Ahorros</span>
           </button>
         </div>
 
         {activeTab === 'dashboard' && !!dashboardMonth && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-3">
-                <LayoutDashboard className={theme.tabText} /> Resumen Mensual
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
+                <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
               </h2>
               <div className="relative">
                 <select
                   value={dashboardMonth}
                   onChange={(e) => setDashboardMonth(e.target.value)}
-                  className={`appearance-none bg-white dark:bg-slate-800 border-2 ${theme.borderAccent} rounded-xl px-4 py-2 pr-10 font-bold text-sm outline-none cursor-pointer ${theme.tabText}`}
+                  className={`appearance-none bg-white dark:bg-slate-800 border-2 ${theme.borderAccent} rounded-xl px-3 sm:px-4 py-2 pr-10 font-bold text-xs sm:text-sm outline-none cursor-pointer ${theme.tabText}`}
                 >
                   {filteredMonths.map(mes => (
                     <option key={mes} value={mes}>{mes}</option>
@@ -1297,100 +1299,100 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
               return (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className={`rounded-2xl p-5 shadow-lg text-white ${theme.btnPrimary.replace('hover:bg-', 'bg-').replace('hover:bg-', '')} relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card`}>
-                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white ${theme.btnPrimary.replace('hover:bg-', 'bg-').replace('hover:bg-', '')} relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card`}>
+                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <CreditCard className="text-white/90" size={16} />
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <CreditCard className="text-white/90" size={14} />
                           </div>
-                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Cuotas</span>
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Cuotas</span>
                         </div>
-                        <div className="text-2xl font-mono font-black mb-1.5">{formatCurrency(totalCuotas)}</div>
-                        <div className="flex items-center gap-2 text-xs opacity-85">
+                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalCuotas)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{cuotasPagadasMes} pagadas</span>
-                          <span>·</span>
-                          <span>{cuotasPendientesMes} pendientes</span>
+                          <span className="hidden sm:inline">·</span>
+                          <span className="hidden sm:inline">{cuotasPendientesMes} pendientes</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl p-5 shadow-lg text-white bg-slate-600 dark:bg-slate-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
-                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-slate-600 dark:bg-slate-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
+                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <Receipt className="text-white/90" size={16} />
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <Receipt className="text-white/90" size={14} />
                           </div>
-                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Gastos Fijos</span>
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Gastos Fijos</span>
                         </div>
-                        <div className="text-2xl font-mono font-black mb-1.5">{formatCurrency(totalGastos)}</div>
-                        <div className="flex items-center gap-2 text-xs opacity-85">
+                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalGastos)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{gastosPagados} pagados</span>
-                          <span>·</span>
-                          <span>{gastosFijos.length - gastosPagados} pendientes</span>
+                          <span className="hidden sm:inline">·</span>
+                          <span className="hidden sm:inline">{gastosFijos.length - gastosPagados} pendientes</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl p-5 shadow-lg text-white bg-rose-600 dark:bg-rose-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
-                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-rose-600 dark:bg-rose-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
+                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <RefreshCw className="text-white/90" size={16} />
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <RefreshCw className="text-white/90" size={14} />
                           </div>
-                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Suscripciones</span>
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Suscripciones</span>
                         </div>
-                        <div className="text-2xl font-mono font-black mb-1.5">{formatCurrency(totalSubs)}</div>
-                        <div className="flex items-center gap-2 text-xs opacity-85">
+                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalSubs)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{subsActivas.length} activas</span>
-                          {proximosCobros.length > 0 && <span>·</span>}
-                          {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
+                          {proximosCobros.length > 0 && <span className="hidden sm:inline">·</span>}
+                          {proximosCobros.length > 0 && <span className="hidden sm:inline">Próx: día {proximosCobros[0]?.dia}</span>}
                         </div>
                       </div>
                     </div>
 
-                    <div className={`rounded-2xl p-5 shadow-lg text-white relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card ${disponibleExtras >= 0 ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700'}`}>
-                      <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white/10 -translate-y-6 translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white/5 translate-y-4 -translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
+                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card ${disponibleExtras >= 0 ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700'}`}>
+                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
+                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <Wallet className="text-white/90" size={16} />
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
+                            <Wallet className="text-white/90" size={14} />
                           </div>
-                          <span className="text-xs font-black uppercase tracking-wider opacity-90">Disponible</span>
+                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Disponible</span>
                         </div>
-                        <div className={`text-2xl font-mono font-black mb-1.5 ${disponibleExtras < 0 ? 'animate-pulse' : ''}`}>{formatCurrency(disponibleExtras)}</div>
-                        <div className="flex items-center gap-2 text-xs opacity-85">
+                        <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras < 0 ? 'animate-pulse' : ''}`}>{formatCurrency(disponibleExtras)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{pctDisponible.toFixed(0)}% libre</span>
-                          <span>·</span>
-                          <span className="font-bold">{saludLabel}</span>
+                          <span className="hidden sm:inline">·</span>
+                          <span className="hidden sm:inline font-bold">{saludLabel}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <button onClick={() => toggleDashSection('cuotas')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl ${theme.bgLight} ${theme.bgLightDark}`}>
-                            <CreditCard className={theme.tabText} size={18} />
+                      <button onClick={() => toggleDashSection('cuotas')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className={`p-1.5 sm:p-2 rounded-xl ${theme.bgLight} ${theme.bgLightDark}`}>
+                            <CreditCard className={theme.tabText} size={16} />
                           </div>
                           <div className="text-left">
-                            <span className="text-sm font-black text-slate-700 dark:text-slate-200">Cuotas Activas</span>
-                            <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${theme.badgeBg} ${theme.badgeBgDark} ${theme.badgeText} dark:${theme.badgeTextDark}`}>{cuotasActivas.length} este mes</span>
+                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Cuotas Activas</span>
+                            <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${theme.badgeBg} ${theme.badgeBgDark} ${theme.badgeText} dark:${theme.badgeTextDark}`}>{cuotasActivas.length} este mes</span>
                           </div>
                         </div>
-                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${dashSections.cuotas ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.cuotas ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       {dashSections.cuotas && (
-                        <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4 animate-slide-down">
+                        <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-slate-700 pt-3 sm:pt-4 animate-slide-down">
                           {cuotasActivas.map(d => {
                             const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
                             let pagadas = 0; let cur = toDateVal(d.mesInicio); const end = toDateVal(mesTermino);
@@ -1398,30 +1400,30 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                             const totalD = d.isContribuciones ? 4 : d.cuotasTotales;
                             const pctD = totalD > 0 ? (pagadas / totalD) * 100 : 0;
                             return (
-                              <div key={d.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
+                              <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
                                   <div className={theme.tabText}>{renderDebtIcon(d)}</div>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate">{d.descripcion}</span>
-                                    {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Legal</span>}
+                                  <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{d.descripcion}</span>
+                                    {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[8px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
                                     <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                       <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
+                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
                                   </div>
                                 </div>
-                                <span className="text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(d.valorCuota)}</span>
+                                <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(d.valorCuota)}</span>
                               </div>
                             );
                           })}
                           {cuotasActivas.length > 0 && (
                             <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
                               <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                              <span className={`text-sm font-mono font-black ${theme.tabText}`}>{formatCurrency(totalCuotas)}</span>
+                              <span className={`text-xs sm:text-sm font-mono font-black ${theme.tabText}`}>{formatCurrency(totalCuotas)}</span>
                             </div>
                           )}
                         </div>
@@ -1429,35 +1431,35 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     </div>
 
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <div className="p-5">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                            <PieChart className="text-emerald-500 dark:text-emerald-400" size={18} />
+                      <div className="p-3 sm:p-5">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                          <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+                            <PieChart className="text-emerald-500 dark:text-emerald-400" size={16} />
                           </div>
-                          <span className="text-sm font-black text-slate-700 dark:text-slate-200">Distribución</span>
+                          <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Distribución</span>
                         </div>
-                        <div className="flex items-center gap-6">
-                          <div className="relative w-32 h-32 flex-shrink-0">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                          <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
                             <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donutSegments.map((s, i) => {
                               return `${donutColors[i]} ${i === 0 ? '0' : donutSegments.slice(0, i).reduce((a, x) => a + x.pct, 0)}% ${donutSegments.slice(0, i + 1).reduce((a, x) => a + x.pct, 0)}%`;
                             }).join(', ')})` }}></div>
-                            <div className="absolute inset-3 rounded-full bg-white dark:bg-slate-800 flex flex-col items-center justify-center shadow-inner">
-                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gastado</span>
-                              <span className="text-lg font-mono font-black text-slate-800 dark:text-slate-100">{pctGastado.toFixed(0)}%</span>
+                            <div className="absolute inset-2 sm:inset-3 rounded-full bg-white dark:bg-slate-800 flex flex-col items-center justify-center shadow-inner">
+                              <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gastado</span>
+                              <span className="text-sm sm:text-lg font-mono font-black text-slate-800 dark:text-slate-100">{pctGastado.toFixed(0)}%</span>
                             </div>
                           </div>
-                          <div className="space-y-2.5 flex-1">
+                          <div className="space-y-1.5 sm:space-y-2.5 flex-1 w-full">
                             {(() => {
                               const textColors = [theme.tabText, 'text-slate-500 dark:text-slate-400', 'text-rose-500 dark:text-rose-400', 'text-emerald-500 dark:text-emerald-400'];
                               return donutSegments.map((s, i) => (
                               <div key={i} className="flex items-center justify-between group/legend hover:bg-slate-50 dark:hover:bg-slate-700/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-3 h-3 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-800" style={{ backgroundColor: donutColors[i] }}></div>
+                                <div className="flex items-center gap-2 sm:gap-2.5">
+                                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-800" style={{ backgroundColor: donutColors[i] }}></div>
                                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{s.label}</span>
                                 </div>
                                 <div className="text-right">
                                   <span className={`text-xs font-mono font-black ${textColors[i]}`}>{formatCurrency(s.value)}</span>
-                                  <span className="text-[10px] font-bold text-slate-400 ml-1.5">{s.pct.toFixed(0)}%</span>
+                                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 ml-1 sm:ml-1.5">{s.pct.toFixed(0)}%</span>
                                 </div>
                               </div>
                             ));
@@ -1468,58 +1470,58 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <button onClick={() => toggleDashSection('subs')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/30">
-                            <RefreshCw className="text-rose-500 dark:text-rose-400" size={18} />
+                      <button onClick={() => toggleDashSection('subs')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="p-1.5 sm:p-2 rounded-xl bg-rose-100 dark:bg-rose-900/30">
+                            <RefreshCw className="text-rose-500 dark:text-rose-400" size={16} />
                           </div>
                           <div className="text-left">
-                            <span className="text-sm font-black text-slate-700 dark:text-slate-200">Suscripciones</span>
-                            <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300`}>{subsActivas.length} activas</span>
+                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Suscripciones</span>
+                            <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300`}>{subsActivas.length} activas</span>
                           </div>
                         </div>
-                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${dashSections.subs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.subs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       {dashSections.subs && (
-                        <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4 animate-slide-down">
+                        <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-slate-700 pt-3 sm:pt-4 animate-slide-down">
                           {subsActivas.map(s => {
                             const monto = s.pagos?.[mes]?.monto || s.valor || 0;
                             return (
-                              <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
+                              <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
                                   <div className="text-rose-500 dark:text-rose-400">{renderSubscriptionIcon(s)}</div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
+                                    <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
                                   </div>
-                                  <span className="text-[10px] font-bold text-slate-400">Cobra día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400">Día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
                                 </div>
-                                <span className="text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(monto)}</span>
+                                <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(monto)}</span>
                               </div>
                             );
                           })}
                           {subsActivas.length > 0 && (
                             <>
-                              <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <CalendarDays size={14} className="text-slate-400" />
-                                  <span className="text-[10px] font-black text-slate-400 uppercase">Próximos cobros</span>
+                              <div className="pt-2 sm:pt-3 border-t border-slate-100 dark:border-slate-700">
+                                <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                                  <CalendarDays size={12} className="text-slate-400" />
+                                  <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase">Próximos cobros</span>
                                 </div>
-                                <div className="space-y-1.5">
+                                <div className="space-y-1 sm:space-y-1.5">
                                   {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
-                                    <div key={dia} className="flex items-center gap-2 text-xs">
-                                      <span className="w-16 font-bold text-slate-500 dark:text-slate-400">Día {dia}</span>
-                                      <span className="text-slate-400">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
+                                    <div key={dia} className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs">
+                                      <span className="w-full sm:w-16 font-bold text-slate-500 dark:text-slate-400">Día {dia}</span>
+                                      <span className="text-slate-400 text-xs">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
                                     </div>
                                   ))}
                                 </div>
                               </div>
                               <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
                                 <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                                <span className="text-sm font-mono font-black text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</span>
+                                <span className="text-xs sm:text-sm font-mono font-black text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</span>
                               </div>
                             </>
                           )}
@@ -1528,35 +1530,35 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     </div>
 
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                      <button onClick={() => toggleDashSection('fijos')} className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-700">
-                            <Receipt className="text-slate-500 dark:text-slate-400" size={18} />
+                      <button onClick={() => toggleDashSection('fijos')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group/section">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-700">
+                            <Receipt className="text-slate-500 dark:text-slate-400" size={16} />
                           </div>
                           <div className="text-left">
-                            <span className="text-sm font-black text-slate-700 dark:text-slate-200">Gastos Fijos</span>
-                            <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300`}>{gastosFijos.length} activos</span>
+                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Gastos Fijos</span>
+                            <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300`}>{gastosFijos.length} activos</span>
                           </div>
                         </div>
-                        <svg className={`w-5 h-5 text-slate-400 transition-transform ${dashSections.fijos ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                        <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.fijos ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       {dashSections.fijos && (
-                        <div className="px-5 pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4 animate-slide-down">
+                        <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-slate-700 pt-3 sm:pt-4 animate-slide-down">
                           {gastosFijosList.map(g => (
-                            <div key={g.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
+                            <div key={g.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 transition-all hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
                                 <div className={theme.tabText}>{renderFixedIcon(g)}</div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <span className="text-sm font-black text-slate-700 dark:text-slate-200 truncate block">{g.descripcion}</span>
+                                <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate block">{g.descripcion}</span>
                               </div>
-                              <span className="text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(g.monto)}</span>
+                              <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(g.monto)}</span>
                             </div>
                           ))}
                           {gastosFijosList.length > 0 && (
                             <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
                               <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                              <span className="text-sm font-mono font-black text-slate-500 dark:text-slate-400">{formatCurrency(totalGastos)}</span>
+                              <span className="text-xs sm:text-sm font-mono font-black text-slate-500 dark:text-slate-400">{formatCurrency(totalGastos)}</span>
                             </div>
                           )}
                         </div>
@@ -1564,36 +1566,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-5 hover:shadow-xl transition-shadow duration-300 animate-fade-in">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${saludBg}`}>
-                          <Activity className={saludColor} size={18} />
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-3 sm:p-5 hover:shadow-xl transition-shadow duration-300 animate-fade-in">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className={`p-1.5 sm:p-2 rounded-xl ${saludBg}`}>
+                          <Activity className={saludColor} size={16} />
                         </div>
-                        <span className="text-sm font-black text-slate-700 dark:text-slate-200">Salud Financiera</span>
+                        <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Salud Financiera</span>
                       </div>
-                      <span className={`text-xs font-black px-3 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
+                      <span className={`text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                       <div className="flex-1">
-                        <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden relative">
+                        <div className="h-2.5 sm:h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden relative">
                           <div className="absolute inset-0 flex">
                             <div className="h-full bg-emerald-400" style={{ width: '60%' }}></div>
                             <div className="h-full bg-amber-400" style={{ width: '20%' }}></div>
                             <div className="h-full bg-rose-400" style={{ width: '20%' }}></div>
                           </div>
-                          <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition-all duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
+                          <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition-all duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
                         </div>
-                        <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-1">
+                        <div className="flex justify-between text-[8px] sm:text-[9px] font-bold text-slate-400 mt-1">
                           <span>0%</span>
                           <span className="text-emerald-500">60%</span>
                           <span className="text-amber-500">80%</span>
                           <span>100%</span>
                         </div>
                       </div>
-                      <div className="text-right min-w-[100px]">
-                        <div className={`text-2xl font-mono font-black ${saludColor}`}>{pctGastado.toFixed(0)}%</div>
-                        <div className="text-[9px] font-bold text-slate-400 uppercase">gastado</div>
+                      <div className="text-right sm:min-w-[100px]">
+                        <div className={`text-xl sm:text-2xl font-mono font-black ${saludColor}`}>{pctGastado.toFixed(0)}%</div>
+                        <div className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase">gastado</div>
                       </div>
                     </div>
                   </div>
@@ -1630,35 +1632,35 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     const hasNoData = totalAhorroActual === 0 && promedioMensual === 0;
 
                     return (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
                         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                          <div className="p-5">
-                            <div className="flex items-center gap-3 mb-4">
-                              <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                                <PiggyBank className="text-emerald-500 dark:text-emerald-400" size={18} />
+                          <div className="p-3 sm:p-5">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                              <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+                                <PiggyBank className="text-emerald-500 dark:text-emerald-400" size={16} />
                               </div>
-                              <span className="text-sm font-black text-slate-700 dark:text-slate-200">Resumen de Ahorros</span>
+                              <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Resumen de Ahorros</span>
                             </div>
                             {hasNoData ? (
-                              <div className="text-center py-6">
-                                <PiggyBank className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={36} />
-                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Sin datos de ahorro aún</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Ve a la pestaña <span className="font-bold text-emerald-500">Gestión de Ahorros</span> para registrar depósitos o gastos.</p>
+                              <div className="text-center py-4 sm:py-6">
+                                <PiggyBank className="mx-auto text-slate-300 dark:text-slate-600 mb-2 sm:mb-3" size={28} />
+                                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">Sin datos de ahorro aún</p>
+                                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Ve a la pestaña <span className="font-bold text-emerald-500">Gestión de Ahorros</span> para registrar depósitos o gastos.</p>
                               </div>
                             ) : (
                               <>
-                                <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                                  <span className="text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Balance total</span>
-                                  <div className="text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalAhorroActual)}</div>
+                                <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Balance total</span>
+                                  <div className="text-lg sm:text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalAhorroActual)}</div>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5 sm:space-y-2">
                                   {cuentasAhorro.map(c => {
                                     const saldo = balancesPorCuenta[c.id]?.[mes]?.acumulado || 0;
                                     return (
-                                      <div key={c.id} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/30">
+                                      <div key={c.id} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-slate-50 dark:bg-slate-700/30">
                                         <div>
                                           <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{c.nombre}</span>
-                                          <span className="text-[10px] text-slate-400 ml-2">{c.banco}</span>
+                                          <span className="text-[9px] sm:text-[10px] text-slate-400 ml-1 sm:ml-2">{c.banco}</span>
                                         </div>
                                         <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(saldo)}</span>
                                       </div>
@@ -1671,33 +1673,33 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         </div>
 
                         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                          <div className="p-5">
-                            <div className="flex items-center gap-3 mb-4">
-                              <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-                                <TrendingUp className="text-indigo-500 dark:text-indigo-400" size={18} />
+                          <div className="p-3 sm:p-5">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                              <div className="p-1.5 sm:p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
+                                <TrendingUp className="text-indigo-500 dark:text-indigo-400" size={16} />
                               </div>
-                              <span className="text-sm font-black text-slate-700 dark:text-slate-200">Proyección de Ahorro</span>
+                              <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Proyección de Ahorro</span>
                               {promedioMensual > 0 && (
-                                <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${trendUp ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                                <span className={`ml-auto text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${trendUp ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
                                   {trendUp ? 'Tendencia +' : 'Estable'}
                                 </span>
                               )}
                             </div>
 
                             {hasNoData ? (
-                              <div className="text-center py-6">
-                                <TrendingUp className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={36} />
-                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Sin historial de depósitos</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Registra depósitos en al menos un mes para ver tu proyección.</p>
+                              <div className="text-center py-4 sm:py-6">
+                                <TrendingUp className="mx-auto text-slate-300 dark:text-slate-600 mb-2 sm:mb-3" size={28} />
+                                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">Sin historial de depósitos</p>
+                                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Registra depósitos en al menos un mes para ver tu proyección.</p>
                               </div>
                             ) : (
                               <>
-                                <div className="mb-4">
+                                <div className="mb-3 sm:mb-4">
                                   <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Promedio mensual</span>
+                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">Promedio mensual</span>
                                     <span className="text-xs font-mono font-black text-slate-600 dark:text-slate-300">{formatCurrency(promedioMensual)}</span>
                                   </div>
-                                  <div className="flex gap-1 items-end h-8">
+                                  <div className="flex gap-1 items-end h-6 sm:h-8">
                                     {depositsByMonth.map((d, i) => (
                                       <div
                                         key={i}
@@ -1707,21 +1709,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                       ></div>
                                     ))}
                                   </div>
-                                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                                  <div className="flex justify-between text-[8px] sm:text-[9px] text-slate-400 mt-0.5">
                                     {last6Months.map((m, i) => (
                                       <span key={i} className="flex-1 text-center truncate">{m.split(' ')[0].substring(0, 3)}</span>
                                     ))}
                                   </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                  <div className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-center">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">3 meses</span>
-                                    <div className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion3Meses)}</div>
+                                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                  <div className="p-2 sm:p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-center">
+                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">3 meses</span>
+                                    <div className="text-xs sm:text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion3Meses)}</div>
                                   </div>
-                                  <div className="p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-center">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">6 meses</span>
-                                    <div className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion6Meses)}</div>
+                                  <div className="p-2 sm:p-3 bg-slate-50 dark:bg-slate-700/30 rounded-xl text-center">
+                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">6 meses</span>
+                                    <div className="text-xs sm:text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion6Meses)}</div>
                                   </div>
                                 </div>
                               </>
@@ -1739,14 +1741,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
         {activeTab === 'general' ? (
           <>
-            <div className="flex justify-end gap-2 mb-4">
-              <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setIsAddingDebt(true); }} className={`flex items-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+            <div className="flex flex-col sm:flex-row justify-end gap-2 mb-4">
+              <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
               </button>
-              <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setIsAddingFixed(true); }} className={`flex items-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+              <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <Receipt size={16} /> Gasto Fijo <Plus size={16} />
               </button>
-              <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+              <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <RefreshCw size={16} /> Suscripciones <Plus size={16} />
               </button>
             </div>
@@ -1756,8 +1758,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <table className="w-full border-collapse text-left min-w-[1100px]">
                   <thead>
                     <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
-                      <th className="p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest sticky left-0 bg-white dark:bg-slate-800 z-20 border-r border-slate-100 dark:border-slate-700 min-w-[280px]">
-                        Detalle de Gastos
+                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-slate-800 z-20 border-r border-slate-100 dark:border-slate-700 min-w-[160px] sm:min-w-[280px]">
+                        <span className="hidden sm:inline">Detalle de Gastos</span><span className="sm:hidden">Detalle</span>
                       </th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
@@ -1768,7 +1770,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </th>
                         );
                       })}
-                          <th className={`p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-slate-700 ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                          <th className={`hidden sm:table-cell p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-slate-700 ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
                         <div className="flex items-center justify-center gap-1">
                           <TrendingUp size={12} className={theme.tabText} />
                           <span className={`text-[10px] font-black uppercase tracking-tighter ${theme.tabText}`}>Progreso</span>
@@ -1780,30 +1782,30 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     {itemsUnificados.length > 0 ? (
                       itemsUnificados.map(item => (
                         <tr key={item.id} className="border-b border-slate-50 dark:border-slate-700/50 group hover:bg-slate-50/30 dark:hover:bg-slate-700/20">
-                          <td className="p-3 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-700/50 z-10 border-r border-slate-100 dark:border-slate-700">
+                          <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-700/50 z-10 border-r border-slate-100 dark:border-slate-700">
                             <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-3">
-                                <div className="p-1 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden w-10 h-10 flex items-center justify-center">
+                              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                <div className="p-1 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0">
                                   {item.tipo === 'cuota' ? renderDebtIcon(item) : item.tipo === 'suscripcion' ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
                                 </div>
-                                <div className="flex flex-col">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-black text-slate-800 dark:text-slate-200 text-sm leading-tight">{item.descripcion}</span>
-                                    {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">Legal</span>}
-                                    {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[9px] font-black px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5"><RefreshCw size={10} /> Suscripcion</span>}
+                                <div className="flex flex-col min-w-0">
+                                  <div className="flex items-center gap-1 sm:gap-2">
+                                    <span className="font-black text-slate-800 dark:text-slate-200 text-[10px] sm:text-sm leading-tight truncate">{item.descripcion}</span>
+                                    {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
+                                    {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
                                   </div>
-                                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">
-                                    {item.tipo === 'cuota' ? `${item.mesInicio} — ${item.mesTermino}` : item.tipo === 'suscripcion' ? `${item.billingCycle === 'anual' ? 'Renova anual' : 'Renueva'} dia ${item.diaPago || 1}` : 'Gasto Fijo Recurrente'}
+                                  <span className="text-[8px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
+                                    {item.tipo === 'cuota' ? `${item.mesInicio.split(' ')[0]}` : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : 'Fijo'}
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                              <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all flex-shrink-0">
                                 <button onClick={() => handleEditItem(item)} className="p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={14} /></button>
                                 <button onClick={() => {
                                   if (item.tipo === 'cuota') setDeudas(deudas.filter(x => x.id !== item.id));
                                   else if (item.tipo === 'suscripcion') setSuscripciones(suscripciones.filter(x => x.id !== item.id));
                                   else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
-                                }} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                }} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
                               </div>
                             </div>
                           </td>
@@ -1897,7 +1899,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                             }
                           })}
                           {item.tipo === 'cuota' ? (
-                            <td className={`p-3 border-l border-slate-50 dark:border-slate-700/50 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-10`}>
+                            <td className={`hidden sm:table-cell p-3 border-l border-slate-50 dark:border-slate-700/50 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-10`}>
                               {(() => {
                                 const mesTermino = calculateEndDate(item.mesInicio, item.cuotasTotales, item.isContribuciones);
                                 let cur = toDateVal(item.mesInicio);
@@ -1925,22 +1927,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                               })()}
                             </td>
                           ) : (
-                            <td className={`p-3 border-l border-slate-50 dark:border-slate-700/50 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-10`}>
+                            <td className={`hidden sm:table-cell p-3 border-l border-slate-50 dark:border-slate-700/50 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-10`}>
                               <span className={`text-xs ${theme.tabText} opacity-30`}>—</span>
                             </td>
                           )}
                         </tr>
                       ))
                     ) : (
-                      <tr><td colSpan={filteredMonths.length + 2} className="p-24 text-center text-slate-300 font-bold italic">No hay registros para mostrar</td></tr>
+                      <tr><td colSpan={filteredMonths.length + 1} className="p-24 text-center text-slate-300 font-bold italic">No hay registros para mostrar</td></tr>
                     )}
                   </tbody>
                   <tfoot className="bg-slate-900 text-white font-black">
                     <tr className={`border-t-4 ${theme.borderAccent} divide-x divide-slate-800`}>
-                      <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
+                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-slate-300">
-                          <CreditCard size={20} />
-                          <span className="uppercase text-xs tracking-widest">Total Cuotas</span>
+                          <CreditCard size={18} />
+                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Cuotas</span><span className="sm:hidden">Cuotas</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1951,15 +1953,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
-                      <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
+                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-slate-400">
-                          <Receipt size={20} />
-                          <span className="uppercase text-xs tracking-widest">Total Gastos Fijos</span>
+                          <Receipt size={18} />
+                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Gastos Fijos</span><span className="sm:hidden">G. Fijos</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1970,15 +1972,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
-                      <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
+                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-rose-400">
-                          <RefreshCw size={20} />
-                          <span className="uppercase text-xs tracking-widest">Total Suscripciones</span>
+                          <RefreshCw size={18} />
+                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Suscripciones</span><span className="sm:hidden">Subs</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1989,15 +1991,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className={`border-t-4 ${theme.borderAccent} divide-x divide-slate-800`}>
-                      <td className="p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
+                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-cyan-400">
-                          <ArrowUpCircle size={20} />
-                          <span className="uppercase text-xs tracking-widest">Sueldo del Mes</span>
+                          <ArrowUpCircle size={18} />
+                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Sueldo del Mes</span><span className="sm:hidden">Sueldo</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -2012,19 +2014,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                 setSueldos({ ...sueldos, [mes]: parseInt(raw) || 0 });
                               }}
                               placeholder="$ Monto"
-                              className={`w-full bg-slate-700/50 rounded-xl py-2 px-3 text-center text-cyan-400 font-mono outline-none border border-slate-600 focus:border-cyan-500 transition-all placeholder:text-slate-500`}
+                              className="w-full bg-slate-700/50 rounded-xl py-2 px-3 text-center text-cyan-400 font-mono outline-none border border-slate-600 focus:border-cyan-500 transition-all placeholder:text-slate-500"
                             />
                           </td>
                         );
                       })}
-                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800 bg-slate-950">
-                      <td className="p-4 sticky left-0 bg-slate-950 z-30 border-r border-slate-800 flex items-center gap-3">
-                        <Wallet className="text-emerald-400" size={24} />
-                        <span className="uppercase text-sm">Disponible</span>
+                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-950 z-30 border-r border-slate-800 flex items-center gap-2 sm:gap-3">
+                        <Wallet className="text-emerald-400" size={20} />
+                        <span className="uppercase text-xs sm:text-sm"><span className="hidden sm:inline">Disponible</span><span className="sm:hidden">Libre</span></span>
                       </td>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
@@ -2036,7 +2038,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
+                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLight} ${theme.bgLightDark} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2047,37 +2049,37 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </>
         ) : activeTab === 'ahorros' ? (
           <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-3">
-                <PiggyBank className={theme.tabText} /> Mis Cuentas de Ahorro
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
+                <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
               </h2>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full md:w-auto">
                 <button
                   onClick={getSavingsPlan}
                   disabled={isAiLoading}
-                  className={`flex items-center gap-2 ${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} ${theme.borderAccent} ${theme.badgeBgDark} hover:opacity-80 px-4 py-2 rounded-xl text-sm font-black transition-all disabled:opacity-50`}
+                  className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} ${theme.borderAccent} ${theme.badgeBgDark} hover:opacity-80 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all disabled:opacity-50`}
                 >
-                  {isAiLoading ? <Loader2 size={18} className="animate-spin" /> : <Lightbulb size={18} />}
-                  Estrategia IA ✨
+                  {isAiLoading ? <Loader2 size={16} className="animate-spin" /> : <Lightbulb size={16} />}
+                  <span className="hidden sm:inline">Estrategia IA</span><span className="sm:hidden">IA</span> ✨
                 </button>
-                <button onClick={() => setIsAddingAccount(true)} className={`flex items-center gap-2 ${theme.btnPrimary} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
-                  <Plus size={18} /> Nueva Cuenta
+                <button onClick={() => setIsAddingAccount(true)} className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.btnPrimary} text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                  <Plus size={16} /> <span className="hidden sm:inline">Nueva Cuenta</span><span className="sm:hidden">Cuenta</span>
                 </button>
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-                      <th className="p-4 text-left font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-slate-800 z-20 min-w-[260px]">Cuentas / Bancos</th>
+                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-slate-800 z-20 min-w-[120px] sm:min-w-[260px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
                         return (
-                          <th key={mes} className={`p-3 text-center min-w-[140px] border-l border-slate-100 dark:border-slate-700 ${isEven ? 'bg-slate-50/80 dark:bg-slate-800/80' : 'bg-white/50 dark:bg-slate-700/30'}`}>
-                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
-                            <div className="text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
+                          <th key={mes} className={`p-2 sm:p-3 text-center min-w-[120px] sm:min-w-[140px] border-l border-slate-100 dark:border-slate-700 ${isEven ? 'bg-slate-50/80 dark:bg-slate-800/80' : 'bg-white/50 dark:bg-slate-700/30'}`}>
+                            <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
+                            <div className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
                           </th>
                         );
                       })}
@@ -2087,12 +2089,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     {cuentasAhorro.map(cuenta => (
                       <React.Fragment key={cuenta.id}>
                         <tr className="bg-slate-50/30 dark:bg-slate-800/30">
-                          <td className="p-3 sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-slate-100 dark:border-slate-700 font-black text-xs uppercase tracking-widest" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>
+                          <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-slate-800 z-10 border-r border-slate-100 dark:border-slate-700 font-black text-[9px] sm:text-xs uppercase tracking-widest" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>
                             <div className="flex justify-between items-center w-full">
-                              <div className="flex items-center gap-2">
-                                <Building2 size={14} /> {cuenta.banco} - {cuenta.nombre}
+                              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                                <Building2 size={10} /> <span className="truncate">{cuenta.banco} - {cuenta.nombre}</span>
                               </div>
-                              <button onClick={() => setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id))} className="text-slate-300 hover:text-rose-500 transition-colors">
+                              <button onClick={() => setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id))} className="text-slate-300 hover:text-rose-500 transition-colors p-1 flex-shrink-0">
                                 <Trash2 size={14} />
                               </button>
                             </div>
@@ -2101,10 +2103,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                             const isEven = idx % 2 === 0;
                             const cellBgBase = isEven ? 'bg-white dark:bg-slate-800' : 'bg-slate-50/50 dark:bg-slate-700/20';
                             return (
-                              <td key={mes} className={`p-3 border-l border-slate-100 dark:border-slate-700 ${cellBgBase}`}>
+                              <td key={mes} className={`p-2 sm:p-3 border-l border-slate-100 dark:border-slate-700 ${cellBgBase}`}>
                                 <div className="grid grid-cols-2 gap-1">
                                   <div className="flex flex-col gap-0.5">
-                                    <label className="text-[8px] font-black text-emerald-500 uppercase">Ahorro</label>
+                                    <label className="text-[7px] sm:text-[8px] font-black text-emerald-500 uppercase">Ahorro</label>
                                     <input
                                       type="text"
                                       placeholder="+$"
@@ -2117,7 +2119,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                     />
                                   </div>
                                   <div className="flex flex-col gap-0.5">
-                                    <label className="text-[8px] font-black text-rose-500 uppercase">Gasto</label>
+                                    <label className="text-[7px] sm:text-[8px] font-black text-rose-500 uppercase">Gasto</label>
                                     <input
                                       type="text"
                                       placeholder="-$"
@@ -2135,14 +2137,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           })}
                         </tr>
                         <tr className="border-b border-slate-100 dark:border-slate-700">
-                          <td className="p-2 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 border-r border-slate-100 dark:border-slate-700 text-right pr-4">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Saldo Acumulado {cuenta.nombre}</span>
+                          <td className="p-1.5 sm:p-2 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 border-r border-slate-100 dark:border-slate-700 text-right pr-2 sm:pr-4">
+                            <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase">Saldo {cuenta.nombre}</span>
                           </td>
                           {filteredMonths.map((mes, idx) => {
                             const isEven = idx % 2 === 0;
                             const cellBgBase = isEven ? 'bg-slate-50/50 dark:bg-slate-800/50' : 'bg-slate-100/30 dark:bg-slate-700/30';
                             return (
-                              <td key={mes} className={`p-2 border-l border-slate-100 dark:border-slate-700 text-center ${cellBgBase}`}>
+                              <td key={mes} className={`p-1.5 sm:p-2 border-l border-slate-100 dark:border-slate-700 text-center ${cellBgBase}`}>
                                 <div className="text-xs font-mono font-black text-slate-600 dark:text-slate-400">
                                   {formatCurrency(balancesPorCuenta[cuenta.id]?.[mes]?.acumulado)}
                                 </div>
@@ -2155,9 +2157,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   </tbody>
                   <tfoot className={`${theme.btnPrimary} text-white font-black`}>
                     <tr>
-                      <td className={`p-4 sticky left-0 ${theme.btnPrimary} z-30 flex items-center gap-3`}>
-                        <TrendingUp size={24} />
-                        <span className="uppercase text-sm">Ahorro Total Acumulado</span>
+                      <td className={`p-2 sm:p-4 sticky left-0 ${theme.btnPrimary} z-30 flex items-center gap-2 sm:gap-3`}>
+                        <TrendingUp size={18} />
+                        <span className="uppercase text-[10px] sm:text-sm"><span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span></span>
                       </td>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
@@ -2176,246 +2178,246 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         ) : null}
 
         {isAddingDebt && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black flex items-center gap-2">
-                  <CreditCard className={theme.tabText} /> {editingItem ? 'Editar Cuota' : 'Nueva Cuota'}
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                  <CreditCard className={theme.tabText} size={20} /> {editingItem ? 'Editar Cuota' : 'Nueva Cuota'}
                 </h3>
-                <button onClick={() => { setIsAddingDebt(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X /></button>
+                <button onClick={() => { setIsAddingDebt(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
-              <form onSubmit={handleSaveDebt} className="space-y-4">
+              <form onSubmit={handleSaveDebt} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
+                  <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
-                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, cuotasTotales: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
+                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, cuotasTotales: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
                   </div>
                   <div>
-                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
-                    <input type="number" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
+                    <input type="number" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de Inicio</label>
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de Inicio</label>
                   <input
                     type="month"
                     required
                     value={monthStrToMonthInput(newDebt.mesInicio)}
                     onChange={handleMesInicioChange}
-                    className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                    className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
                   />
                 </div>
-                <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-100 dark:border-amber-800">
-                  <input type="checkbox" id="contrib" checked={newDebt.isContribuciones} onChange={handleContribucionesChange} className="w-5 h-5 rounded-md accent-amber-600" />
-                  <label htmlFor="contrib" className="text-xs font-bold text-amber-800 dark:text-amber-200">Es Contribución Legal (Solo 4 cuotas fijas al año)</label>
+                <div className="flex items-center gap-2 sm:gap-3 bg-amber-50 dark:bg-amber-900/20 p-3 sm:p-4 rounded-xl border border-amber-100 dark:border-amber-800">
+                  <input type="checkbox" id="contrib" checked={newDebt.isContribuciones} onChange={handleContribucionesChange} className="w-4 h-4 sm:w-5 sm:h-5 rounded-md accent-amber-600" />
+                  <label htmlFor="contrib" className="text-[10px] sm:text-xs font-bold text-amber-800 dark:text-amber-200">Es Contribución Legal (Solo 4 cuotas fijas al año)</label>
                 </div>
 
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
-                  <div className="grid grid-cols-3 gap-2 mb-2">
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-2 rounded-lg text-xs font-black border-2 transition-all ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Por defecto</button>
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-2 rounded-lg text-xs font-black border-2 transition-all ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-2 rounded-lg text-xs font-black border-2 transition-all ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL</button>
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Por defecto</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL</button>
                   </div>
 
                   {newDebt.iconType === 'preset' && (
                     <div>
-                      <div className="relative mb-3">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <div className="relative mb-2 sm:mb-3">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                         <input
                           type="text"
                           value={debtIconSearch}
                           onChange={(e) => setDebtIconSearch(e.target.value)}
-                          className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                          className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
                           placeholder="Buscar icono..."
                         />
                       </div>
-                      <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                      <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {filteredDebtIcons.length > 0 ? filteredDebtIcons.map(i => (
-                          <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === i.id ? `${theme.borderTheme} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
-                            <i.icon size={18} />
-                            <span className="text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                          <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === i.id ? `${theme.borderTheme} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                            <i.icon size={16} />
+                            <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         )) : (
-                          <div className="col-span-6 text-center py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
+                          <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
                         )}
                       </div>
                     </div>
                   )}
 
                   {newDebt.iconType === 'url' && (
-                    <input value={newDebt.iconUrl} onChange={e => setNewDebt({ ...newDebt, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
+                    <input value={newDebt.iconUrl} onChange={e => setNewDebt({ ...newDebt, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   )}
                 </div>
-                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-4 rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-4`}>Guardar Registro</button>
+                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Guardar Registro</button>
               </form>
             </div>
           </div>
         )}
 
         {isAddingFixed && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black flex items-center gap-2">
-                  <Receipt className="text-slate-800 dark:text-slate-200" /> {editingItem ? 'Editar Gasto' : 'Nuevo Gasto Fijo'}
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                  <Receipt className="text-slate-800 dark:text-slate-200" size={20} /> {editingItem ? 'Editar Gasto' : 'Nuevo Gasto Fijo'}
                 </h3>
-                <button onClick={() => { setIsAddingFixed(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X /></button>
+                <button onClick={() => { setIsAddingFixed(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
-              <form onSubmit={handleSaveFixed} className="space-y-4">
+              <form onSubmit={handleSaveFixed} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
+                  <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-2 rounded-lg text-xs font-black border-2 transition-all ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos Predefinidos</button>
-                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-2 rounded-lg text-xs font-black border-2 transition-all ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL Imagen</button>
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2">
+                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL</button>
                 </div>
 
                 {newFixed.iconType === 'preset' ? (
                   <div>
-                    <div className="relative mb-3">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <div className="relative mb-2 sm:mb-3">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                       <input
                         type="text"
                         value={fixedIconSearch}
                         onChange={(e) => setFixedIconSearch(e.target.value)}
-                        className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                        className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
                         placeholder="Buscar icono..."
                       />
                     </div>
-                    <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                    <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {filteredFixedIcons.length > 0 ? filteredFixedIcons.map(i => (
-                        <button type="button" key={i.id} onClick={() => setNewFixed({ ...newFixed, iconValue: i.id })} className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newFixed.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
-                          <i.icon size={18} />
-                          <span className="text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                        <button type="button" key={i.id} onClick={() => setNewFixed({ ...newFixed, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newFixed.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                          <i.icon size={16} />
+                          <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                         </button>
                       )) : (
-                        <div className="col-span-6 text-center py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
+                        <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
                       )}
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
-                    <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
+                    <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
 
-                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-4 rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-4`}>Registrar Gasto</button>
+                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Registrar Gasto</button>
               </form>
             </div>
           </div>
         )}
 
         {isAddingAccount && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black flex items-center gap-2">
-                  <PiggyBank className="text-emerald-600" /> Nueva Cuenta de Ahorro
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                  <PiggyBank className="text-emerald-600" size={20} /> Nueva Cuenta de Ahorro
                 </h3>
-                <button onClick={() => setIsAddingAccount(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X /></button>
+                <button onClick={() => setIsAddingAccount(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
-              <form onSubmit={handleSaveAccount} className="space-y-4">
+              <form onSubmit={handleSaveAccount} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre de la Cuenta</label>
-                  <input required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" placeholder="Ej: Fondo de Emergencia, Vacaciones..." />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre de la Cuenta</label>
+                  <input required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" placeholder="Ej: Fondo de Emergencia, Vacaciones..." />
                 </div>
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
-                  <input required value={newAccount.banco} onChange={e => setNewAccount({ ...newAccount, banco: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" placeholder="Ej: Banco de Chile, MACH, Fintual..." />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
+                  <input required value={newAccount.banco} onChange={e => setNewAccount({ ...newAccount, banco: e.target.value })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" placeholder="Ej: Banco de Chile, MACH, Fintual..." />
                 </div>
-                <button type="submit" className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition-all mt-4">Crear Cuenta</button>
+                <button type="submit" className="w-full bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition-all mt-3 sm:mt-4">Crear Cuenta</button>
               </form>
             </div>
           </div>
         )}
 
         {isAddingSub && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black flex items-center gap-2">
-                  <RefreshCw className={theme.tabText} /> {editingItem?.tipo === 'suscripcion' ? 'Editar Suscripcion' : 'Nueva Suscripcion'}
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                  <RefreshCw className={theme.tabText} size={20} /> {editingItem?.tipo === 'suscripcion' ? 'Editar Suscripcion' : 'Nueva Suscripcion'}
                 </h3>
-                <button onClick={() => { setIsAddingSub(false); setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubscriptionIconSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X /></button>
+                <button onClick={() => { setIsAddingSub(false); setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubscriptionIconSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
-              <form onSubmit={handleSaveSubscription} className="space-y-4">
+              <form onSubmit={handleSaveSubscription} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Servicio</label>
-                  <input required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Netflix, Spotify, YouTube..." />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Servicio</label>
+                  <input required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Netflix, Spotify, YouTube..." />
                 </div>
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor</label>
-                  <input type="number" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Monto a pagar" />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor</label>
+                  <input type="number" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Monto a pagar" />
                 </div>
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Plan de facturacion</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2.5 rounded-xl text-xs font-black border-2 transition-all ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Mensual</button>
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2.5 rounded-xl text-xs font-black border-2 transition-all ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Anual</button>
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Plan de facturacion</label>
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Mensual</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Anual</button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Duracion (años)</label>
-                    <select value={newSub.durationYears} onChange={e => setNewSub({ ...newSub, durationYears: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}>
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Duracion (años)</label>
+                    <select value={newSub.durationYears} onChange={e => setNewSub({ ...newSub, durationYears: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}>
                       {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'año' : 'años'}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
-                    <input type="number" min="1" max="28" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: parseInt(e.target.value) || 1 })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
+                    <input type="number" min="1" max="28" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: parseInt(e.target.value) || 1 })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de inicio</label>
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de inicio</label>
                   <input
                     type="month"
                     required
                     value={monthStrToMonthInput(newSub.mesInicio)}
                     onChange={e => setNewSub({ ...newSub, mesInicio: monthInputToMonthStr(e.target.value) })}
-                    className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                    className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
-                  <div className="relative mb-3">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
+                  <div className="relative mb-2 sm:mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                     <input
                       type="text"
                       value={subscriptionIconSearch}
                       onChange={(e) => setSubscriptionIconSearch(e.target.value)}
-                      className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                      className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
                       placeholder="Buscar icono..."
                     />
                   </div>
-                  <div className="grid grid-cols-5 gap-2 mb-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                     {filteredSubscriptionIcons.length > 0 ? filteredSubscriptionIcons.map(i => (
-                      <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
-                        <i.icon size={16} />
-                        <span className="text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                      <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                        <i.icon size={14} />
+                        <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                       </button>
                     )) : (
-                      <div className="col-span-5 text-center py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
+                      <div className="col-span-5 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
                     )}
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`flex-1 py-2 rounded-lg text-xs font-black border-2 transition-all ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL Imagen</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`flex-1 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>URL Imagen</button>
                   </div>
                   {newSub.iconType === 'url' && (
-                    <input value={newSub.iconUrl} onChange={e => setNewSub({ ...newSub, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-4 py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200 mt-2`} placeholder="https://ejemplo.com/logo.png" />
+                    <input value={newSub.iconUrl} onChange={e => setNewSub({ ...newSub, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200 mt-2`} placeholder="https://ejemplo.com/logo.png" />
                   )}
                 </div>
 
-                <button type="submit" className={`w-full ${theme.btnSub} text-white py-4 rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-4`}>Guardar Suscripcion</button>
+                <button type="submit" className={`w-full ${theme.btnSub} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Guardar Suscripcion</button>
               </form>
             </div>
           </div>
