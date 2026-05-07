@@ -1290,8 +1290,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-2 md:p-4 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <div className="max-w-[98%] lg:max-w-[1400px] mx-auto">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-1 md:p-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+      <div className="max-w-[100%] lg:max-w-[1920px] mx-auto">
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4">
