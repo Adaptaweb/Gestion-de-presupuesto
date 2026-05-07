@@ -182,7 +182,7 @@ app.get('/api/data', authenticateToken, (req, res) => {
     const deudas = deudasRows.map(d => {
       const pagos = {};
       pagosDeudasRows.filter(p => p.deuda_id === d.id).forEach(p => { pagos[p.mes] = { estado: p.estado }; });
-      return { ...d, isContribuciones: Boolean(d.isContribuciones), pagos };
+      return { ...d, isContribuciones: Boolean(d.isContribuciones), diaPago: d.diaPago, facturacionAuto: Boolean(d.facturacionAuto), banco: d.banco, bancoLogo: d.bancoLogo, tipoTarjeta: d.tipoTarjeta, pagos };
     });
 
     const gastosRows = db.prepare('SELECT * FROM gastos_fijos WHERE user_id = ?').all(userId);
@@ -190,7 +190,7 @@ app.get('/api/data', authenticateToken, (req, res) => {
     const gastosFijos = gastosRows.map(g => {
       const pagos = {};
       pagosGastosRows.filter(p => p.gasto_id === g.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...g, pagos };
+      return { ...g, diaPago: g.diaPago, facturacionAuto: Boolean(g.facturacionAuto), pagos };
     });
 
     const sueldosRows = db.prepare('SELECT mes, monto FROM sueldos WHERE user_id = ?').all(userId);
@@ -235,33 +235,33 @@ app.post('/api/sync', authenticateToken, (req, res) => {
       for (let i = 0; i < months.length; i++) insertMonth.run(`month-${userId}-${i}`, userId, months[i]);
     }
     
-    if (deudas) {
-      db.prepare('DELETE FROM deudas WHERE user_id = ?').run(userId);
-      const insertDeuda = db.prepare('INSERT INTO deudas (id, user_id, descripcion, cuotasTotales, valorCuota, mesInicio, isContribuciones) VALUES (?, ?, ?, ?, ?, ?, ?)');
-      const insertPagoDeuda = db.prepare('INSERT INTO pagos_deudas (deuda_id, mes, estado) VALUES (?, ?, ?)');
-      for (const d of deudas) {
-        insertDeuda.run(d.id, userId, d.descripcion, d.cuotasTotales, d.valorCuota, d.mesInicio, d.isContribuciones ? 1 : 0);
-        if (d.pagos) {
-          for (const [mes, pago] of Object.entries(d.pagos)) {
-            insertPagoDeuda.run(d.id, mes, pago.estado);
+      if (deudas) {
+        db.prepare('DELETE FROM deudas WHERE user_id = ?').run(userId);
+        const insertDeuda = db.prepare('INSERT INTO deudas (id, user_id, descripcion, cuotasTotales, valorCuota, mesInicio, isContribuciones, diaPago, facturacionAuto, banco, bancoLogo, tipoTarjeta, iconType, iconValue, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        const insertPagoDeuda = db.prepare('INSERT INTO pagos_deudas (deuda_id, mes, estado) VALUES (?, ?, ?)');
+        for (const d of deudas) {
+          insertDeuda.run(d.id, userId, d.descripcion, d.cuotasTotales, d.valorCuota, d.mesInicio, d.isContribuciones ? 1 : 0, d.diaPago || 1, d.facturacionAuto ? 1 : 0, d.banco || '', d.bancoLogo || '', d.tipoTarjeta || '', d.iconType || 'default', d.iconValue || 'layout', d.iconUrl || '');
+          if (d.pagos) {
+            for (const [mes, pago] of Object.entries(d.pagos)) {
+              insertPagoDeuda.run(d.id, mes, pago.estado);
+            }
           }
         }
       }
-    }
 
-    if (gastosFijos) {
-      db.prepare('DELETE FROM gastos_fijos WHERE user_id = ?').run(userId);
-      const insertGasto = db.prepare('INSERT INTO gastos_fijos (id, user_id, descripcion, iconType, iconValue, iconUrl) VALUES (?, ?, ?, ?, ?, ?)');
-      const insertPagoGasto = db.prepare('INSERT INTO pagos_gastos (gasto_id, mes, monto, estado) VALUES (?, ?, ?, ?)');
-      for (const g of gastosFijos) {
-        insertGasto.run(g.id, userId, g.descripcion, g.iconType, g.iconValue, g.iconUrl);
-        if (g.pagos) {
-          for (const [mes, pago] of Object.entries(g.pagos)) {
-            insertPagoGasto.run(g.id, mes, pago.monto, pago.estado);
+      if (gastosFijos) {
+        db.prepare('DELETE FROM gastos_fijos WHERE user_id = ?').run(userId);
+        const insertGasto = db.prepare('INSERT INTO gastos_fijos (id, user_id, descripcion, diaPago, facturacionAuto, iconType, iconValue, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        const insertPagoGasto = db.prepare('INSERT INTO pagos_gastos (gasto_id, mes, monto, estado) VALUES (?, ?, ?, ?)');
+        for (const g of gastosFijos) {
+          insertGasto.run(g.id, userId, g.descripcion, g.diaPago || 1, g.facturacionAuto ? 1 : 0, g.iconType || 'preset', g.iconValue || 'layout', g.iconUrl || '');
+          if (g.pagos) {
+            for (const [mes, pago] of Object.entries(g.pagos)) {
+              insertPagoGasto.run(g.id, mes, pago.monto || 0, pago.estado);
+            }
           }
         }
       }
-    }
 
     if (sueldos) {
       db.prepare('DELETE FROM sueldos WHERE user_id = ?').run(userId);

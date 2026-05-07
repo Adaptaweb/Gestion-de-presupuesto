@@ -397,7 +397,30 @@ const PRESET_ICONS = [
   { id: 'pizza', icon: Pizza, label: 'Pizza', keywords: 'pizza comida rapida' },
   { id: 'candy', icon: Candy, label: 'Dulces', keywords: 'dulces snacks golosinas' },
   { id: 'beer', icon: Beer, label: 'Cerveza', keywords: 'cerveza bar bebida alcohol' },
-  { id: 'salad', icon: Salad, label: 'Verduras', keywords: 'verduras saludable ensalada' }
+   { id: 'salad', icon: Salad, label: 'Verduras', keywords: 'verduras saludable ensalada' }
+];
+
+const BANCOS_CHILE = [
+  { id: 'banco-de-chile', nombre: 'Banco de Chile', logo: '/bancos/banco-de-chile.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-santander', nombre: 'Banco Santander', logo: '/bancos/banco-santander.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-estado', nombre: 'BancoEstado', logo: '/bancos/banco-estado.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-de-credito', nombre: 'Banco de Crédito e Inversiones (BCI)', logo: '/bancos/banco-de-credito.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-scotiabank', nombre: 'Scotiabank Chile', logo: '/bancos/banco-scotiabank.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-itau', nombre: 'Itaú Corpbanca', logo: '/bancos/banco-itau.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-falabella', nombre: 'Banco Falabella', logo: '/bancos/banco-falabella.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-ripley', nombre: 'Banco Ripley', logo: '/bancos/banco-ripley.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-paris', nombre: 'Banco Paris', logo: '/bancos/banco-paris.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-cencosud', nombre: 'Banco Cencosud', logo: '/bancos/banco-cencosud.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-security', nombre: 'Banco Security', logo: '/bancos/banco-security.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-rabobank', nombre: 'Rabobank Chile', logo: '/bancos/banco-rabobank.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-internacional', nombre: 'Banco Internacional', logo: '/bancos/banco-internacional.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-bice', nombre: 'Banco BICE', logo: '/bancos/banco-bice.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-hsbc', nombre: 'HSBC Bank Chile', logo: '/bancos/banco-hsbc.png', tipos: ['visa', 'mastercard'] },
+  { id: 'coopeuch', nombre: 'Coopeuch', logo: '/bancos/coopeuch.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-consorcio', nombre: 'Banco Consorcio', logo: '/bancos/banco-consorcio.png', tipos: ['visa', 'mastercard'] },
+  { id: 'tenpo', nombre: 'Tenpo', logo: '/bancos/tenpo.png', tipos: ['visa', 'mastercard'] },
+  { id: 'mach', nombre: 'Mach', logo: '/bancos/mach.png', tipos: ['visa', 'mastercard'] },
+  { id: 'lider', nombre: 'Banco Líder', logo: '/bancos/lider.png', tipos: ['visa', 'mastercard'] }
 ];
 
 const SUBSCRIPTION_ICONS = [
@@ -522,6 +545,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const [isAddingFixed, setIsAddingFixed] = useState(false);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [viewingItem, setViewingItem] = useState(null);
+  const [bancoSearch, setBancoSearch] = useState('');
 
   const [newDebt, setNewDebt] = useState({
     descripcion: '',
@@ -529,6 +554,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     valorCuota: 0,
     mesInicio: INITIAL_MONTHS[0],
     isContribuciones: false,
+    diaPago: 1,
+    facturacionAuto: false,
+    banco: '',
+    bancoLogo: '',
+    tipoTarjeta: '',
     iconType: 'default',
     iconValue: 'layout',
     iconUrl: ''
@@ -536,6 +566,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
   const [newFixed, setNewFixed] = useState({
     descripcion: '',
+    diaPago: 1,
+    facturacionAuto: false,
     iconType: 'preset',
     iconValue: 'layout',
     iconUrl: ''
@@ -578,6 +610,41 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     const q = subscriptionIconSearch.toLowerCase().trim();
     return SUBSCRIPTION_ICONS.filter(i => i.label.toLowerCase().includes(q) || i.keywords.toLowerCase().includes(q));
   }, [subscriptionIconSearch]);
+
+  const filteredBancos = useMemo(() => {
+    if (!bancoSearch.trim()) return BANCOS_CHILE;
+    const q = bancoSearch.toLowerCase().trim();
+    return BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(q));
+  }, [bancoSearch]);
+
+  useEffect(() => {
+    const today = new Date();
+    const diaActual = today.getDate();
+    const mesActual = `${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`;
+
+    let deudasCambiadas = false;
+    const deudasActualizadas = deudas.map(debt => {
+      if (!debt.facturacionAuto) return debt;
+      if (debt.diaPago <= diaActual && !debt.pagos?.[mesActual]) {
+        deudasCambiadas = true;
+        return { ...debt, pagos: { ...debt.pagos, [mesActual]: { estado: 'PAGADA' } } };
+      }
+      return debt;
+    });
+
+    let gastosCambiados = false;
+    const gastosActualizados = gastosFijos.map(gasto => {
+      if (!gasto.facturacionAuto) return gasto;
+      if (gasto.diaPago <= diaActual && !gasto.pagos?.[mesActual]) {
+        gastosCambiados = true;
+        return { ...gasto, pagos: { ...gasto.pagos, [mesActual]: { estado: 'PAGADA' } } };
+      }
+      return gasto;
+    });
+
+    if (deudasCambiadas) setDeudas(deudasActualizadas);
+    if (gastosCambiados) setGastosFijos(gastosActualizados);
+  }, []);
 
   const isInitialMount = useRef(true);
   const syncTimeoutRef = useRef(null);
@@ -832,7 +899,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const callGemini = async (prompt, systemPrompt = "Eres un analista financiero experto. Proporciona respuestas concisas, profesionales y accionables en español.") => {
     setIsAiLoading(true);
     let retries = 0;
-    const maxRetries = 5;
+    const maxRetries = 3;
 
     while (retries < maxRetries) {
       try {
@@ -845,19 +912,28 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           })
         });
 
-        if (!response.ok) throw new Error('API Error');
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Gemini API Error:', response.status, errorData);
+          throw new Error(`API Error: ${response.status} ${errorData.error?.message || ''}`);
+        }
 
         const result = await response.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) {
+          console.error('No text in response:', result);
+          throw new Error('No response text');
+        }
         setIsAiLoading(false);
         return text;
       } catch (error) {
+        console.error('Gemini call error:', error);
         retries++;
         await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
       }
     }
     setIsAiLoading(false);
-    return "Lo siento, no pude conectar con mi cerebro financiero en este momento. Inténtalo de nuevo más tarde.";
+    return "Lo siento, no pude conectar con mi cerebro financiero en este momento. Revisa la consola (F12) para ver el error detallado.";
   };
 
   const generateFinancialAdvice = async () => {
@@ -895,6 +971,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
   const handleSaveDebt = (e) => {
     e.preventDefault();
+    console.log('[DEBUG] Guardando deuda:', newDebt);
     const endMonth = calculateEndDate(newDebt.mesInicio, newDebt.cuotasTotales, newDebt.isContribuciones);
     ensureMonthsRange(newDebt.mesInicio, endMonth);
     if (editingItem) {
@@ -904,12 +981,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     }
     setIsAddingDebt(false);
     setEditingItem(null);
-    setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, iconType: 'default', iconValue: 'layout', iconUrl: '' });
+    setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
     setDebtIconSearch('');
+    setBancoSearch('');
   };
 
   const handleSaveFixed = (e) => {
     e.preventDefault();
+    console.log('[DEBUG] Guardando gasto fijo:', newFixed);
     if (editingItem) {
       setGastosFijos(gastosFijos.map(g => g.id === editingItem.id ? { ...newFixed, id: g.id, pagos: g.pagos } : g));
     } else {
@@ -917,7 +996,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     }
     setIsAddingFixed(false);
     setEditingItem(null);
-    setNewFixed({ descripcion: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+    setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
     setFixedIconSearch('');
   };
 
@@ -930,11 +1009,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         valorCuota: item.valorCuota || 0,
         mesInicio: item.mesInicio || months[0],
         isContribuciones: item.isContribuciones || false,
+        diaPago: item.diaPago || 1,
+        facturacionAuto: item.facturacionAuto || false,
+        banco: item.banco || '',
+        bancoLogo: item.bancoLogo || '',
+        tipoTarjeta: item.tipoTarjeta || '',
         iconType: item.iconType || 'default',
         iconValue: item.iconValue || 'layout',
         iconUrl: item.iconUrl || ''
       });
       setDebtIconSearch('');
+      setBancoSearch('');
       setIsAddingDebt(true);
     } else if (item.tipo === 'suscripcion') {
       setNewSub({
@@ -953,6 +1038,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     } else {
       setNewFixed({
         descripcion: item.descripcion || '',
+        diaPago: item.diaPago || 1,
+        facturacionAuto: item.facturacionAuto || false,
         iconType: item.iconType || 'preset',
         iconValue: item.iconValue || 'layout',
         iconUrl: item.iconUrl || ''
@@ -1742,10 +1829,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         {activeTab === 'general' ? (
           <>
             <div className="flex flex-col sm:flex-row justify-end gap-2 mb-4">
-              <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+              <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
               </button>
-              <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+              <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <Receipt size={16} /> Gasto Fijo <Plus size={16} />
               </button>
               <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
@@ -1785,17 +1872,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-700/50 z-10 border-r border-slate-100 dark:border-slate-700">
                             <div className="flex justify-between items-center">
                               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                <div className="p-1 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0">
-                                  {item.tipo === 'cuota' ? renderDebtIcon(item) : item.tipo === 'suscripcion' ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
-                                </div>
-                                <div className="flex flex-col min-w-0">
+                                 <div className="relative p-1 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0">
+                                   {item.tipo === 'cuota' ? renderDebtIcon(item) : item.tipo === 'suscripcion' ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
+                                   {item.tipo === 'cuota' && item.bancoLogo && (
+                                     <img src={item.bancoLogo} alt={item.banco} className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 object-contain bg-white dark:bg-slate-800 rounded-full p-0.5 border border-slate-200 dark:border-slate-600" onError={(e) => { e.target.style.display = 'none'; }} />
+                                   )}
+                                 </div>
+                                 <div className="flex flex-col min-w-0 cursor-pointer" onClick={() => setViewingItem({ tipo: item.tipo, data: item })}>
                                   <div className="flex items-center gap-1 sm:gap-2">
-                                    <span className="font-black text-slate-800 dark:text-slate-200 text-[10px] sm:text-sm leading-tight truncate">{item.descripcion}</span>
+                                    <span className="font-black text-slate-800 dark:text-slate-200 text-[10px] sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{item.descripcion}</span>
                                     {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                     {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
+                                    {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
                                   </div>
                                   <span className="text-[8px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
-                                    {item.tipo === 'cuota' ? `${item.mesInicio.split(' ')[0]}` : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : 'Fijo'}
+                                    {item.tipo === 'cuota' ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : 'Fijo'}
                                   </span>
                                 </div>
                               </div>
@@ -2216,6 +2307,55 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   <label htmlFor="contrib" className="text-[10px] sm:text-xs font-bold text-amber-800 dark:text-amber-200">Es Contribución Legal (Solo 4 cuotas fijas al año)</label>
                 </div>
 
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
+                    <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-3 bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                    <input type="checkbox" id="facturacionAuto" checked={newDebt.facturacionAuto} onChange={e => setNewDebt({ ...newDebt, facturacionAuto: e.target.checked })} className="w-4 h-4 sm:w-5 sm:h-5 rounded-md accent-blue-600" />
+                    <label htmlFor="facturacionAuto" className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                    <input
+                      type="text"
+                      value={bancoSearch}
+                      onChange={(e) => setBancoSearch(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                      placeholder="Buscar banco..."
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
+                    {filteredBancos.map(b => (
+                      <button type="button" key={b.id} onClick={() => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                        <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                        <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {newDebt.banco && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src={newDebt.bancoLogo} alt={newDebt.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{newDebt.banco}</span>
+                    </div>
+                  )}
+                </div>
+
+                {newDebt.banco && (
+                  <div>
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Visa</button>
+                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-slate-700 text-slate-400'}`}>Mastercard</button>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
@@ -2272,6 +2412,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
                   <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
+                    <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-3 bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                    <input type="checkbox" id="facturacionAutoFixed" checked={newFixed.facturacionAuto} onChange={e => setNewFixed({ ...newFixed, facturacionAuto: e.target.checked })} className="w-4 h-4 sm:w-5 sm:h-5 rounded-md accent-blue-600" />
+                    <label htmlFor="facturacionAutoFixed" className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</label>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2">
@@ -2419,6 +2570,105 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
                 <button type="submit" className={`w-full ${theme.btnSub} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Guardar Suscripcion</button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {viewingItem && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                  {viewingItem.tipo === 'cuota' ? <CreditCard className={theme.tabText} size={20} /> : viewingItem.tipo === 'suscripcion' ? <RefreshCw className={theme.tabText} size={20} /> : <Receipt className="text-slate-800 dark:text-slate-200" size={20} />}
+                  Detalles
+                </h3>
+                <button onClick={() => setViewingItem(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl w-12 h-12 flex items-center justify-center">
+                    {viewingItem.tipo === 'cuota' ? (
+                      viewingItem.data.bancoLogo ? <img src={viewingItem.data.bancoLogo} alt={viewingItem.data.banco} className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} /> : renderDebtIcon(viewingItem.data)
+                    ) : viewingItem.tipo === 'suscripcion' ? renderSubscriptionIcon(viewingItem.data) : renderFixedIcon(viewingItem.data)}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.descripcion}</h4>
+                    {viewingItem.data.banco && <p className="text-xs text-slate-500">{viewingItem.data.banco} {viewingItem.data.tipoTarjeta && `- ${viewingItem.data.tipoTarjeta.toUpperCase()}`}</p>}
+                  </div>
+                </div>
+
+                {viewingItem.tipo === 'cuota' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Cuotas Totales</span>
+                        <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.cuotasTotales}</p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Valor Cuota</span>
+                        <p className="font-black text-slate-800 dark:text-slate-200">{formatCurrency(viewingItem.data.valorCuota)}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Mes Inicio</span>
+                        <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.mesInicio}</p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
+                        <p className="font-black text-slate-800 dark:text-slate-200">Día {viewingItem.data.diaPago || 1}</p>
+                      </div>
+                    </div>
+                    {viewingItem.data.facturacionAuto && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800">
+                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">✓ Facturación Automática Activada</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {viewingItem.tipo === 'suscripcion' && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Valor</span>
+                        <p className="font-black text-slate-800 dark:text-slate-200">{formatCurrency(viewingItem.data.valor)}</p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Ciclo</span>
+                        <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</p>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
+                      <p className="font-black text-slate-800 dark:text-slate-200">Día {viewingItem.data.diaPago || 1}</p>
+                    </div>
+                  </>
+                )}
+
+                {viewingItem.tipo === 'fijo' && (
+                  <>
+                    <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
+                      <p className="font-black text-slate-800 dark:text-slate-200">Día {viewingItem.data.diaPago || 1}</p>
+                    </div>
+                    {viewingItem.data.facturacionAuto && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800">
+                        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">✓ Facturación Automática Activada</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <div className="flex gap-2 mt-6">
+                  <button onClick={() => { setViewingItem(null); handleEditItem(viewingItem.data); }} className={`flex-1 ${theme.btnPrimary} text-white py-2.5 sm:py-3 rounded-xl font-black text-sm shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all`}>
+                    Editar
+                  </button>
+                  <button onClick={() => setViewingItem(null)} className="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 py-2.5 sm:py-3 rounded-xl font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                    Cerrar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

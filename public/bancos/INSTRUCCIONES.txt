@@ -1,0 +1,34 @@
+INSTRUCCIONES PARA SUBIR LOGOS DE BANCOS
+
+1. Descarga los logos de cada banco en formato PNG (tamaño recomendado: 200x200 pixeles o similar)
+
+2. Guarda los archivos en ESTA CARPETA (public\bancos\) con los siguientes nombres EXACTOS:
+
+   - banco-de-chile.png
+   - banco-santander.png
+   - banco-estado.png
+   - banco-de-credito.png
+   - banco-scotiabank.png
+   - banco-itau.png
+   - banco-falabella.png
+   - banco-ripley.png
+   - banco-paris.png
+   - banco-cencosud.png
+   - banco-security.png
+   - banco-rabobank.png
+   - banco-internacional.png
+   - banco-bice.png
+   - banco-hsbc.png
+   - coopeuch.png
+   - banco-consorcio.png
+   - tenpo.png
+   - mach.png
+   - lider.png
+
+3. Asegurate de que los archivos sean .png (no .svg, .jpg, etc.)
+
+4. Después de subir los archivos, recarga la aplicacion (F5) y los logos apareceran automaticamente en el selector de bancos.
+
+NOTA: Si no encuentras el logo de algun banco, puedes:
+   - Buscar en Google "logo [banco] png transparente"
+   - O dejar ese banco sin logo (el selector mostrara el nombre igual)

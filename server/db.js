@@ -145,6 +145,67 @@ const initDb = () => {
     db.exec(`ALTER TABLE users ADD COLUMN blocked INTEGER DEFAULT 0;`);
   } catch (e) {}
 
+  try {
+    db.exec(`ALTER TABLE deudas ADD COLUMN diaPago INTEGER DEFAULT 1;`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN facturacionAuto INTEGER DEFAULT 0;`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN banco TEXT DEFAULT '';`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN bancoLogo TEXT DEFAULT '';`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN tipoTarjeta TEXT DEFAULT '';`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN iconType TEXT DEFAULT 'default';`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN iconValue TEXT DEFAULT 'layout';`);
+    db.exec(`ALTER TABLE deudas ADD COLUMN iconUrl TEXT DEFAULT '';`);
+  } catch (e) {}
+
+  try {
+    db.exec(`ALTER TABLE gastos_fijos ADD COLUMN diaPago INTEGER DEFAULT 1;`);
+    db.exec(`ALTER TABLE gastos_fijos ADD COLUMN facturacionAuto INTEGER DEFAULT 0;`);
+  } catch (e) {}
+
+  // Fix: Recreate gastos_fijos table if column count is wrong
+  try {
+    const gastosCols = db.prepare(`PRAGMA table_info(gastos_fijos)`).all();
+    if (gastosCols.length !== 8) {
+      console.log('Fixing gastos_fijos table schema. Current columns:', gastosCols.length);
+      try {
+        db.exec(`ALTER TABLE gastos_fijos RENAME TO gastos_fijos_old;`);
+        
+        db.exec(`
+          CREATE TABLE gastos_fijos (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            descripcion TEXT,
+            diaPago INTEGER DEFAULT 1,
+            facturacionAuto INTEGER DEFAULT 0,
+            iconType TEXT,
+            iconValue TEXT,
+            iconUrl TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+          );
+        `);
+        
+        try {
+          db.exec(`
+            INSERT INTO gastos_fijos SELECT id, user_id, descripcion, 
+              COALESCE(diaPago, 1), COALESCE(facturacionAuto, 0), COALESCE(iconType, 'preset'), COALESCE(iconValue, 'layout'), COALESCE(iconUrl, '')
+            FROM gastos_fijos_old;
+          `);
+        } catch(e) {
+          console.log('Could not migrate old gastos_fijos data, starting fresh');
+        }
+        
+        try {
+          db.exec(`DROP TABLE gastos_fijos_old;`);
+        } catch(e) {}
+        
+        console.log('gastos_fijos table fixed successfully');
+      } catch(e) {
+        console.error('Error fixing gastos_fijos table:', e);
+      }
+    }
+  } catch(e) {
+    console.log('gastos_fijos table does not exist yet');
+  }
+
   if (needsMigration) {
     try {
       const adminId = 'admin-legacy-001';
@@ -202,6 +263,29 @@ const initDb = () => {
   }
 };
 
-initDb();
+  initDb();
 
-export default db;
+  // Fix: If there's a schema error, delete and recreate DB
+  try {
+    const deudasCols = db.prepare(`PRAGMA table_info(deudas)`).all();
+    if (deudasCols.length !== 15) {
+      console.log('Schema mismatch detected, deleting and recreating database...');
+      db.close();
+      fs.unlinkSync(dbPath);
+      // Reinitialize
+      const newDb = new DatabaseSync(dbPath);
+      db = newDb;
+      initDb();
+      console.log('Database recreated successfully');
+    }
+  } catch(e) {
+    console.log('Schema check failed, deleting and recreating database...');
+    try { db.close(); } catch(e) {}
+    try { fs.unlinkSync(dbPath); } catch(e) {}
+    const newDb = new DatabaseSync(dbPath);
+    db = newDb;
+    initDb();
+    console.log('Database recreated successfully');
+  }
+
+  export default db;
