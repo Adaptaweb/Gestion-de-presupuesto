@@ -215,7 +215,15 @@ app.get('/api/data', authenticateToken, (req, res) => {
       return { ...s, pagos };
     });
 
-    res.json({ months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones });
+    const abonosRows = db.prepare('SELECT * FROM abonos WHERE user_id = ?').all(userId);
+    const pagosAbonosRows = db.prepare('SELECT pa.* FROM pagos_abonos pa JOIN abonos a ON pa.abono_id = a.id WHERE a.user_id = ?').all(userId);
+    const abonos = abonosRows.map(a => {
+      const pagos = {};
+      pagosAbonosRows.filter(p => p.abono_id === a.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
+      return { ...a, diaPago: a.diaPago, facturacionAuto: Boolean(a.facturacionAuto), pagos };
+    });
+
+    res.json({ months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error loading data' });
@@ -225,7 +233,7 @@ app.get('/api/data', authenticateToken, (req, res) => {
 // DATA: Full sync for authenticated user
 app.post('/api/sync', authenticateToken, (req, res) => {
   const userId = req.user.id;
-  const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones } = req.body;
+  const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos } = req.body;
   
   db.exec('BEGIN TRANSACTION');
   try {
@@ -320,6 +328,20 @@ app.post('/api/sync', authenticateToken, (req, res) => {
         if (s.pagos) {
           for (const [mes, pago] of Object.entries(s.pagos)) {
             insertPagoSub.run(s.id, mes, pago.monto || s.valor || 0, pago.estado);
+          }
+        }
+      }
+    }
+
+    if (abonos) {
+      db.prepare('DELETE FROM abonos WHERE user_id = ?').run(userId);
+      const insertAbono = db.prepare('INSERT INTO abonos (id, user_id, descripcion, diaPago, facturacionAuto, iconType, iconValue, iconUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+      const insertPagoAbono = db.prepare('INSERT INTO pagos_abonos (abono_id, mes, monto, estado) VALUES (?, ?, ?, ?)');
+      for (const a of abonos) {
+        insertAbono.run(a.id, userId, a.descripcion, a.diaPago || 1, a.facturacionAuto ? 1 : 0, a.iconType || 'preset', a.iconValue || 'layout', a.iconUrl || '');
+        if (a.pagos) {
+          for (const [mes, pago] of Object.entries(a.pagos)) {
+            insertPagoAbono.run(a.id, mes, pago.monto || 0, pago.estado);
           }
         }
       }

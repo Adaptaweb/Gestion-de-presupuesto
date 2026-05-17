@@ -580,6 +580,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const [months, setMonths] = useState(INITIAL_MONTHS);
   const [deudas, setDeudas] = useState([]);
   const [gastosFijos, setGastosFijos] = useState([]);
+  const [abonos, setAbonos] = useState([]);
   const [sueldos, setSueldos] = useState({});
   const [cuentasAhorro, setCuentasAhorro] = useState([]);
   const [ahorrosData, setAhorrosData] = useState({});
@@ -614,6 +615,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         if (data.months && data.months.length > 0) setMonths(data.months);
         if (data.deudas && data.deudas.length > 0) setDeudas(data.deudas);
         if (data.gastosFijos && data.gastosFijos.length > 0) setGastosFijos(data.gastosFijos);
+        if (data.abonos && data.abonos.length > 0) setAbonos(data.abonos);
         if (data.sueldos && Object.keys(data.sueldos).length > 0) setSueldos(data.sueldos);
         if (data.cuentasAhorro && data.cuentasAhorro.length > 0) {
           setCuentasAhorro(data.cuentasAhorro);
@@ -729,7 +731,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     iconUrl: ''
   });
   const [subscriptionIconSearch, setSubscriptionIconSearch] = useState('');
-  const [dashSections, setDashSections] = useState({ cuotas: true, subs: true, fijos: true });
+  const [isAddingAbono, setIsAddingAbono] = useState(false);
+  const [newAbono, setNewAbono] = useState({
+    descripcion: '',
+    diaPago: 1,
+    facturacionAuto: false,
+    iconType: 'preset',
+    iconValue: 'layout',
+    iconUrl: ''
+  });
+  const [abonoIconSearch, setAbonoIconSearch] = useState('');
+  const [abonoChileCat, setAbonoChileCat] = useState('agua');
+  const [abonoBancoSearch, setAbonoBancoSearch] = useState('');
+  const [dashSections, setDashSections] = useState({ cuotas: true, subs: true, fijos: true, abonos: true });
   const toggleDashSection = (key) => setDashSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const filteredDebtIcons = useMemo(() => {
@@ -749,6 +763,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     const q = subscriptionIconSearch.toLowerCase().trim();
     return SUBSCRIPTION_ICONS.filter(i => i.label.toLowerCase().includes(q) || i.keywords.toLowerCase().includes(q));
   }, [subscriptionIconSearch]);
+
+  const filteredAbonoIcons = useMemo(() => {
+    if (!abonoIconSearch.trim()) return PRESET_ICONS;
+    const q = abonoIconSearch.toLowerCase().trim();
+    return PRESET_ICONS.filter(i => i.label.toLowerCase().includes(q) || i.keywords.toLowerCase().includes(q));
+  }, [abonoIconSearch]);
 
   const filteredBancos = useMemo(() => {
     if (!bancoSearch.trim()) return BANCOS_CHILE;
@@ -781,8 +801,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       return gasto;
     });
 
+    let abonosCambiados = false;
+    const abonosActualizados = abonos.map(abono => {
+      if (!abono.facturacionAuto) return abono;
+      if (abono.diaPago <= diaActual && !abono.pagos?.[mesActual]) {
+        abonosCambiados = true;
+        return { ...abono, pagos: { ...abono.pagos, [mesActual]: { estado: 'PAGADA' } } };
+      }
+      return abono;
+    });
+
     if (deudasCambiadas) setDeudas(deudasActualizadas);
     if (gastosCambiados) setGastosFijos(gastosActualizados);
+    if (abonosCambiados) setAbonos(abonosActualizados);
   }, []);
 
   const isInitialMount = useRef(true);
@@ -801,6 +832,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         deudas,
         months,
         gastosFijos,
+        abonos,
         sueldos,
         cuentasAhorro,
         ahorrosData,
@@ -811,6 +843,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         deudasCount: deudas.length,
         monthsCount: months.length,
         gastosFijosCount: gastosFijos.length,
+        abonosCount: abonos.length,
         sueldosKeys: Object.keys(sueldos).length,
         cuentasAhorroCount: cuentasAhorro.length,
         ahorrosDataKeys: Object.keys(ahorrosData).length,
@@ -842,7 +875,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     }, 1000);
 
     return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); };
-  }, [deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones]);
+  }, [deudas, months, gastosFijos, abonos, sueldos, cuentasAhorro, ahorrosData, suscripciones]);
 
   const toDateVal = (s) => {
     if (!s) return 0;
@@ -994,8 +1027,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       };
     }).filter(s => filteredMonths.some(mes => s.activeMonths.includes(mes)));
 
-    return [...deudasProcesadas, ...gastosProcesados, ...subsProcesadas];
-  }, [deudas, gastosFijos, suscripciones, filteredMonths]);
+    const abonosProcesados = abonos.map(a => ({
+      ...a,
+      tipo: 'abono'
+    }));
+
+    return [...deudasProcesadas, ...gastosProcesados, ...subsProcesadas, ...abonosProcesados];
+  }, [deudas, gastosFijos, suscripciones, abonos, filteredMonths]);
 
   const totalesMensuales = useMemo(() => {
     const res = {};
@@ -1029,11 +1067,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         return isActive && s.pagos?.[mes]?.estado === 'PAGADA' ? acc + (s.valor || 0) : acc;
       }, 0);
 
+      const totalAbonos = abonos.reduce((acc, a) => {
+        const pago = a.pagos?.[mes];
+        return (pago?.estado === 'PAGADA') ? acc + (pago.monto || 0) : acc;
+      }, 0);
+
       const sueldo = sueldos[mes] || 0;
-      res[mes] = { cuotas: totalCuotas, gastos: totalGastos, suscripciones: totalSubs, sueldo, neto: sueldo - totalCuotas - totalGastos - totalSubs };
+      res[mes] = { cuotas: totalCuotas, gastos: totalGastos, suscripciones: totalSubs, abonos: totalAbonos, sueldo, neto: sueldo + totalAbonos - totalCuotas - totalGastos - totalSubs };
     });
     return res;
-  }, [deudas, gastosFijos, suscripciones, sueldos, months]);
+  }, [deudas, gastosFijos, abonos, suscripciones, sueldos, months]);
 
   const callGemini = async (prompt, systemPrompt = "Eres un analista financiero experto. Proporciona respuestas concisas, profesionales y accionables en español.") => {
     setIsAiLoading(true);
@@ -1139,6 +1182,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     setFixedIconSearch('');
   };
 
+  const handleSaveAbono = (e) => {
+    e.preventDefault();
+    if (editingItem) {
+      setAbonos(abonos.map(a => a.id === editingItem.id ? { ...newAbono, id: a.id, pagos: a.pagos } : a));
+    } else {
+      setAbonos([...abonos, { ...newAbono, id: `abono-${Date.now()}`, pagos: {} }]);
+    }
+    setIsAddingAbono(false);
+    setEditingItem(null);
+    setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+    setAbonoIconSearch('');
+  };
+
   const handleEditItem = (item) => {
     setEditingItem(item);
     if (item.tipo === 'cuota') {
@@ -1187,6 +1243,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         if (cat && CHILE_PRESET_ICONS[cat]) setSubChileCat(cat);
       }
       setIsAddingSub(true);
+    } else if (item.tipo === 'abono') {
+      setAbonoBancoSearch('');
+      setNewAbono({
+        descripcion: item.descripcion || '',
+        diaPago: item.diaPago || 1,
+        facturacionAuto: item.facturacionAuto || false,
+        iconType: item.iconType || 'preset',
+        iconValue: item.iconValue || 'layout',
+        iconUrl: item.iconUrl || ''
+      });
+      setAbonoIconSearch('');
+      if (item.iconType === 'chile_preset' && item.iconValue) {
+        const [cat] = item.iconValue.split(':');
+        if (cat && CHILE_PRESET_ICONS[cat]) setAbonoChileCat(cat);
+      }
+      setIsAddingAbono(true);
     } else {
       setFixedBancoSearch('');
       setNewFixed({
@@ -1278,6 +1350,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       let newVal = value;
       if (field === 'monto') newVal = parseInt(value) || 0;
       return { ...g, pagos: { ...g.pagos, [mes]: { ...current, [field]: newVal } } };
+    }));
+  };
+
+  const updateAbonoPayment = (id, mes, field, value) => {
+    setAbonos(prev => prev.map(a => {
+      if (a.id !== id) return a;
+      const current = a.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
+      let newVal = value;
+      if (field === 'monto') newVal = parseInt(value) || 0;
+      return { ...a, pagos: { ...a.pagos, [mes]: { ...current, [field]: newVal } } };
     }));
   };
 
@@ -1513,8 +1595,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               const totalCuotas = totalesMensuales[mes]?.cuotas || 0;
               const totalGastos = totalesMensuales[mes]?.gastos || 0;
               const totalSubs = totalesMensuales[mes]?.suscripciones || 0;
+              const totalAbonos = totalesMensuales[mes]?.abonos || 0;
               const sueldo = totalesMensuales[mes]?.sueldo || 0;
-              const disponibleExtras = sueldo - (totalCuotas + totalGastos + totalSubs);
+              const disponibleExtras = sueldo + totalAbonos - (totalCuotas + totalGastos + totalSubs);
               const totalGastado = totalCuotas + totalGastos + totalSubs;
               const pctCuotas = sueldo > 0 ? (totalCuotas / sueldo) * 100 : 0;
               const pctGastos = sueldo > 0 ? (totalGastos / sueldo) * 100 : 0;
@@ -2018,6 +2101,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <Receipt size={16} /> Gasto Fijo <Plus size={16} />
               </button>
+              <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 transition-all`}>
+                <TrendingUp size={16} /> Abono <Plus size={16} />
+              </button>
               <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <RefreshCw size={16} /> Suscripciones <Plus size={16} />
               </button>
@@ -2066,10 +2152,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                     <span className="font-black text-slate-800 dark:text-slate-200 text-[10px] sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{item.descripcion}</span>
                                     {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                     {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
+                                    {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
                                     {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
                                   </div>
                                   <span className="text-[8px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
-                                    {item.tipo === 'cuota' ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : 'Fijo'}
+                                    {item.tipo === 'cuota' ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : item.tipo === 'abono' ? 'Abono' : 'Fijo'}
                                   </span>
                                 </div>
                               </div>
@@ -2078,6 +2165,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                 <button onClick={() => {
                                   if (item.tipo === 'cuota') setDeudas(deudas.filter(x => x.id !== item.id));
                                   else if (item.tipo === 'suscripcion') setSuscripciones(suscripciones.filter(x => x.id !== item.id));
+                                  else if (item.tipo === 'abono') setAbonos(abonos.filter(x => x.id !== item.id));
                                   else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
                                 }} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
                               </div>
@@ -2139,6 +2227,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                       </div>
                                     </div>
                                   )}
+                                </td>
+                              );
+                            } else if (item.tipo === 'abono') {
+                              const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
+                              const isPagado = pago.estado === 'PAGADA';
+                              return (
+                                <td key={mes} className={`p-[9px] border-l border-slate-50 dark:border-dark-lighter/50 ${cellBgBase}`}>
+                                  <div
+                                    onClick={() => {
+                                      if (pago.monto > 0) {
+                                        updateAbonoPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA');
+                                      }
+                                    }}
+                                    className={`w-full py-0.5 rounded-2xl transition-all flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
+                                  >
+                                    <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
+                                    <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
+                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-60">$</span>
+                                      <input
+                                        type="text"
+                                        placeholder="0"
+                                        value={pago.monto ? new Intl.NumberFormat('es-CL').format(pago.monto) : ''}
+                                        onChange={(e) => {
+                                          const raw = e.target.value.replace(/[^0-9\-]/g, '');
+                                          updateAbonoPayment(item.id, mes, 'monto', parseInt(raw) || 0);
+                                        }}
+                                        className="w-full bg-transparent text-center font-mono font-black text-[18px] outline-none pl-3 dark:text-white"
+                                      />
+                                    </div>
+                                  </div>
                                 </td>
                               );
                             } else {
@@ -2263,6 +2381,25 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         return (
                           <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
                             <div className="text-base font-mono text-rose-400">{formatCurrency(totalesMensuales[mes].suscripciones)}</div>
+                          </td>
+                        );
+                      })}
+                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                      </td>
+                    </tr>
+                    <tr className="divide-x divide-slate-800 border-t border-slate-800">
+                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
+                        <div className="flex items-center gap-2 text-emerald-400">
+                          <TrendingUp size={18} />
+                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Abonos</span><span className="sm:hidden">Abonos</span></span>
+                        </div>
+                      </td>
+                      {filteredMonths.map((mes, idx) => {
+                        const isEven = idx % 2 === 0;
+                        return (
+                          <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
+                            <div className="text-base font-mono text-emerald-400">{formatCurrency(totalesMensuales[mes].abonos)}</div>
                           </td>
                         );
                       })}
@@ -2757,6 +2894,100 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </div>
         )}
 
+        {isAddingAbono && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                  <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={20} /> {editingItem && editingItem.tipo === 'abono' ? 'Editar Abono' : 'Nuevo Abono'}
+                </h3>
+                <button onClick={() => { setIsAddingAbono(false); setEditingItem(null); setAbonoIconSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+              </div>
+              <form onSubmit={handleSaveAbono} className="space-y-3 sm:space-y-4">
+                <div>
+                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
+                  <input required value={newAbono.descripcion} onChange={e => setNewAbono({ ...newAbono, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Freelance, Venta, Devolución..." />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
+                    <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" />
+                  </div>
+                  <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                    <label className="relative inline-flex items-center cursor-pointer gap-3">
+                      <input type="checkbox" className="sr-only peer" checked={newAbono.facturacionAuto} onChange={e => setNewAbono({ ...newAbono, facturacionAuto: e.target.checked })} />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-dark-lightest peer-checked:bg-emerald-600"></div>
+                      <span className="text-[10px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">Automático</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
+                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newAbono.iconType === 'url' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                </div>
+
+                {newAbono.iconType === 'preset' && (
+                  <div>
+                    <div className="relative mb-2 sm:mb-3">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                      <input
+                        type="text"
+                        value={abonoIconSearch}
+                        onChange={(e) => setAbonoIconSearch(e.target.value)}
+                        className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                        placeholder="Buscar icono..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                      {filteredAbonoIcons.length > 0 ? filteredAbonoIcons.map(i => (
+                        <button type="button" key={i.id} onClick={() => setNewAbono({ ...newAbono, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newAbono.iconValue === i.id ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                          <i.icon size={16} />
+                          <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                        </button>
+                      )) : (
+                        <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {newAbono.iconType === 'chile_preset' && (
+                  <div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
+                        <button key={cat} type="button" onClick={() => setAbonoChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${abonoChileCat === cat ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                      {CHILE_PRESET_ICONS[abonoChileCat]?.map(i => {
+                        const val = `${abonoChileCat}:${i.id}`;
+                        return (
+                          <button key={i.id} type="button" onClick={() => setNewAbono({ ...newAbono, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newAbono.iconValue === val ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                            <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                            <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {newAbono.iconType === 'url' && (
+                  <div>
+                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
+                    <input value={newAbono.iconUrl} onChange={e => setNewAbono({ ...newAbono, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
+                  </div>
+                )}
+
+                <button type="submit" className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:opacity-90 transition-all mt-3 sm:mt-4`}>Registrar Abono</button>
+              </form>
+            </div>
+          </div>
+        )}
+
         {isAddingAccount && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
             <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
@@ -2965,7 +3196,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  {viewingItem.tipo === 'cuota' ? <CreditCard className={theme.tabText} size={20} /> : viewingItem.tipo === 'suscripcion' ? <RefreshCw className={theme.tabText} size={20} /> : <Receipt className="text-slate-800 dark:text-slate-200" size={20} />}
+                  {viewingItem.tipo === 'cuota' ? <CreditCard className={theme.tabText} size={20} /> : viewingItem.tipo === 'suscripcion' ? <RefreshCw className={theme.tabText} size={20} /> : viewingItem.tipo === 'abono' ? <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={20} /> : <Receipt className="text-slate-800 dark:text-slate-200" size={20} />}
                   Detalles
                 </h3>
                 <button onClick={() => setViewingItem(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
@@ -3091,7 +3322,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   </>
                 )}
 
-                {viewingItem.tipo === 'fijo' && (
+                {(viewingItem.tipo === 'fijo' || viewingItem.tipo === 'abono') && (
                   <>
                     <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
                       <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
@@ -3106,12 +3337,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         </div>
                       </div>
                     )}
-                    <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800">
-                      <div className={`w-11 h-6 rounded-full relative transition-colors ${viewingItem.data.facturacionAuto ? 'bg-blue-600' : 'bg-slate-300 dark:bg-dark-lightest'}`}>
+                    <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                      <div className={`w-11 h-6 rounded-full relative transition-colors ${viewingItem.data.facturacionAuto ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-dark-lightest'}`}>
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${viewingItem.data.facturacionAuto ? 'translate-x-[22px]' : 'translate-x-0.5'}`}></div>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">
-                        {viewingItem.data.facturacionAuto ? 'Facturación Automática Activada' : 'Sin Facturación Automática'}
+                      <span className="text-[10px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">
+                        {viewingItem.data.facturacionAuto ? 'Automático' : 'Manual'}
                       </span>
                     </div>
                   </>

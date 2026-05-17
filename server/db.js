@@ -139,6 +139,27 @@ const initDb = () => {
       PRIMARY KEY (suscripcion_id, mes),
       FOREIGN KEY (suscripcion_id) REFERENCES suscripciones(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS abonos (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      descripcion TEXT,
+      diaPago INTEGER DEFAULT 1,
+      facturacionAuto INTEGER DEFAULT 0,
+      iconType TEXT,
+      iconValue TEXT,
+      iconUrl TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS pagos_abonos (
+      abono_id TEXT,
+      mes TEXT,
+      monto INTEGER,
+      estado TEXT,
+      PRIMARY KEY (abono_id, mes),
+      FOREIGN KEY (abono_id) REFERENCES abonos(id) ON DELETE CASCADE
+    );
   `);
 
   try {
