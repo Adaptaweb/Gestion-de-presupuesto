@@ -122,7 +122,7 @@ import Login from './Login.jsx';
 import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
 
-const apiKey = "AIzaSyAQZ6oxdx2URjAyVAfK6J7vVBstTUbcE1A";
+const apiKey = "";
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
