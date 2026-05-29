@@ -174,8 +174,20 @@ const EmailTransactions = ({ token, theme }) => {
     return d;
   };
 
-  const handleAuthGmail = () => {
-    window.location.href = '/api/auth/gmail';
+  const handleAuthGmail = async () => {
+    try {
+      const res = await fetch('/api/transacciones/auth-url', { headers: getHeaders() });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Error obteniendo URL de autenticación:', data.error);
+        alert('Error al conectar con Gmail: ' + (data.error || 'Error desconocido'));
+      }
+    } catch (err) {
+      console.error('Error al conectar con Gmail:', err);
+      alert('Error al conectar con Gmail');
+    }
   };
 
   const handleCheckEmails = async () => {

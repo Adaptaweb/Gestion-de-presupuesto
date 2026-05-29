@@ -50,7 +50,21 @@ const db = {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const result = await callback(client);
+      const tx = {
+        run: async (sql, ...params) => {
+          const res = await client.query(toPgParams(sql), params);
+          return { changes: res.rowCount };
+        },
+        get: async (sql, ...params) => {
+          const res = await client.query(toPgParams(sql), params);
+          return res.rows[0] || null;
+        },
+        all: async (sql, ...params) => {
+          const res = await client.query(toPgParams(sql), params);
+          return res.rows;
+        },
+      };
+      const result = await callback(tx);
       await client.query('COMMIT');
       return result;
     } catch (e) {
