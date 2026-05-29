@@ -178,7 +178,7 @@ CREATE TABLE "gmail_tokens" (
   "refresh_token" TEXT,
   "scope" TEXT,
   "token_type" TEXT,
-  "expiry_date" INTEGER
+  "expiry_date" BIGINT
 );
 
 CREATE TABLE "filtros_correo" (
