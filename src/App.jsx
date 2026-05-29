@@ -121,8 +121,9 @@ import {
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
+import EmailTransactions from './EmailTransactions.jsx';
 
-const apiKey = "";
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -1566,6 +1567,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           >
             <PiggyBank size={16} /> <span className="hidden sm:inline">Gestión de Ahorros</span><span className="sm:hidden">Ahorros</span>
           </button>
+          <button
+            onClick={() => setActiveTab('extraidos')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'extraidos' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+          >
+            <Mail size={16} /> <span className="hidden sm:inline">Extraídos</span><span className="sm:hidden">Correo</span>
+          </button>
         </div>
 
         {activeTab === 'dashboard' && !!dashboardMonth && (
@@ -2093,7 +2100,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         )}
 
         {activeTab === 'general' ? (
-          <>
+          <div key="general-tab" className="animate-slide-fade">
             <div className="flex flex-col sm:flex-row justify-end gap-2 mb-4">
               <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
@@ -2458,9 +2465,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 </table>
               </div>
             </div>
-          </>
+          </div>
         ) : activeTab === 'ahorros' ? (
-          <div className="space-y-8 animate-in fade-in duration-500">
+          <div key="ahorros-tab" className="space-y-8 animate-slide-fade">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
@@ -2611,6 +2618,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               </div>
             </div>
           </div>
+        ) : activeTab === 'extraidos' ? (
+          <EmailTransactions token={token} theme={theme} />
         ) : null}
 
         {isAddingDebt && (

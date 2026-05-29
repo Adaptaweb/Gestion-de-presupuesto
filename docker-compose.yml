@@ -12,24 +12,33 @@ services:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-gestion-presupuesto-secret-2026-prod}
       - PORT=3000
-    volumes:
-      # Volumen persistente para la base de datos SQLite
-      # Se monta el directorio data/ completo para evitar problemas de ruta
-      - /DATA/AppData/gestion-presupuesto/data:/app/server/data
+      - DATABASE_URL=${DATABASE_URL}
+      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
+      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
+      - GMAIL_REDIRECT_URI=${GMAIL_REDIRECT_URI}
     x-casaos:
       envs:
         - name: JWT_SECRET
           description:
             en_us: "Secret key for JWT token signing. Change this to a random string for production security."
           default: "gestion-presupuesto-secret-2026-prod"
+        - name: DATABASE_URL
+          description:
+            en_us: "PostgreSQL connection string from Supabase (e.g., postgresql://postgres:password@db.xxx.supabase.co:5432/postgres)"
+        - name: GMAIL_CLIENT_ID
+          description:
+            en_us: "Google OAuth Client ID for Gmail API"
+        - name: GMAIL_CLIENT_SECRET
+          description:
+            en_us: "Google OAuth Client Secret for Gmail API"
+        - name: GMAIL_REDIRECT_URI
+          description:
+            en_us: "OAuth redirect URI (default: http://localhost:3000/oauth2callback)"
+          default: "http://localhost:3000/oauth2callback"
       ports:
         - container: "3000"
           description:
             en_us: Web UI Port
-      volumes:
-        - container: /app/server/data
-          description:
-            en_us: Database Directory (SQLite)
       icon: "https://cdn-icons-png.flaticon.com/512/2933/2933116.png"
       title:
         custom: "Finance Master"
@@ -45,6 +54,6 @@ x-casaos:
     - arm64
   main: "app"
   description:
-    en_us: "Aplicación completa de gestión de presupuesto con backend local en SQLite."
+    en_us: "Aplicación completa de gestión de presupuesto con PostgreSQL en Supabase."
   title:
     custom: "Finance Master"
