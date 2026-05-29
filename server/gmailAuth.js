@@ -1,124 +1,99 @@
 import { google } from 'googleapis';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import readline from 'readline';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import db from './db.js';
 
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
-const TOKEN_PATH = path.join(__dirname, 'gmail-token.json');
-const CREDENTIALS_PATH = path.join(__dirname, 'gmail-credentials.json');
 
 function getOAuth2Client() {
   const clientId = process.env.GMAIL_CLIENT_ID;
   const clientSecret = process.env.GMAIL_CLIENT_SECRET;
   const redirectUri = process.env.GMAIL_REDIRECT_URI || 'http://localhost:3000/oauth2callback';
 
-  if (!clientId || !clientSecret) {
-    if (fs.existsSync(CREDENTIALS_PATH)) {
-      const creds = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf8'));
-      return new google.auth.OAuth2(creds.web?.client_id || creds.installed?.client_id, creds.web?.client_secret || creds.installed?.client_secret, creds.web?.redirect_uris?.[0] || creds.installed?.redirect_uris?.[0] || redirectUri);
-    }
-    return null;
-  }
+  if (!clientId || !clientSecret) return null;
 
   return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 }
 
-function getStoredTokens() {
+async function getStoredTokens(userId) {
   try {
-    if (fs.existsSync(TOKEN_PATH)) {
-      return JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
-    }
-  } catch (e) {}
-  return null;
+    const row = await db.get('SELECT * FROM gmail_tokens WHERE user_id = $1', userId);
+    if (!row) return null;
+    return {
+      access_token: row.access_token,
+      refresh_token: row.refresh_token,
+      scope: row.scope,
+      token_type: row.token_type,
+      expiry_date: row.expiry_date,
+    };
+  } catch {
+    return null;
+  }
 }
 
-function storeTokens(tokens) {
-  fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens, null, 2));
+async function storeTokens(userId, tokens) {
+  await db.run(
+    `INSERT INTO gmail_tokens (user_id, access_token, refresh_token, scope, token_type, expiry_date)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (user_id) DO UPDATE SET
+       access_token = EXCLUDED.access_token,
+       refresh_token = COALESCE(EXCLUDED.refresh_token, gmail_tokens.refresh_token),
+       scope = EXCLUDED.scope,
+       token_type = EXCLUDED.token_type,
+       expiry_date = EXCLUDED.expiry_date`,
+    userId,
+    tokens.access_token || null,
+    tokens.refresh_token || null,
+    tokens.scope || null,
+    tokens.token_type || null,
+    tokens.expiry_date || null,
+  );
 }
 
-function getAuthUrl() {
+function getAuthUrl(userId) {
   const oAuth2Client = getOAuth2Client();
-  if (!oAuth2Client) throw new Error('Credenciales Gmail no configuradas. Crea gmail-credentials.json o define GMAIL_CLIENT_ID y GMAIL_CLIENT_SECRET en .env');
+  if (!oAuth2Client) throw new Error('Credenciales Gmail no configuradas');
 
   return oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
     prompt: 'consent',
+    state: userId,
   });
 }
 
-async function exchangeCode(code) {
+async function exchangeCode(code, userId) {
   const oAuth2Client = getOAuth2Client();
   if (!oAuth2Client) throw new Error('Credenciales Gmail no configuradas');
 
   const { tokens } = await oAuth2Client.getToken(code);
-  storeTokens(tokens);
+  await storeTokens(userId, tokens);
   return tokens;
 }
 
-async function getAuthenticatedClient() {
+async function getAuthenticatedClient(userId) {
   const oAuth2Client = getOAuth2Client();
   if (!oAuth2Client) return null;
 
-  const storedTokens = getStoredTokens();
+  const storedTokens = await getStoredTokens(userId);
   if (!storedTokens) return null;
 
   oAuth2Client.setCredentials(storedTokens);
 
-  oAuth2Client.on('tokens', (newTokens) => {
-    const current = getStoredTokens() || {};
-    const updated = { ...current, ...newTokens };
-    storeTokens(updated);
+  oAuth2Client.on('tokens', async (newTokens) => {
+    try {
+      const current = await getStoredTokens(userId);
+      const updated = { ...(current || {}), ...newTokens };
+      await storeTokens(userId, updated);
+    } catch (err) {
+      console.error('[gmailAuth] Error al guardar tokens actualizados:', err.message);
+    }
   });
 
   return oAuth2Client;
 }
 
-function hasValidTokens() {
-  const tokens = getStoredTokens();
-  if (!tokens?.refresh_token) return false;
-  return true;
+async function hasValidTokens(userId) {
+  const tokens = await getStoredTokens(userId);
+  return !!(tokens?.refresh_token);
 }
 
-// CLI Auth flow — run directly: node server/gmailAuth.js
-async function cliAuth() {
-  const authUrl = getAuthUrl();
-  console.log('\n=== AUTENTICACIÓN GMAIL ===');
-  console.log('1. Abre esta URL en tu navegador:');
-  console.log(authUrl);
-  console.log('\n2. Inicia sesión con tu cuenta de Gmail.');
-  console.log('3. Autoriza la aplicación.');
-  console.log('4. Serás redirigido a una URL. Copia el código "code" de la URL.\n');
-
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const code = await new Promise((resolve) => {
-    rl.question('Pega el código de autorización aquí: ', (answer) => {
-      resolve(answer.trim());
-      rl.close();
-    });
-  });
-
-  if (!code) {
-    console.error('No se ingresó ningún código.');
-    process.exit(1);
-  }
-
-  try {
-    const tokens = await exchangeCode(code);
-    console.log('\n✅ Autenticación exitosa. Token guardado en server/gmail-token.json');
-    process.exit(0);
-  } catch (err) {
-    console.error('\n❌ Error al intercambiar código:', err.message);
-    process.exit(1);
-  }
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  cliAuth();
-}
-
-export { getAuthenticatedClient, getAuthUrl, exchangeCode, hasValidTokens, getStoredTokens, storeTokens, getOAuth2Client };
+export { getAuthenticatedClient, getAuthUrl, exchangeCode, hasValidTokens, getOAuth2Client };

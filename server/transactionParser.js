@@ -25,10 +25,6 @@ const CATEGORY_RULES = [
   { keywords: ['mercado pago', 'mercadopago', 'transferencia', 'ahorro', 'inversión', 'inversion', 'cuenta rut', 'cuentarut', 'banco'], category: 'Otros' },
 ];
 
-let cachedUsdRate = null;
-let cachedUsdRateTime = 0;
-const CACHE_TTL = 30 * 60 * 1000;
-
 function detectBank(headers, html) {
   const fromHeader = headers?.from || headers?.From || '';
   for (const [domain, name] of Object.entries(BANK_DOMAINS)) {
@@ -98,20 +94,12 @@ function parseInlineText(bodyText) {
 }
 
 async function fetchUsdRate() {
-  const now = Date.now();
-  if (cachedUsdRate && (now - cachedUsdRateTime) < CACHE_TTL) {
-    return cachedUsdRate;
-  }
   try {
     const res = await fetch('https://mindicador.cl/api/dolar');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     const rate = data?.serie?.[0]?.valor;
-    if (rate && rate > 0) {
-      cachedUsdRate = rate;
-      cachedUsdRateTime = now;
-      return rate;
-    }
+    if (rate && rate > 0) return rate;
   } catch (e) {
     console.error('[USD Rate] Error fetching from mindicador.cl:', e.message);
   }
@@ -232,7 +220,7 @@ async function parseHTML(html, headers = {}, userId = null) {
   let categoria = categorize(comercio || '', comercio || '', bodyText);
 
   if (userId && comercio) {
-    const saved = await db.get('SELECT categoria FROM clasificacion_comercios WHERE user_id = ? AND comercio = ?', userId, comercio.toLowerCase());
+    const saved = await db.get('SELECT categoria FROM clasificacion_comercios WHERE user_id = $1 AND comercio = $2', userId, comercio.toLowerCase());
     if (saved) categoria = saved.categoria;
   }
 

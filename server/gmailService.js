@@ -3,18 +3,15 @@ import { getAuthenticatedClient, hasValidTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
 import db from './db.js';
 
-let lastCheckTime = 0;
-let isChecking = false;
-
 async function fetchLatestTransactions(userId) {
-  if (isChecking) return { success: false, error: 'Ya hay una revisión en curso' };
-  if (!hasValidTokens()) return { success: false, error: 'Gmail no autenticado. Ejecuta primero la autenticación OAuth.' };
+  if (!(await hasValidTokens(userId))) {
+    return { success: false, error: 'Gmail no autenticado. Ejecuta primero la autenticación OAuth.' };
+  }
 
-  isChecking = true;
   const results = { fetched: 0, new: 0, errors: 0, transactions: [] };
 
   try {
-    const auth = await getAuthenticatedClient();
+    const auth = await getAuthenticatedClient(userId);
     if (!auth) throw new Error('No se pudo autenticar con Gmail');
 
     const gmail = google.gmail({ version: 'v1', auth });
@@ -55,14 +52,14 @@ async function fetchLatestTransactions(userId) {
         const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const subject = (headers['subject'] || '').slice(0, 200);
 
-        const existing = await db.get('SELECT id FROM transacciones_extraidas WHERE email_id = ? AND user_id = ?', emailId, userId);
+        const existing = await db.get('SELECT id FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2', emailId, userId);
         if (existing) {
-          await db.run("UPDATE transacciones_extraidas SET asunto = ?, tipo_tarjeta = ?, fecha_extraccion = NOW() WHERE id = ?",
+          await db.run("UPDATE transacciones_extraidas SET asunto = $1, tipo_tarjeta = $2, fecha_extraccion = NOW() WHERE id = $3",
             subject, parsed.tipo_tarjeta || '', existing.id);
           results.transactions.push(parsed);
         } else {
           await db.run(
-            "INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+            "INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())",
             id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId);
           results.new++;
           results.transactions.push(parsed);
@@ -72,13 +69,9 @@ async function fetchLatestTransactions(userId) {
         console.error('[GmailService] Error processing message:', msgErr.message);
       }
     }
-
-    lastCheckTime = Date.now();
   } catch (err) {
     console.error('[GmailService] Error:', err.message);
     results.error = err.message;
-  } finally {
-    isChecking = false;
   }
 
   return results;
@@ -113,16 +106,16 @@ function getDateDaysAgo(days) {
 }
 
 function getLastCheckTime() {
-  return lastCheckTime;
+  return 0;
 }
 
 async function getLookbackDays(userId) {
-  const config = await db.get('SELECT dias_atras FROM config_extraccion WHERE user_id = ?', userId);
+  const config = await db.get('SELECT dias_atras FROM config_extraccion WHERE user_id = $1', userId);
   return config?.dias_atras ?? 3;
 }
 
 async function buildGmailQuery(userId) {
-  const filters = await db.all('SELECT remitente, asunto FROM filtros_correo WHERE user_id = ?', userId);
+  const filters = await db.all('SELECT remitente, asunto FROM filtros_correo WHERE user_id = $1', userId);
   const days = await getLookbackDays(userId);
 
   if (filters.length === 0) {

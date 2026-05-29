@@ -10,13 +10,18 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const DATA_DIR = path.resolve(__dirname, 'export-data');
-const DATABASE_URL = process.env.DATABASE_URL;
+let DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
   console.error('ERROR: DATABASE_URL no definida en .env');
   console.error('Agrega: DATABASE_URL=postgresql://...');
   process.exit(1);
 }
+
+DATABASE_URL = DATABASE_URL.replace(
+  /(?<=:\/\/[^:]+:)([^@]*)(?=@)/,
+  (pw) => encodeURIComponent(decodeURIComponent(pw))
+);
 
 async function main() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -28,6 +33,9 @@ async function main() {
   const pool = new pg.Pool({
     connectionString: DATABASE_URL,
     ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 15000,
+    max: 1,
+    idleTimeoutMillis: 0,
   });
 
   const tablesOrdered = [
@@ -94,6 +102,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error('Error fatal:', e.message);
+  console.error('Error fatal:', e.message || e);
   process.exit(1);
 });
