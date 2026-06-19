@@ -91,9 +91,17 @@ async function getAuthenticatedClient(userId) {
   return oAuth2Client;
 }
 
+async function clearTokens(userId) {
+  try {
+    await db.run('DELETE FROM gmail_tokens WHERE user_id = $1', userId);
+  } catch (err) {
+    console.error('[gmailAuth] Error al limpiar tokens:', err.message);
+  }
+}
+
 async function hasValidTokens(userId) {
   const tokens = await getStoredTokens(userId);
   return !!(tokens?.refresh_token);
 }
 
-export { getAuthenticatedClient, getAuthUrl, exchangeCode, hasValidTokens, getOAuth2Client };
+export { getAuthenticatedClient, getAuthUrl, exchangeCode, clearTokens, hasValidTokens, getOAuth2Client };

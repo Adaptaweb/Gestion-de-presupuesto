@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { getAuthenticatedClient, hasValidTokens } from './gmailAuth.js';
+import { getAuthenticatedClient, hasValidTokens, clearTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
 import db from './db.js';
 
@@ -71,7 +71,14 @@ async function fetchLatestTransactions(userId) {
     }
   } catch (err) {
     console.error('[GmailService] Error:', err.message);
-    results.error = err.message;
+    if (err.message?.includes('invalid_grant')) {
+      await clearTokens(userId);
+      results.error = 'invalid_grant';
+      results.needsReauth = true;
+      results.message = 'La autorización de Gmail ha expirado o fue revocada. Vuelve a autorizar el acceso.';
+    } else {
+      results.error = err.message;
+    }
   }
 
   return results;

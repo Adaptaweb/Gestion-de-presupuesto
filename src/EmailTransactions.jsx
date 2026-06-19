@@ -196,7 +196,10 @@ const EmailTransactions = ({ token, theme }) => {
     try {
       const res = await fetch('/api/transacciones/revisar', { method: 'POST', headers: getHeaders() });
       const data = await res.json();
-      if (res.ok) {
+      if (data.needsReauth) {
+        setStatusMsg({ type: 'error', text: `✗ ${data.message || 'Vuelve a autorizar Gmail'}` });
+        fetchStatus();
+      } else if (res.ok && !data.error) {
         setStatusMsg({ type: 'success', text: `✓ ${data.message || 'Revisión completada'}` });
         fetchTransactions();
         fetchMonths();
