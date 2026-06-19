@@ -120,8 +120,6 @@ const ReviewCard = ({
   reviewTipoTransaccion, setReviewTipoTransaccion, reviewSaving,
   onClose, onPrev, onNext, onConfirm, onEdit
 }) => {
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchDelta, setTouchDelta] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
   const [exitDir, setExitDir] = useState(null);
   const sliderRef = useRef(null);
@@ -179,50 +177,6 @@ const ReviewCard = ({
     animateExit('right', onConfirm);
   };
 
-  const handleTouchStart = (e) => {
-    if (isExiting) return;
-    setTouchStart(e.touches[0].clientX);
-  };
-  const handleTouchMove = (e) => {
-    if (touchStart === null || isExiting) return;
-    setTouchDelta(e.touches[0].clientX - touchStart);
-  };
-  const handleTouchEnd = () => {
-    if (touchStart === null || isExiting) {
-      setTouchStart(null);
-      setTouchDelta(0);
-      return;
-    }
-    const threshold = 80;
-    if (touchDelta < -threshold) {
-      handleNext();
-    } else if (touchDelta > threshold) {
-      handlePrev();
-    }
-    setTouchStart(null);
-    setTouchDelta(0);
-  };
-
-  const cardStyle = isExiting
-    ? {
-        transform: exitDir === 'right'
-          ? 'translateX(140%) rotate(14deg)'
-          : 'translateX(-140%) rotate(-14deg)',
-        opacity: 0,
-        transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
-      }
-    : touchDelta !== 0
-    ? {
-        transform: `translateX(${touchDelta}px) rotate(${touchDelta / 20}deg)`,
-        opacity: 1 - Math.min(Math.abs(touchDelta) / 350, 0.4),
-        transition: 'none',
-      }
-    : {
-        transform: 'translateX(0) rotate(0)',
-        opacity: 1,
-        transition: 'transform 380ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease-out',
-      };
-
   return (
     <div
       className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden ${
@@ -230,18 +184,15 @@ const ReviewCard = ({
       } ${reviewVisible && !isExiting ? 'translate-y-0' : 'translate-y-6'}`}
       style={{
         transform: isExiting
-          ? cardStyle.transform
-          : touchDelta !== 0
-          ? cardStyle.transform
+          ? (exitDir === 'right'
+              ? 'translateX(140%) rotate(14deg)'
+              : 'translateX(-140%) rotate(-14deg)')
           : (reviewVisible && !isExiting)
           ? 'translateX(0) translateY(0) rotate(0) scale(1)'
           : 'translateX(0) translateY(8px) rotate(0) scale(0.97)',
-        opacity: cardStyle.opacity !== undefined ? cardStyle.opacity : (reviewVisible && !isExiting ? 1 : 0),
+        opacity: isExiting ? 0 : (reviewVisible && !isExiting ? 1 : 0),
         transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
         <button onClick={onClose} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-all px-2 py-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-dark-lightest">
