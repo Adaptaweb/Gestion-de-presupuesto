@@ -166,7 +166,10 @@ CREATE TABLE "transacciones_extraidas" (
   "categoria" TEXT,
   "asunto" TEXT DEFAULT '',
   "email_id" TEXT UNIQUE,
-  "fecha_extraccion" TEXT DEFAULT (NOW())
+  "fecha_extraccion" TEXT DEFAULT (NOW()),
+  "revisado" BOOLEAN DEFAULT FALSE,
+  "tipo_gasto" TEXT,
+  "tipo_transaccion" TEXT DEFAULT 'gasto'
 );
 CREATE INDEX "idx_transacciones_user_id" ON "transacciones_extraidas"("user_id");
 CREATE INDEX "idx_transacciones_fecha" ON "transacciones_extraidas"("fecha");

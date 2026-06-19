@@ -368,7 +368,7 @@ app.get('/api/transacciones/status', authenticateToken, async (req, res) => {
 app.get('/api/transacciones', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { mes, categoria, banco, limit, offset } = req.query;
+    const { mes, categoria, banco, limit, offset, revisado } = req.query;
 
     const conditions = ['user_id = ?'];
     const filterValues = [userId];
@@ -376,6 +376,7 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     if (mes) { conditions.push("SUBSTR(fecha, 1, 7) = ?"); filterValues.push(mes); }
     if (categoria) { conditions.push("categoria = ?"); filterValues.push(categoria); }
     if (banco) { conditions.push("banco = ?"); filterValues.push(banco); }
+    if (revisado !== undefined) { conditions.push(revisado === 'true' ? 'revisado = TRUE' : 'revisado = FALSE'); }
 
     const whereClause = ' WHERE ' + conditions.join(' AND ');
 
@@ -392,7 +393,10 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     const summarySql = 'SELECT categoria, COUNT(*) as count, SUM(monto) as total FROM transacciones_extraidas' + whereClause + ' GROUP BY categoria ORDER BY total DESC';
     const summary = await db.all(summarySql, ...filterValues);
 
-    res.json({ transactions, summary, total, lastCheck: getLastCheckTime() });
+    const pendientesResult = await db.get('SELECT COUNT(*) as count FROM transacciones_extraidas WHERE user_id = ? AND (revisado = FALSE OR revisado IS NULL)', userId);
+    const pendientes_count = pendientesResult.count;
+
+    res.json({ transactions, summary, total, pendientes_count, lastCheck: getLastCheckTime() });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener transacciones' });
@@ -402,7 +406,7 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
 app.get('/api/transacciones/meses', authenticateToken, async (req, res) => {
   try {
     const rows = await db.all(
-      "SELECT DISTINCT SUBSTR(fecha, 1, 7) as mes FROM transacciones_extraidas WHERE user_id = ? AND fecha IS NOT NULL ORDER BY mes DESC",
+      "SELECT DISTINCT SUBSTR(fecha, 1, 7) as mes FROM transacciones_extraidas WHERE user_id = ? AND fecha IS NOT NULL AND revisado = TRUE ORDER BY mes DESC",
       req.user.id);
     const months = rows.map(r => r.mes);
     res.json({ months });
@@ -417,7 +421,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     if (!tx) return res.status(404).json({ error: 'Transacción no encontrada' });
     if (tx.user_id !== req.user.id) return res.status(403).json({ error: 'No autorizado' });
 
-    const { categoria, comercio, tipo_tarjeta, banco } = req.body;
+    const { categoria, comercio, tipo_tarjeta, banco, revisado, tipo_gasto, tipo_transaccion } = req.body;
     const finalComercio = comercio !== undefined ? comercio : tx.comercio;
     let updatedCount = 0;
 
@@ -440,6 +444,15 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     if (banco !== undefined) {
       await db.run('UPDATE transacciones_extraidas SET banco = ? WHERE id = ?', banco, req.params.id);
     }
+    if (revisado !== undefined) {
+      await db.run('UPDATE transacciones_extraidas SET revisado = ? WHERE id = ?', revisado, req.params.id);
+    }
+    if (tipo_gasto !== undefined) {
+      await db.run('UPDATE transacciones_extraidas SET tipo_gasto = ? WHERE id = ?', tipo_gasto, req.params.id);
+    }
+    if (tipo_transaccion !== undefined) {
+      await db.run('UPDATE transacciones_extraidas SET tipo_transaccion = ? WHERE id = ?', tipo_transaccion, req.params.id);
+    }
 
     const updated = await db.get('SELECT * FROM transacciones_extraidas WHERE id = ?', req.params.id);
     res.json({ transaction: updated, updatedCount });
@@ -455,6 +468,27 @@ app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/transacciones/pendientes', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { limit, offset } = req.query;
+
+    const countResult = await db.get("SELECT COUNT(*) as count FROM transacciones_extraidas WHERE user_id = ? AND (revisado = FALSE OR revisado IS NULL)", userId);
+    const count = countResult.count;
+
+    let sql = "SELECT * FROM transacciones_extraidas WHERE user_id = ? AND (revisado = FALSE OR revisado IS NULL) ORDER BY fecha_extraccion DESC";
+    const params = [userId];
+    if (limit) { sql += ' LIMIT ?'; params.push(parseInt(limit)); }
+    if (offset) { sql += ' OFFSET ?'; params.push(parseInt(offset)); }
+
+    const transactions = await db.all(sql, ...params);
+    res.json({ count, transactions });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener pendientes' });
   }
 });
 
