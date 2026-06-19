@@ -51,6 +51,28 @@ const CATEGORY_SOLID = {
   'Otros': 'bg-slate-500 dark:bg-slate-400',
 };
 
+const CATEGORY_ICON_BG = {
+  'Alimentos': 'bg-orange-100 dark:bg-orange-500/20',
+  'Transporte': 'bg-blue-100 dark:bg-blue-500/20',
+  'Servicios': 'bg-yellow-100 dark:bg-yellow-500/20',
+  'Entretención': 'bg-purple-100 dark:bg-purple-500/20',
+  'Salud': 'bg-green-100 dark:bg-green-500/20',
+  'Hogar': 'bg-rose-100 dark:bg-rose-500/20',
+  'Compras Generales': 'bg-pink-100 dark:bg-pink-500/20',
+  'Otros': 'bg-slate-100 dark:bg-slate-500/20',
+};
+
+const CATEGORY_ICON_COLOR = {
+  'Alimentos': 'text-orange-500 dark:text-orange-300',
+  'Transporte': 'text-blue-500 dark:text-blue-300',
+  'Servicios': 'text-yellow-500 dark:text-yellow-300',
+  'Entretención': 'text-purple-500 dark:text-purple-300',
+  'Salud': 'text-green-500 dark:text-green-300',
+  'Hogar': 'text-rose-500 dark:text-rose-300',
+  'Compras Generales': 'text-pink-500 dark:text-pink-300',
+  'Otros': 'text-slate-500 dark:text-slate-300',
+};
+
 const CATEGORY_LIST = ['Alimentos', 'Transporte', 'Servicios', 'Entretención', 'Salud', 'Hogar', 'Compras Generales', 'Otros'];
 
 const BANK_COLORS = {
@@ -79,6 +101,239 @@ const BANK_ICONS = {
   'Itaú': '/chile-icons/bancos/itau.png',
   'Banco Falabella': '/chile-icons/bancos/banco_falabella.png',
   'Banco Paris': '/chile-icons/bancos/paris.png',
+};
+
+const ReviewCard = ({
+  tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
+  reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
+  reviewTipoTransaccion, setReviewTipoTransaccion, reviewSaving,
+  onClose, onPrev, onNext, onConfirm, onEdit
+}) => {
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchDelta, setTouchDelta] = useState(0);
+  const sliderRef = useRef(null);
+
+  const formatCurrency2 = (val) => {
+    if (val == null) return '$0';
+    return '$' + Math.round(val).toLocaleString('es-CL');
+  };
+
+  const formatDate2 = (d) => {
+    if (!d) return '-';
+    const parts = d.split('T')[0].split('-');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return d;
+  };
+
+  const formatTime2 = (d) => {
+    if (!d) return '';
+    const t = d.includes('T') ? d.split('T')[1] : d.split(' ')[1];
+    if (t) {
+      const [h, m] = t.split(':');
+      return `${h}:${m}`;
+    }
+    return '';
+  };
+
+  const isIngreso = reviewTipoTransaccion === 'ingreso';
+  const amountSign = isIngreso ? '+' : '';
+  const amountColor = isIngreso
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : 'text-slate-800 dark:text-white';
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+  const handleTouchMove = (e) => {
+    if (touchStart === null) return;
+    setTouchDelta(e.touches[0].clientX - touchStart);
+  };
+  const handleTouchEnd = () => {
+    if (touchStart === null) return;
+    const threshold = 80;
+    if (touchDelta < -threshold) onNext();
+    else if (touchDelta > threshold) onPrev();
+    setTouchStart(null);
+    setTouchDelta(0);
+  };
+
+  return (
+    <div
+      className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl transition-all duration-300 ease-out overflow-hidden ${
+        reviewVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+      }`}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ transform: `translateX(${touchDelta}px)` }}
+    >
+      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
+        <button onClick={onClose} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-all px-2 py-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-dark-lightest">
+          <X size={18} /> <span className="text-xs font-bold">Salir</span>
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-black text-slate-600 dark:text-slate-300 tabular-nums">{reviewIdx + 1} <span className="text-slate-400 dark:text-slate-500">/</span> {pendingCount}</span>
+        </div>
+      </div>
+
+      <div className="w-full bg-slate-200/60 dark:bg-slate-800/40 h-1 flex-shrink-0">
+        <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ease-out" style={{ width: `${((reviewIdx + 1) / pendingCount) * 100}%` }} />
+      </div>
+
+      <div className="flex-1 px-4 py-4 overflow-y-auto no-scrollbar flex flex-col gap-4">
+        <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-4 text-center space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            {BANK_ICONS[tx.banco] && (
+              <img src={BANK_ICONS[tx.banco]} alt="" className="w-8 h-8 rounded-full shadow" />
+            )}
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{tx.banco || 'Banco'}</span>
+          </div>
+          <div className={`text-3xl sm:text-4xl font-black tracking-tight ${amountColor}`}>
+            {amountSign}{formatCurrency2(tx.monto)}
+          </div>
+          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
+            <span>{formatDate2(tx.fecha)}</span>
+            {formatTime2(tx.fecha_extraccion) && (
+              <>
+                <span className="text-slate-300 dark:text-slate-600">·</span>
+                <Clock size={11} className="text-slate-400 dark:text-slate-500" />
+                <span className="tabular-nums">{formatTime2(tx.fecha_extraccion)}</span>
+              </>
+            )}
+          </div>
+          <div className="text-base font-bold text-slate-800 dark:text-white">
+            {tx.comercio || 'Comercio no detectado'}
+          </div>
+          {tx.tipo_tarjeta && (
+            <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+              tx.tipo_tarjeta === 'Débito' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
+              'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+            }`}>{tx.tipo_tarjeta}</span>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros']}`}>{reviewCat}</span>
+          </div>
+          <div ref={sliderRef} className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+            {CATEGORY_LIST.map(cat => {
+              const Icon = CATEGORY_ICONS[cat];
+              const selected = reviewCat === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setReviewCat(cat)}
+                  className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 border ${
+                    selected
+                      ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm`
+                      : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
+                  }`}
+                >
+                  <Icon size={16} className={selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-400'} />
+                  <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Tipo de transaccion</label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { key: 'gasto', label: 'Gasto', icon: Banknote, bg: 'bg-amber-100 dark:bg-amber-500/20', color: 'text-amber-600 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-500/50', shadow: 'shadow-amber-500/10' },
+              { key: 'ingreso', label: 'Ingreso', icon: TrendingUp, bg: 'bg-emerald-100 dark:bg-emerald-500/20', color: 'text-emerald-600 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-500/50', shadow: 'shadow-emerald-500/10' },
+              { key: 'interno', label: 'Interno', icon: Ban, bg: 'bg-red-100 dark:bg-red-500/20', color: 'text-red-600 dark:text-red-300', border: 'border-red-300 dark:border-red-500/50', shadow: 'shadow-red-500/10' },
+            ].map(tipo => {
+              const selected = reviewTipoTransaccion === tipo.key;
+              return (
+                <button
+                  key={tipo.key}
+                  onClick={() => {
+                    setReviewTipoTransaccion(tipo.key);
+                    if (tipo.key !== 'gasto') setReviewTipoGasto(null);
+                  }}
+                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 border ${
+                    selected
+                      ? `${tipo.bg} ${tipo.color} ${tipo.border} shadow-sm`
+                      : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
+                  }`}
+                >
+                  <tipo.icon size={13} />
+                  {tipo.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {reviewTipoTransaccion === 'gasto' && (
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+            <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
+                { key: 'mensual', label: 'Mensual', icon: CalendarDays, color: 'text-sky-600 dark:text-sky-300', bg: 'bg-sky-100 dark:bg-sky-500/20', border: 'border-sky-300 dark:border-sky-500/50' },
+                { key: 'anual', label: 'Anual', icon: CalendarRange, color: 'text-violet-600 dark:text-violet-300', bg: 'bg-violet-100 dark:bg-violet-500/20', border: 'border-violet-300 dark:border-violet-500/50' },
+              ].map(tipo => {
+                const selected = reviewTipoGasto === tipo.key;
+                return (
+                  <button
+                    key={tipo.key}
+                    onClick={() => setReviewTipoGasto(reviewTipoGasto === tipo.key ? null : tipo.key)}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 border ${
+                      selected
+                        ? `${tipo.bg} ${tipo.color} ${tipo.border} shadow-sm`
+                        : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
+                    }`}
+                  >
+                    <tipo.icon size={13} />
+                    {tipo.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex-shrink-0 px-4 py-3 space-y-2 border-t border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
+        <div className="flex gap-2">
+          <button
+            onClick={onPrev}
+            disabled={reviewIdx === 0}
+            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            title="Anterior"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={reviewSaving}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
+          >
+            {reviewSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+            Confirmar
+          </button>
+          <button
+            onClick={onNext}
+            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all"
+            title="Siguiente"
+          >
+            <ArrowRight size={18} />
+          </button>
+        </div>
+        <button
+          onClick={onEdit}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all"
+        >
+          <Edit3 size={12} /> Editar datos
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const Transacciones = ({ token, theme }) => {
@@ -845,185 +1100,28 @@ const Transacciones = ({ token, theme }) => {
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
-          <div
+        <div className="fixed inset-0 bg-white/60 dark:bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
+          <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
-            className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-slate-900/70 border border-slate-700/50 sm:rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-300 ease-out ${
-              reviewVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-            } ${reviewDirection === 'forward' ? 'animate-in slide-in-from-right-4' : 'animate-in slide-in-from-left-4'}`}
-          >
-            <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-800/50">
-              <button onClick={handleCloseReview} className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-all px-2 py-1.5 rounded-lg hover:bg-slate-800/50">
-                <X size={18} /> <span className="text-xs font-bold">Salir</span>
-              </button>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-slate-300 tabular-nums">{reviewIdx + 1} <span className="text-slate-600">/</span> {pendingTxs.length}</span>
-              </div>
-            </div>
-
-            <div className="w-full bg-slate-800/30 h-0.5 flex-shrink-0">
-              <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ease-out" style={{ width: `${((reviewIdx + 1) / pendingTxs.length) * 100}%` }} />
-            </div>
-
-            <div className="flex-1 px-4 py-4 overflow-y-auto flex flex-col gap-4 custom-scrollbar">
-              {/* Transaction Card */}
-              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 text-center space-y-2 backdrop-blur-sm">
-                <div className="flex items-center justify-center gap-2">
-                  {BANK_ICONS[currentReviewTx.banco] && (
-                    <img src={BANK_ICONS[currentReviewTx.banco]} alt="" className="w-8 h-8 rounded-full shadow-lg" />
-                  )}
-                  <span className="text-sm font-bold text-slate-300">{currentReviewTx.banco || 'Banco'}</span>
-                </div>
-                <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                  {formatCurrency(currentReviewTx.monto)}
-                </div>
-                <div className="text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
-                  <span>{formatDate(currentReviewTx.fecha)}</span>
-                  {formatTime(currentReviewTx.fecha_extraccion) && (
-                    <>
-                      <span className="text-slate-600">·</span>
-                      <Clock size={11} className="text-slate-500" />
-                      <span className="tabular-nums">{formatTime(currentReviewTx.fecha_extraccion)}</span>
-                    </>
-                  )}
-                </div>
-                <div className="text-base font-bold text-white">
-                  {currentReviewTx.comercio || 'Comercio no detectado'}
-                </div>
-                {currentReviewTx.tipo_tarjeta && (
-                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                    currentReviewTx.tipo_tarjeta === 'Débito' ? 'bg-emerald-900/40 text-emerald-300' : 'bg-orange-900/40 text-orange-300'
-                  }`}>{currentReviewTx.tipo_tarjeta}</span>
-                )}
-              </div>
-
-              {/* Category Slider */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5 px-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500">Categoria</label>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros']}`}>{reviewCat}</span>
-                </div>
-                <div ref={reviewSliderRef} className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
-                  {CATEGORY_LIST.map(cat => {
-                    const Icon = CATEGORY_ICONS[cat];
-                    const selected = reviewCat === cat;
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => setReviewCat(cat)}
-                        className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 ${
-                          selected
-                            ? `bg-amber-500/20 border border-amber-500/50 shadow-lg shadow-amber-500/10`
-                            : 'bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50'
-                        }`}
-                      >
-                        <Icon size={16} className={selected ? 'text-amber-400' : 'text-slate-400'} />
-                        <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? 'text-amber-300' : 'text-slate-500'}`}>{cat}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Tipo de transaccion: Gasto / Ingreso / Interno */}
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-500 mb-1.5 block px-1">Tipo de transaccion</label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { key: 'gasto', label: 'Gasto', icon: Banknote, color: 'amber' },
-                    { key: 'ingreso', label: 'Ingreso', icon: TrendingUp, color: 'emerald' },
-                    { key: 'interno', label: 'Interno', icon: Ban, color: 'red' },
-                  ].map(tipo => {
-                    const selected = reviewTipoTransaccion === tipo.key;
-                    return (
-                      <button
-                        key={tipo.key}
-                        onClick={() => {
-                          setReviewTipoTransaccion(tipo.key);
-                          if (tipo.key !== 'gasto') setReviewTipoGasto(null);
-                        }}
-                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                          selected
-                            ? tipo.key === 'gasto' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-lg shadow-amber-500/10' :
-                              tipo.key === 'ingreso' ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-500/10' :
-                              'bg-red-500/20 border border-red-500/50 text-red-300 shadow-lg shadow-red-500/10'
-                            : 'bg-slate-800/40 border border-slate-700/30 text-slate-400 hover:border-slate-600/50'
-                        }`}
-                      >
-                        <tipo.icon size={13} />
-                        {tipo.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Tipo de gasto: solo si es gasto */}
-              {reviewTipoTransaccion === 'gasto' && (
-                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                  <label className="text-[10px] font-black uppercase text-slate-500 mb-1.5 block px-1">Frecuencia</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {[
-                      { key: 'variable', label: 'Variable', icon: Zap },
-                      { key: 'mensual', label: 'Mensual', icon: CalendarDays },
-                      { key: 'anual', label: 'Anual', icon: CalendarRange },
-                    ].map(tipo => {
-                      const selected = reviewTipoGasto === tipo.key;
-                      return (
-                        <button
-                          key={tipo.key}
-                          onClick={() => setReviewTipoGasto(reviewTipoGasto === tipo.key ? null : tipo.key)}
-                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                            selected
-                              ? 'bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 shadow-lg shadow-indigo-500/10'
-                              : 'bg-slate-800/40 border border-slate-700/30 text-slate-400 hover:border-slate-600/50'
-                          }`}
-                        >
-                          <tipo.icon size={13} />
-                          {tipo.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Actions - siempre justo debajo del contenido */}
-            <div className="flex-shrink-0 px-4 py-3 space-y-2 border-t border-slate-800/50 bg-slate-900/40">
-              <div className="flex gap-2">
-                <button
-                  onClick={handlePrevReview}
-                  disabled={reviewIdx === 0}
-                  className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  title="Anterior"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={handleConfirmReview}
-                  disabled={reviewSaving}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
-                >
-                  {reviewSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                  Confirmar
-                </button>
-                <button
-                  onClick={handleSkipReview}
-                  className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 transition-all"
-                  title="Siguiente"
-                >
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-              <button
-                onClick={handleEditReviewTx}
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-slate-800/40 border border-slate-700/30 text-slate-400 hover:text-slate-200 transition-all"
-              >
-                <Edit3 size={12} /> Editar datos
-              </button>
-            </div>
-          </div>
+            tx={currentReviewTx}
+            reviewIdx={reviewIdx}
+            pendingCount={pendingTxs.length}
+            reviewVisible={reviewVisible}
+            reviewDirection={reviewDirection}
+            reviewCat={reviewCat}
+            setReviewCat={setReviewCat}
+            reviewTipoGasto={reviewTipoGasto}
+            setReviewTipoGasto={setReviewTipoGasto}
+            reviewTipoTransaccion={reviewTipoTransaccion}
+            setReviewTipoTransaccion={setReviewTipoTransaccion}
+            reviewSaving={reviewSaving}
+            onClose={handleCloseReview}
+            onPrev={handlePrevReview}
+            onNext={handleSkipReview}
+            onConfirm={handleConfirmReview}
+            onEdit={handleEditReviewTx}
+            theme={theme}
+          />
         </div>
       )}
     </div>
