@@ -421,7 +421,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     if (!tx) return res.status(404).json({ error: 'Transacción no encontrada' });
     if (tx.user_id !== req.user.id) return res.status(403).json({ error: 'No autorizado' });
 
-    const { categoria, comercio, tipo_tarjeta, banco, revisado, tipo_gasto, tipo_transaccion } = req.body;
+    const { categoria, comercio, tipo_tarjeta, banco, revisado, tipo_gasto, tipo_transaccion, fecha, monto } = req.body;
     const finalComercio = comercio !== undefined ? comercio : tx.comercio;
     let updatedCount = 0;
 
@@ -452,6 +452,12 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     }
     if (tipo_transaccion !== undefined) {
       await db.run('UPDATE transacciones_extraidas SET tipo_transaccion = ? WHERE id = ?', tipo_transaccion, req.params.id);
+    }
+    if (fecha !== undefined) {
+      await db.run('UPDATE transacciones_extraidas SET fecha = ? WHERE id = ?', fecha, req.params.id);
+    }
+    if (monto !== undefined) {
+      await db.run('UPDATE transacciones_extraidas SET monto = ? WHERE id = ?', monto, req.params.id);
     }
 
     const updated = await db.get('SELECT * FROM transacciones_extraidas WHERE id = ?', req.params.id);

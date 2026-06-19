@@ -3,7 +3,8 @@ import {
   Mail, RefreshCw, Trash2, ExternalLink, Loader2, Inbox, Filter,
   Settings2, Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
-  MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban
+  MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
+  Banknote, TrendingUp, Wallet, Clock, Save
 } from 'lucide-react';
 
 const CATEGORY_COLORS = {
@@ -107,14 +108,18 @@ const Transacciones = ({ token, theme }) => {
   const [editCategoria, setEditCategoria] = useState('');
   const [editTipoTarjeta, setEditTipoTarjeta] = useState('');
   const [editBanco, setEditBanco] = useState('');
+  const [editFecha, setEditFecha] = useState('');
+  const [editMonto, setEditMonto] = useState('');
 
   const [showReview, setShowReview] = useState(false);
   const [pendingTxs, setPendingTxs] = useState([]);
   const [reviewIdx, setReviewIdx] = useState(0);
   const [reviewCat, setReviewCat] = useState('Otros');
   const [reviewTipoGasto, setReviewTipoGasto] = useState(null);
-  const [reviewEsGasto, setReviewEsGasto] = useState(true);
+  const [reviewTipoTransaccion, setReviewTipoTransaccion] = useState('gasto');
   const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewVisible, setReviewVisible] = useState(false);
+  const [reviewDirection, setReviewDirection] = useState('forward');
   const reviewSliderRef = useRef(null);
 
   const getHeaders = useCallback(() => ({
@@ -236,6 +241,22 @@ const Transacciones = ({ token, theme }) => {
     return d;
   };
 
+  const formatTime = (d) => {
+    if (!d) return '';
+    const t = d.includes('T') ? d.split('T')[1] : d.split(' ')[1];
+    if (t) {
+      const [h, m] = t.split(':');
+      return `${h}:${m}`;
+    }
+    return '';
+  };
+
+  const formatDateTime = (d) => {
+    const date = formatDate(d);
+    const time = formatTime(d);
+    return time ? `${date} · ${time}` : date;
+  };
+
   const handleAuthGmail = async () => {
     try {
       const res = await fetch('/api/transacciones/auth-url', { headers: getHeaders() });
@@ -328,6 +349,8 @@ const Transacciones = ({ token, theme }) => {
     setEditCategoria(tx.categoria || 'Otros');
     setEditTipoTarjeta(tx.tipo_tarjeta || '');
     setEditBanco(tx.banco || '');
+    setEditFecha(tx.fecha || '');
+    setEditMonto(tx.monto != null ? String(tx.monto) : '');
     setShowEditModal(true);
   };
 
@@ -336,7 +359,14 @@ const Transacciones = ({ token, theme }) => {
     try {
       const res = await fetch(`/api/transacciones/${editingTx.id}`, {
         method: 'PUT', headers: getHeaders(),
-        body: JSON.stringify({ categoria: editCategoria, comercio: editComercio, tipo_tarjeta: editTipoTarjeta, banco: editBanco })
+        body: JSON.stringify({
+          categoria: editCategoria,
+          comercio: editComercio,
+          tipo_tarjeta: editTipoTarjeta,
+          banco: editBanco,
+          fecha: editFecha || undefined,
+          monto: editMonto ? parseFloat(editMonto) : undefined
+        })
       });
       const data = await res.json();
       if (res.ok) {
@@ -346,7 +376,20 @@ const Transacciones = ({ token, theme }) => {
           setStatusMsg({ type: 'success', text: `✓ Categoría aplicada a ${data.updatedCount + 1} transacciones` });
           setTimeout(() => setStatusMsg(null), 4000);
         }
-        fetchTransactions();
+        if (showReview) {
+          const updated = await fetchPendientes();
+          if (updated.length === 0) {
+            setReviewVisible(false);
+            setTimeout(() => {
+              setShowReview(false);
+              setPendingTxs([]);
+              fetchTransactions();
+              fetchMonths();
+            }, 200);
+          }
+        } else {
+          fetchTransactions();
+        }
       }
     } catch (err) { console.error(err); }
   };
@@ -362,16 +405,24 @@ const Transacciones = ({ token, theme }) => {
     setReviewIdx(0);
     setReviewCat(first.categoria || 'Otros');
     setReviewTipoGasto(first.tipo_gasto || null);
-    setReviewEsGasto(first.tipo_transaccion !== 'interno');
+    setReviewTipoTransaccion(first.tipo_transaccion || 'gasto');
+    setReviewDirection('forward');
+    setReviewVisible(false);
     setShowReview(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setReviewVisible(true));
+    });
   };
 
   const handleCloseReview = () => {
-    setShowReview(false);
-    setPendingTxs([]);
-    fetchTransactions();
-    fetchMonths();
-    fetchPendientesCount();
+    setReviewVisible(false);
+    setTimeout(() => {
+      setShowReview(false);
+      setPendingTxs([]);
+      fetchTransactions();
+      fetchMonths();
+      fetchPendientesCount();
+    }, 250);
   };
 
   const handleConfirmReview = async () => {
@@ -383,25 +434,29 @@ const Transacciones = ({ token, theme }) => {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
           categoria: reviewCat,
-          tipo_gasto: reviewEsGasto ? reviewTipoGasto : null,
-          tipo_transaccion: reviewEsGasto ? 'gasto' : 'interno',
+          tipo_gasto: reviewTipoTransaccion === 'gasto' ? reviewTipoGasto : null,
+          tipo_transaccion: reviewTipoTransaccion,
           revisado: true
         })
       });
       const remaining = pendingTxs.length - 1;
       setPendientesCount(remaining);
       if (reviewIdx >= pendingTxs.length - 1) {
-        setShowReview(false);
-        setPendingTxs([]);
-        fetchTransactions();
-        fetchMonths();
+        setReviewVisible(false);
+        setTimeout(() => {
+          setShowReview(false);
+          setPendingTxs([]);
+          fetchTransactions();
+          fetchMonths();
+        }, 200);
       } else {
         const nextIdx = reviewIdx + 1;
+        setReviewDirection('forward');
         setReviewIdx(nextIdx);
         const next = pendingTxs[nextIdx];
         setReviewCat(next.categoria || 'Otros');
         setReviewTipoGasto(next.tipo_gasto || null);
-        setReviewEsGasto(next.tipo_transaccion !== 'interno');
+        setReviewTipoTransaccion(next.tipo_transaccion || 'gasto');
       }
     } catch (err) { console.error(err); }
     setReviewSaving(false);
@@ -409,26 +464,31 @@ const Transacciones = ({ token, theme }) => {
 
   const handleSkipReview = () => {
     if (reviewIdx >= pendingTxs.length - 1) {
-      setShowReview(false);
-      setPendingTxs([]);
+      setReviewVisible(false);
+      setTimeout(() => {
+        setShowReview(false);
+        setPendingTxs([]);
+      }, 200);
     } else {
       const nextIdx = reviewIdx + 1;
+      setReviewDirection('forward');
       setReviewIdx(nextIdx);
       const next = pendingTxs[nextIdx];
       setReviewCat(next.categoria || 'Otros');
       setReviewTipoGasto(next.tipo_gasto || null);
-      setReviewEsGasto(next.tipo_transaccion !== 'interno');
+      setReviewTipoTransaccion(next.tipo_transaccion || 'gasto');
     }
   };
 
   const handlePrevReview = () => {
     if (reviewIdx <= 0) return;
     const prevIdx = reviewIdx - 1;
+    setReviewDirection('back');
     setReviewIdx(prevIdx);
     const prev = pendingTxs[prevIdx];
     setReviewCat(prev.categoria || 'Otros');
     setReviewTipoGasto(prev.tipo_gasto || null);
-    setReviewEsGasto(prev.tipo_transaccion !== 'interno');
+    setReviewTipoTransaccion(prev.tipo_transaccion || 'gasto');
   };
 
   const handleEditReviewTx = () => {
@@ -670,8 +730,8 @@ const Transacciones = ({ token, theme }) => {
 
       {/* Edit Transaction Modal */}
       {showEditModal && editingTx && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className={`fixed inset-0 ${showReview ? 'bg-slate-950/60' : 'bg-slate-900/60'} backdrop-blur-sm ${showReview ? 'z-[60]' : 'z-50'} flex items-center justify-center p-3 sm:p-4`}>
+          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                 <Edit3 className={theme.tabText} size={20} /> Editar Transaccion
@@ -680,12 +740,22 @@ const Transacciones = ({ token, theme }) => {
             </div>
             <div className="space-y-4">
               <div className="bg-slate-50 dark:bg-dark-lighter rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400">
-                <span className="font-bold text-slate-600 dark:text-slate-300">Asunto:</span>{' '}
-                {editingTx.asunto || '(sin asunto)'}
+                <span className="font-bold text-slate-600 dark:text-slate-300">Detalle:</span>{' '}
+                {editingTx.asunto || '(sin detalle)'}
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Comercio</label>
                 <input value={editComercio} onChange={e => setEditComercio(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Monto</label>
+                  <input type="number" value={editMonto} onChange={e => setEditMonto(e.target.value)} placeholder="0" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Fecha</label>
+                  <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                </div>
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Categoria</label>
@@ -694,7 +764,7 @@ const Transacciones = ({ token, theme }) => {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Tipo</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Tipo de tarjeta</label>
                 <select value={editTipoTarjeta} onChange={e => setEditTipoTarjeta(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
                   <option value="">—</option>
                   <option value="Debito">Debito</option>
@@ -709,13 +779,11 @@ const Transacciones = ({ token, theme }) => {
                   <option value="Otros">Otros</option>
                 </select>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-400">
-                <span>{formatCurrency(editingTx.monto)}</span>
-                <span>{editingTx.banco} · {formatDate(editingTx.fecha)}</span>
-              </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => setShowEditModal(false)} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition-all">Cancelar</button>
-                <button onClick={handleUpdateTx} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">Guardar</button>
+                <button onClick={handleUpdateTx} className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
+                  <Save size={16} /> Guardar
+                </button>
               </div>
             </div>
           </div>
@@ -777,41 +845,53 @@ const Transacciones = ({ token, theme }) => {
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center">
-          <div className="w-full max-w-md mx-auto h-full flex flex-col animate-in slide-in-from-bottom-4 duration-300">
-            <div className="flex items-center justify-between px-4 py-4 flex-shrink-0">
-              <button onClick={handleCloseReview} className="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-all px-3 py-2 rounded-xl">
-                <X size={20} /> <span className="text-sm font-bold">Salir</span>
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
+          <div
+            key={`panel-${reviewIdx}-${reviewDirection}`}
+            className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-slate-900/70 border border-slate-700/50 sm:rounded-3xl shadow-2xl backdrop-blur-md transition-all duration-300 ease-out ${
+              reviewVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+            } ${reviewDirection === 'forward' ? 'animate-in slide-in-from-right-4' : 'animate-in slide-in-from-left-4'}`}
+          >
+            <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-800/50">
+              <button onClick={handleCloseReview} className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-all px-2 py-1.5 rounded-lg hover:bg-slate-800/50">
+                <X size={18} /> <span className="text-xs font-bold">Salir</span>
               </button>
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-slate-300">{reviewIdx + 1} / {pendingTxs.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-300 tabular-nums">{reviewIdx + 1} <span className="text-slate-600">/</span> {pendingTxs.length}</span>
               </div>
             </div>
 
-            <div className="w-full bg-slate-800/30 h-1 mb-2 flex-shrink-0">
-              <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${((reviewIdx + 1) / pendingTxs.length) * 100}%` }} />
+            <div className="w-full bg-slate-800/30 h-0.5 flex-shrink-0">
+              <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ease-out" style={{ width: `${((reviewIdx + 1) / pendingTxs.length) * 100}%` }} />
             </div>
 
-            <div className="flex-1 px-4 overflow-y-auto flex flex-col gap-5">
+            <div className="flex-1 px-4 py-4 overflow-y-auto flex flex-col gap-4 custom-scrollbar">
               {/* Transaction Card */}
-              <div className="bg-slate-900/80 border border-slate-700/50 rounded-3xl p-6 text-center space-y-4 backdrop-blur-sm">
+              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 text-center space-y-2 backdrop-blur-sm">
                 <div className="flex items-center justify-center gap-2">
                   {BANK_ICONS[currentReviewTx.banco] && (
-                    <img src={BANK_ICONS[currentReviewTx.banco]} alt="" className="w-10 h-10 rounded-full shadow-lg" />
+                    <img src={BANK_ICONS[currentReviewTx.banco]} alt="" className="w-8 h-8 rounded-full shadow-lg" />
                   )}
-                  <span className="text-base font-bold text-slate-300">{currentReviewTx.banco || 'Banco'}</span>
+                  <span className="text-sm font-bold text-slate-300">{currentReviewTx.banco || 'Banco'}</span>
                 </div>
-                <div className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+                <div className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                   {formatCurrency(currentReviewTx.monto)}
                 </div>
-                <div className="text-sm font-medium text-slate-400">
-                  {formatDate(currentReviewTx.fecha)}
+                <div className="text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
+                  <span>{formatDate(currentReviewTx.fecha)}</span>
+                  {formatTime(currentReviewTx.fecha_extraccion) && (
+                    <>
+                      <span className="text-slate-600">·</span>
+                      <Clock size={11} className="text-slate-500" />
+                      <span className="tabular-nums">{formatTime(currentReviewTx.fecha_extraccion)}</span>
+                    </>
+                  )}
                 </div>
-                <div className="text-lg font-bold text-white">
+                <div className="text-base font-bold text-white">
                   {currentReviewTx.comercio || 'Comercio no detectado'}
                 </div>
                 {currentReviewTx.tipo_tarjeta && (
-                  <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${
+                  <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                     currentReviewTx.tipo_tarjeta === 'Débito' ? 'bg-emerald-900/40 text-emerald-300' : 'bg-orange-900/40 text-orange-300'
                   }`}>{currentReviewTx.tipo_tarjeta}</span>
                 )}
@@ -819,8 +899,11 @@ const Transacciones = ({ token, theme }) => {
 
               {/* Category Slider */}
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block px-1">Categoria</label>
-                <div ref={reviewSliderRef} className="flex gap-2 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
+                <div className="flex items-center justify-between mb-1.5 px-1">
+                  <label className="text-[10px] font-black uppercase text-slate-500">Categoria</label>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros']}`}>{reviewCat}</span>
+                </div>
+                <div ref={reviewSliderRef} className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
                   {CATEGORY_LIST.map(cat => {
                     const Icon = CATEGORY_ICONS[cat];
                     const selected = reviewCat === cat;
@@ -828,44 +911,46 @@ const Transacciones = ({ token, theme }) => {
                       <button
                         key={cat}
                         onClick={() => setReviewCat(cat)}
-                        className={`flex flex-col items-center gap-1.5 flex-shrink-0 w-20 py-3 rounded-2xl transition-all duration-200 ${
+                        className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 ${
                           selected
-                            ? `bg-amber-500/20 border border-amber-500/50 scale-105 shadow-lg shadow-amber-500/10`
-                            : 'bg-slate-800/50 border border-slate-700/30 hover:border-slate-600/50'
+                            ? `bg-amber-500/20 border border-amber-500/50 shadow-lg shadow-amber-500/10`
+                            : 'bg-slate-800/40 border border-slate-700/30 hover:border-slate-600/50'
                         }`}
                       >
-                        <Icon size={20} className={selected ? 'text-amber-400' : 'text-slate-400'} />
-                        <span className={`text-[9px] font-bold leading-tight text-center ${selected ? 'text-amber-300' : 'text-slate-500'}`}>{cat}</span>
+                        <Icon size={16} className={selected ? 'text-amber-400' : 'text-slate-400'} />
+                        <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? 'text-amber-300' : 'text-slate-500'}`}>{cat}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Tipo de Gasto */}
+              {/* Tipo de transaccion: Gasto / Ingreso / Interno */}
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-500 mb-2 block px-1">Tipo de gasto</label>
-                <div className="flex gap-2">
+                <label className="text-[10px] font-black uppercase text-slate-500 mb-1.5 block px-1">Tipo de transaccion</label>
+                <div className="grid grid-cols-3 gap-1.5">
                   {[
-                    { key: 'variable', label: 'Variable', icon: Zap },
-                    { key: 'mensual', label: 'Mensual', icon: CalendarDays },
-                    { key: 'anual', label: 'Anual', icon: CalendarRange },
+                    { key: 'gasto', label: 'Gasto', icon: Banknote, color: 'amber' },
+                    { key: 'ingreso', label: 'Ingreso', icon: TrendingUp, color: 'emerald' },
+                    { key: 'interno', label: 'Interno', icon: Ban, color: 'red' },
                   ].map(tipo => {
-                    const selected = reviewEsGasto && reviewTipoGasto === tipo.key;
+                    const selected = reviewTipoTransaccion === tipo.key;
                     return (
                       <button
                         key={tipo.key}
                         onClick={() => {
-                          setReviewEsGasto(true);
-                          setReviewTipoGasto(reviewTipoGasto === tipo.key ? null : tipo.key);
+                          setReviewTipoTransaccion(tipo.key);
+                          if (tipo.key !== 'gasto') setReviewTipoGasto(null);
                         }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                           selected
-                            ? 'bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 shadow-lg shadow-indigo-500/10'
-                            : 'bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:border-slate-600/50'
+                            ? tipo.key === 'gasto' ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-lg shadow-amber-500/10' :
+                              tipo.key === 'ingreso' ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 shadow-lg shadow-emerald-500/10' :
+                              'bg-red-500/20 border border-red-500/50 text-red-300 shadow-lg shadow-red-500/10'
+                            : 'bg-slate-800/40 border border-slate-700/30 text-slate-400 hover:border-slate-600/50'
                         }`}
                       >
-                        <tipo.icon size={14} />
+                        <tipo.icon size={13} />
                         {tipo.label}
                       </button>
                     );
@@ -873,56 +958,69 @@ const Transacciones = ({ token, theme }) => {
                 </div>
               </div>
 
-              {/* No es gasto */}
-              <div>
-                <button
-                  onClick={() => {
-                    setReviewEsGasto(!reviewEsGasto);
-                    if (reviewEsGasto) setReviewTipoGasto(null);
-                  }}
-                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
-                    !reviewEsGasto
-                      ? 'bg-red-500/20 border border-red-500/50 text-red-300 shadow-lg shadow-red-500/10'
-                      : 'bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:border-slate-600/50'
-                  }`}
-                >
-                  <Ban size={16} />
-                  {!reviewEsGasto ? 'Marcado como: No es gasto' : 'No es gasto / Transaccion interna'}
-                </button>
-              </div>
+              {/* Tipo de gasto: solo si es gasto */}
+              {reviewTipoTransaccion === 'gasto' && (
+                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                  <label className="text-[10px] font-black uppercase text-slate-500 mb-1.5 block px-1">Frecuencia</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { key: 'variable', label: 'Variable', icon: Zap },
+                      { key: 'mensual', label: 'Mensual', icon: CalendarDays },
+                      { key: 'anual', label: 'Anual', icon: CalendarRange },
+                    ].map(tipo => {
+                      const selected = reviewTipoGasto === tipo.key;
+                      return (
+                        <button
+                          key={tipo.key}
+                          onClick={() => setReviewTipoGasto(reviewTipoGasto === tipo.key ? null : tipo.key)}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                            selected
+                              ? 'bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 shadow-lg shadow-indigo-500/10'
+                              : 'bg-slate-800/40 border border-slate-700/30 text-slate-400 hover:border-slate-600/50'
+                          }`}
+                        >
+                          <tipo.icon size={13} />
+                          {tipo.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Bottom Actions */}
-            <div className="flex-shrink-0 px-4 py-4 space-y-3">
-              <div className="flex gap-3">
+            {/* Bottom Actions - siempre justo debajo del contenido */}
+            <div className="flex-shrink-0 px-4 py-3 space-y-2 border-t border-slate-800/50 bg-slate-900/40">
+              <div className="flex gap-2">
                 <button
                   onClick={handlePrevReview}
                   disabled={reviewIdx === 0}
-                  className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  title="Anterior"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
                 <button
                   onClick={handleConfirmReview}
                   disabled={reviewSaving}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
                 >
-                  {reviewSaving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                  {reviewSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                   Confirmar
                 </button>
                 <button
                   onClick={handleSkipReview}
-                  className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 transition-all"
-                  title="Saltar"
+                  className="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 transition-all"
+                  title="Siguiente"
                 >
-                  <ArrowRight size={20} />
+                  <ArrowRight size={18} />
                 </button>
               </div>
               <button
                 onClick={handleEditReviewTx}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold bg-slate-800/50 border border-slate-700/30 text-slate-400 hover:text-slate-200 transition-all"
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-slate-800/40 border border-slate-700/30 text-slate-400 hover:text-slate-200 transition-all"
               >
-                <Edit3 size={14} /> Editar comercio / banco / tipo
+                <Edit3 size={12} /> Editar datos
               </button>
             </div>
           </div>
