@@ -75,6 +75,17 @@ const CATEGORY_ICON_COLOR = {
 
 const CATEGORY_LIST = ['Alimentos', 'Transporte', 'Servicios', 'Entretención', 'Salud', 'Hogar', 'Compras Generales', 'Otros'];
 
+const CATEGORY_EMOJI = {
+  'Alimentos': '🍔',
+  'Transporte': '🚌',
+  'Servicios': '🔧',
+  'Entretención': '🎬',
+  'Salud': '💊',
+  'Hogar': '🏠',
+  'Compras Generales': '🛍️',
+  'Otros': '✨',
+};
+
 const BANK_COLORS = {
   'BCI': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
   'Santander': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
@@ -111,6 +122,8 @@ const ReviewCard = ({
 }) => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchDelta, setTouchDelta] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
+  const [exitDir, setExitDir] = useState(null);
   const sliderRef = useRef(null);
 
   const formatCurrency2 = (val) => {
@@ -141,31 +154,82 @@ const ReviewCard = ({
     ? 'text-emerald-600 dark:text-emerald-400'
     : 'text-slate-800 dark:text-white';
 
+  const animateExit = (dir, callback) => {
+    setIsExiting(true);
+    setExitDir(dir);
+    setTimeout(() => {
+      callback();
+      setIsExiting(false);
+      setExitDir(null);
+    }, 280);
+  };
+
+  const handleNext = () => {
+    if (isExiting) return;
+    animateExit('right', onNext);
+  };
+
+  const handlePrev = () => {
+    if (isExiting) return;
+    animateExit('left', onPrev);
+  };
+
+  const handleConfirm = () => {
+    if (isExiting || reviewSaving) return;
+    animateExit('right', onConfirm);
+  };
+
   const handleTouchStart = (e) => {
+    if (isExiting) return;
     setTouchStart(e.touches[0].clientX);
   };
   const handleTouchMove = (e) => {
-    if (touchStart === null) return;
+    if (touchStart === null || isExiting) return;
     setTouchDelta(e.touches[0].clientX - touchStart);
   };
   const handleTouchEnd = () => {
-    if (touchStart === null) return;
+    if (touchStart === null || isExiting) {
+      setTouchStart(null);
+      setTouchDelta(0);
+      return;
+    }
     const threshold = 80;
-    if (touchDelta < -threshold) onNext();
-    else if (touchDelta > threshold) onPrev();
+    if (touchDelta < -threshold) {
+      handleNext();
+    } else if (touchDelta > threshold) {
+      handlePrev();
+    }
     setTouchStart(null);
     setTouchDelta(0);
   };
 
+  const cardStyle = isExiting
+    ? {
+        transform: exitDir === 'right'
+          ? 'translateX(120%) rotate(20deg)'
+          : 'translateX(-120%) rotate(-20deg)',
+        opacity: 0,
+        transition: 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1), opacity 280ms ease-out',
+      }
+    : touchDelta !== 0
+    ? {
+        transform: `translateX(${touchDelta}px) rotate(${touchDelta / 15}deg)`,
+        transition: 'none',
+      }
+    : {
+        transform: 'translateX(0) rotate(0)',
+        transition: 'transform 250ms cubic-bezier(0.32, 0.72, 0, 1)',
+      };
+
   return (
     <div
-      className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl transition-all duration-300 ease-out overflow-hidden ${
-        reviewVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-      }`}
+      className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden ${
+        reviewVisible && !isExiting ? 'opacity-100' : 'opacity-0'
+      } ${reviewVisible && !isExiting ? 'translate-y-0' : 'translate-y-6'}`}
+      style={{ ...cardStyle, transition: cardStyle.transition }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ transform: `translateX(${touchDelta}px)` }}
     >
       <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
         <button onClick={onClose} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-all px-2 py-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-dark-lightest">
@@ -180,7 +244,7 @@ const ReviewCard = ({
         <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ease-out" style={{ width: `${((reviewIdx + 1) / pendingCount) * 100}%` }} />
       </div>
 
-      <div className="flex-1 px-4 py-4 overflow-y-auto no-scrollbar flex flex-col gap-4">
+      <div className="flex-1 px-4 py-4 overflow-y-scroll no-scrollbar flex flex-col gap-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-4 text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             {BANK_ICONS[tx.banco] && (
@@ -217,9 +281,8 @@ const ReviewCard = ({
             <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros']}`}>{reviewCat}</span>
           </div>
-          <div ref={sliderRef} className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+          <div ref={sliderRef} className="flex gap-1.5 overflow-x-scroll no-scrollbar -mx-1 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {CATEGORY_LIST.map(cat => {
-              const Icon = CATEGORY_ICONS[cat];
               const selected = reviewCat === cat;
               return (
                 <button
@@ -227,11 +290,11 @@ const ReviewCard = ({
                   onClick={() => setReviewCat(cat)}
                   className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 border ${
                     selected
-                      ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm`
+                      ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm scale-105`
                       : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
                   }`}
                 >
-                  <Icon size={16} className={selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-400'} />
+                  <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
                   <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
                 </button>
               );
@@ -302,24 +365,24 @@ const ReviewCard = ({
       <div className="flex-shrink-0 px-4 py-3 space-y-2 border-t border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
         <div className="flex gap-2">
           <button
-            onClick={onPrev}
+            onClick={handlePrev}
             disabled={reviewIdx === 0}
-            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
             title="Anterior"
           >
             <ChevronLeft size={18} />
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={reviewSaving}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50 active:scale-95"
           >
             {reviewSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
             Confirmar
           </button>
           <button
-            onClick={onNext}
-            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all"
+            onClick={handleNext}
+            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all active:scale-90"
             title="Siguiente"
           >
             <ArrowRight size={18} />
