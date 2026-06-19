@@ -161,7 +161,7 @@ const ReviewCard = ({
       callback();
       setIsExiting(false);
       setExitDir(null);
-    }, 280);
+    }, 480);
   };
 
   const handleNext = () => {
@@ -206,19 +206,21 @@ const ReviewCard = ({
   const cardStyle = isExiting
     ? {
         transform: exitDir === 'right'
-          ? 'translateX(120%) rotate(20deg)'
-          : 'translateX(-120%) rotate(-20deg)',
+          ? 'translateX(140%) rotate(14deg)'
+          : 'translateX(-140%) rotate(-14deg)',
         opacity: 0,
-        transition: 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1), opacity 280ms ease-out',
+        transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
       }
     : touchDelta !== 0
     ? {
-        transform: `translateX(${touchDelta}px) rotate(${touchDelta / 15}deg)`,
+        transform: `translateX(${touchDelta}px) rotate(${touchDelta / 20}deg)`,
+        opacity: 1 - Math.min(Math.abs(touchDelta) / 350, 0.4),
         transition: 'none',
       }
     : {
         transform: 'translateX(0) rotate(0)',
-        transition: 'transform 250ms cubic-bezier(0.32, 0.72, 0, 1)',
+        opacity: 1,
+        transition: 'transform 380ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease-out',
       };
 
   return (
@@ -226,7 +228,17 @@ const ReviewCard = ({
       className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden ${
         reviewVisible && !isExiting ? 'opacity-100' : 'opacity-0'
       } ${reviewVisible && !isExiting ? 'translate-y-0' : 'translate-y-6'}`}
-      style={{ ...cardStyle, transition: cardStyle.transition }}
+      style={{
+        transform: isExiting
+          ? cardStyle.transform
+          : touchDelta !== 0
+          ? cardStyle.transform
+          : (reviewVisible && !isExiting)
+          ? 'translateX(0) translateY(0) rotate(0) scale(1)'
+          : 'translateX(0) translateY(8px) rotate(0) scale(0.97)',
+        opacity: cardStyle.opacity !== undefined ? cardStyle.opacity : (reviewVisible && !isExiting ? 1 : 0),
+        transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -408,7 +420,7 @@ const Transacciones = ({ token, theme }) => {
   const [lastCheck, setLastCheck] = useState(null);
   const [authStatus, setAuthStatus] = useState(null);
   const [filterCat, setFilterCat] = useState('');
-  const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [filterMonth, setFilterMonth] = useState('');
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
