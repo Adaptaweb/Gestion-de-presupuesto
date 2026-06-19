@@ -125,7 +125,7 @@ const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
   reviewTipoTransaccion, setReviewTipoTransaccion, reviewSaving,
-  onClose, onPrev, onNext, onConfirm, onEdit
+  onClose, onPrev, onNext, onConfirm, onConfirmComplete, onEdit
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [exitDir, setExitDir] = useState(null);
@@ -179,9 +179,14 @@ const ReviewCard = ({
     animateExit('left', onPrev);
   };
 
-  const handleConfirm = () => {
-    if (isExiting || reviewSaving) return;
-    animateExit('right', onConfirm);
+  const handleConfirm = async () => {
+    if (isExiting) return;
+    if (typeof onConfirm !== 'function') return;
+    const ok = await onConfirm();
+    if (ok === false) return;
+    animateExit('right', () => {
+      if (typeof onConfirmComplete === 'function') onConfirmComplete();
+    });
   };
 
   return (
@@ -714,11 +719,11 @@ const Transacciones = ({ token, theme }) => {
   };
 
   const handleConfirmReview = async () => {
-    setReviewSaving(true);
     const tx = pendingTxs[reviewIdx];
-    if (!tx) { setReviewSaving(false); return; }
+    if (!tx) return false;
+    setReviewSaving(true);
     try {
-      await fetch(`/api/transacciones/${tx.id}`, {
+      const res = await fetch(`/api/transacciones/${tx.id}`, {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
           categoria: reviewCat,
@@ -727,27 +732,42 @@ const Transacciones = ({ token, theme }) => {
           revisado: true
         })
       });
-      const remaining = pendingTxs.length - 1;
-      setPendientesCount(remaining);
-      if (reviewIdx >= pendingTxs.length - 1) {
-        setReviewVisible(false);
-        setTimeout(() => {
-          setShowReview(false);
-          setPendingTxs([]);
-          fetchTransactions();
-          fetchMonths();
-        }, 200);
-      } else {
-        const nextIdx = reviewIdx + 1;
-        setReviewDirection('forward');
-        setReviewIdx(nextIdx);
-        const next = pendingTxs[nextIdx];
-        setReviewCat(next.categoria || 'Otros');
-        setReviewTipoGasto(next.tipo_gasto || null);
-        setReviewTipoTransaccion(next.tipo_transaccion || 'gasto');
+      setReviewSaving(false);
+      if (!res.ok) {
+        setStatusMsg({ type: 'error', text: '✗ No se pudo guardar la transacción' });
+        setTimeout(() => setStatusMsg(null), 4000);
+        return false;
       }
-    } catch (err) { console.error(err); }
-    setReviewSaving(false);
+      return true;
+    } catch (err) {
+      console.error(err);
+      setReviewSaving(false);
+      setStatusMsg({ type: 'error', text: '✗ Error de red al guardar' });
+      setTimeout(() => setStatusMsg(null), 4000);
+      return false;
+    }
+  };
+
+  const handleConfirmComplete = () => {
+    const remaining = pendingTxs.length - 1;
+    setPendientesCount(remaining);
+    if (reviewIdx >= pendingTxs.length - 1) {
+      setReviewVisible(false);
+      setTimeout(() => {
+        setShowReview(false);
+        setPendingTxs([]);
+        fetchTransactions();
+        fetchMonths();
+      }, 200);
+    } else {
+      const nextIdx = reviewIdx + 1;
+      setReviewDirection('forward');
+      setReviewIdx(nextIdx);
+      const next = pendingTxs[nextIdx];
+      setReviewCat(next.categoria || 'Otros');
+      setReviewTipoGasto(next.tipo_gasto || null);
+      setReviewTipoTransaccion(next.tipo_transaccion || 'gasto');
+    }
   };
 
   const handleSkipReview = () => {
@@ -1152,6 +1172,7 @@ const Transacciones = ({ token, theme }) => {
             onPrev={handlePrevReview}
             onNext={handleSkipReview}
             onConfirm={handleConfirmReview}
+            onConfirmComplete={handleConfirmComplete}
             onEdit={handleEditReviewTx}
             theme={theme}
           />
