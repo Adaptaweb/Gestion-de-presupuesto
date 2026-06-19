@@ -11,6 +11,7 @@ const CATEGORY_COLORS = {
   'Alimentos': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
   'Transporte': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   'Servicios': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+  'Suscripción': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
   'Entretención': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   'Salud': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   'Hogar': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
@@ -22,6 +23,7 @@ const CATEGORY_BAR_COLORS = {
   'Alimentos': 'bg-orange-400 dark:bg-orange-500',
   'Transporte': 'bg-blue-400 dark:bg-blue-500',
   'Servicios': 'bg-yellow-400 dark:bg-yellow-500',
+  'Suscripción': 'bg-indigo-400 dark:bg-indigo-500',
   'Entretención': 'bg-purple-400 dark:bg-purple-500',
   'Salud': 'bg-green-400 dark:bg-green-500',
   'Hogar': 'bg-rose-400 dark:bg-rose-500',
@@ -33,6 +35,7 @@ const CATEGORY_ICONS = {
   'Alimentos': Utensils,
   'Transporte': Bus,
   'Servicios': Wrench,
+  'Suscripción': CalendarRange,
   'Entretención': Clapperboard,
   'Salud': HeartPulse,
   'Hogar': Home,
@@ -44,6 +47,7 @@ const CATEGORY_SOLID = {
   'Alimentos': 'bg-orange-500 dark:bg-orange-400',
   'Transporte': 'bg-blue-500 dark:bg-blue-400',
   'Servicios': 'bg-yellow-500 dark:bg-yellow-400',
+  'Suscripción': 'bg-indigo-500 dark:bg-indigo-400',
   'Entretención': 'bg-purple-500 dark:bg-purple-400',
   'Salud': 'bg-green-500 dark:bg-green-400',
   'Hogar': 'bg-rose-500 dark:bg-rose-400',
@@ -55,6 +59,7 @@ const CATEGORY_ICON_BG = {
   'Alimentos': 'bg-orange-100 dark:bg-orange-500/20',
   'Transporte': 'bg-blue-100 dark:bg-blue-500/20',
   'Servicios': 'bg-yellow-100 dark:bg-yellow-500/20',
+  'Suscripción': 'bg-indigo-100 dark:bg-indigo-500/20',
   'Entretención': 'bg-purple-100 dark:bg-purple-500/20',
   'Salud': 'bg-green-100 dark:bg-green-500/20',
   'Hogar': 'bg-rose-100 dark:bg-rose-500/20',
@@ -66,6 +71,7 @@ const CATEGORY_ICON_COLOR = {
   'Alimentos': 'text-orange-500 dark:text-orange-300',
   'Transporte': 'text-blue-500 dark:text-blue-300',
   'Servicios': 'text-yellow-500 dark:text-yellow-300',
+  'Suscripción': 'text-indigo-500 dark:text-indigo-300',
   'Entretención': 'text-purple-500 dark:text-purple-300',
   'Salud': 'text-green-500 dark:text-green-300',
   'Hogar': 'text-rose-500 dark:text-rose-300',
@@ -73,12 +79,13 @@ const CATEGORY_ICON_COLOR = {
   'Otros': 'text-slate-500 dark:text-slate-300',
 };
 
-const CATEGORY_LIST = ['Alimentos', 'Transporte', 'Servicios', 'Entretención', 'Salud', 'Hogar', 'Compras Generales', 'Otros'];
+const CATEGORY_LIST = ['Alimentos', 'Transporte', 'Servicios', 'Suscripción', 'Entretención', 'Salud', 'Hogar', 'Compras Generales', 'Otros'];
 
 const CATEGORY_EMOJI = {
   'Alimentos': '🍔',
   'Transporte': '🚌',
   'Servicios': '🔧',
+  'Suscripción': '🔁',
   'Entretención': '🎬',
   'Salud': '💊',
   'Hogar': '🏠',
