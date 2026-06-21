@@ -293,24 +293,40 @@ const ReviewCard = ({
             <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros']}`}>{reviewCat}</span>
           </div>
-          <div ref={sliderRef} className="flex gap-1.5 overflow-x-scroll no-scrollbar -mx-1 px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {CATEGORY_LIST.map(cat => {
-              const selected = reviewCat === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setReviewCat(cat)}
-                  className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 border ${
-                    selected
-                      ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm scale-105`
-                      : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
-                  }`}
-                >
-                  <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                  <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => sliderRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
+              className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
+              title="Anterior categoría"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <div ref={sliderRef} className="flex-1 flex gap-1.5 overflow-x-scroll no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {CATEGORY_LIST.map(cat => {
+                const selected = reviewCat === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setReviewCat(cat)}
+                    className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 border ${
+                      selected
+                        ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm scale-105`
+                        : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
+                    }`}
+                  >
+                    <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
+                    <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => sliderRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
+              className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
+              title="Siguiente categoría"
+            >
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
 
@@ -795,6 +811,7 @@ const Transacciones = ({ token, theme }) => {
         setPendingTxs([]);
         fetchTransactions();
         fetchMonths();
+        fetchPendientesCount();
       }, 200);
     } else {
       const nextIdx = reviewIdx + 1;
@@ -813,6 +830,7 @@ const Transacciones = ({ token, theme }) => {
       setTimeout(() => {
         setShowReview(false);
         setPendingTxs([]);
+        fetchPendientesCount();
       }, 200);
     } else {
       const nextIdx = reviewIdx + 1;
@@ -1190,7 +1208,7 @@ const Transacciones = ({ token, theme }) => {
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className="fixed inset-0 bg-white/60 dark:bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
+        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}

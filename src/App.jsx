@@ -817,15 +817,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     if (abonosCambiados) setAbonos(abonosActualizados);
   }, []);
 
-  const isInitialMount = useRef(true);
+  const isInitialSync = useRef(true);
   const syncTimeoutRef = useRef(null);
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
+    if (loadingData) { isInitialSync.current = true; return; }
+    if (isInitialSync.current) {
+      isInitialSync.current = false;
       return;
     }
-    if (loadingData) return;
 
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     syncTimeoutRef.current = setTimeout(() => {
