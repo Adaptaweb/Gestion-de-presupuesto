@@ -164,7 +164,7 @@ async function parseHTML(html, headers = {}, userId = null) {
   if (tipo_movimiento === 'Transferencia') {
     if (/a terceros|transferencia enviada|giro por transferencia|realizaste una transferencia|transferiste|comprobante de transferencia/i.test(bodyText)) {
       tipo_transaccion_auto = 'gasto';
-    } else if (/recibida|abono por|depósito por transferencia|recibiste un depósito|monto recibido/i.test(bodyText)) {
+    } else if (/recibida|abono por|depósito por transferencia|recibiste un depósito|monto recibido|\bdepósito\b/i.test(bodyText)) {
       tipo_transaccion_auto = 'ingreso';
     } else if (/traspaso|entre cuentas|movimiento interno/i.test(bodyText)) {
       tipo_transaccion_auto = 'interno';

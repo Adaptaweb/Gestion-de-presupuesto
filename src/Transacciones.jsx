@@ -315,7 +315,7 @@ const ReviewCard = ({
                     }`}
                   >
                     <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                    <span className={`text-[8px] font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
+                    <span className={`text-[8px] font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-200'}`}>{cat}</span>
                   </button>
                 );
               })}
@@ -436,7 +436,7 @@ const Transacciones = ({ token, theme }) => {
   const [lastCheck, setLastCheck] = useState(null);
   const [authStatus, setAuthStatus] = useState(null);
   const [filterCat, setFilterCat] = useState('');
-  const [filterMonth, setFilterMonth] = useState('');
+  const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);

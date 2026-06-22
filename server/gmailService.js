@@ -61,10 +61,11 @@ async function fetchLatestTransactions(userId) {
         const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const subject = (headers['subject'] || '').slice(0, 200);
 
-        const existing = await db.get('SELECT id FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2', emailId, userId);
+        const existing = await db.get('SELECT id, revisado FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2', emailId, userId);
         if (existing) {
-          await db.run("UPDATE transacciones_extraidas SET asunto = $1, tipo_tarjeta = $2, fecha_extraccion = NOW() WHERE id = $3",
-            subject, parsed.tipo_tarjeta || '', existing.id);
+          await db.run(
+            "UPDATE transacciones_extraidas SET asunto = $1, tipo_tarjeta = $2, fecha_extraccion = NOW(), comercio = CASE WHEN $3 != '' AND revisado = FALSE THEN $3 ELSE comercio END, tipo_transaccion = CASE WHEN $4 IS NOT NULL AND revisado = FALSE THEN $4 ELSE tipo_transaccion END WHERE id = $5",
+            subject, parsed.tipo_tarjeta || '', parsed.comercio || '', parsed.tipo_transaccion_auto || null, existing.id);
           results.transactions.push(parsed);
         } else {
           await db.run(
