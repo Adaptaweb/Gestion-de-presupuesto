@@ -544,6 +544,33 @@ app.delete('/api/filtros/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/api/filtros/replace', authenticateToken, async (req, res) => {
+  try {
+    const { remitentes } = req.body;
+    if (!remitentes || !Array.isArray(remitentes) || remitentes.length === 0)
+      return res.status(400).json({ error: 'Se requiere un arreglo de remitentes' });
+
+    const filtered = remitentes.map(r => r.trim()).filter(r => r.includes('@'));
+    if (filtered.length === 0)
+      return res.status(400).json({ error: 'Ningún remitente válido' });
+
+    const userId = req.user.id;
+
+    await db.run('DELETE FROM filtros_correo WHERE user_id = ?', userId);
+
+    for (const remitente of filtered) {
+      const id = `filtro-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      await db.run('INSERT INTO filtros_correo (id, user_id, remitente, asunto) VALUES (?, ?, ?, NULL)', id, userId, remitente);
+    }
+
+    const filters = await db.all('SELECT * FROM filtros_correo WHERE user_id = ? ORDER BY created_at DESC', userId);
+    res.json({ success: true, count: filtered.length, filters });
+  } catch (error) {
+    console.error('[Filtros] Error en replace:', error.message);
+    res.status(500).json({ error: 'Error al reemplazar filtros' });
+  }
+});
+
 app.get('/api/config-extraccion', authenticateToken, async (req, res) => {
   try {
     let config = await db.get('SELECT dias_atras FROM config_extraccion WHERE user_id = ?', req.user.id);

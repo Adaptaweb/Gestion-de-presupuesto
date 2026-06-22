@@ -442,6 +442,7 @@ const Transacciones = ({ token, theme }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [newFilterRemitente, setNewFilterRemitente] = useState('');
   const [newFilterAsunto, setNewFilterAsunto] = useState('');
+  const [bulkRemitentes, setBulkRemitentes] = useState('');
   const [diasAtras, setDiasAtras] = useState(3);
   const [configLoaded, setConfigLoaded] = useState(false);
   const [availableMonths, setAvailableMonths] = useState([]);
@@ -653,6 +654,24 @@ const Transacciones = ({ token, theme }) => {
         setTransactions(prev => prev.filter(tx => tx.id !== id));
         fetchTransactions();
         fetchMonths();
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleBulkReplace = async () => {
+    const remitentes = bulkRemitentes
+      .split(/[\s,;]+/)
+      .map(r => r.replace(/^OR\s*/i, '').trim())
+      .filter(r => r.includes('@'));
+    if (remitentes.length === 0) return;
+    try {
+      const res = await fetch('/api/filtros/replace', {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ remitentes })
+      });
+      if (res.ok) {
+        setBulkRemitentes('');
+        fetchFilters();
       }
     } catch (err) { console.error(err); }
   };
@@ -1049,7 +1068,9 @@ const Transacciones = ({ token, theme }) => {
                         </span>
                       </td>
                       <td className="p-2 sm:p-4 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">{tx.comercio || '-'}</td>
-                      <td className="p-2 sm:p-4 text-xs sm:text-sm font-black text-right text-slate-700 dark:text-slate-200">{formatCurrency(tx.monto)}</td>
+                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-black text-right ${tx.tipo_transaccion === 'ingreso' || tx.tipo_transaccion === 'interno' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
+  {tx.tipo_transaccion === 'ingreso' || tx.tipo_transaccion === 'interno' ? '+' : ''}{formatCurrency(tx.monto)}
+</td>
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
                         {tx.tipo_tarjeta ? (
                           <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -1165,7 +1186,7 @@ const Transacciones = ({ token, theme }) => {
               <button onClick={() => setShowFilterModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Define que correos revisar. Gmail buscara solo los que coincidan con el remitente y asunto indicados.
+              Gmail buscara correos de estos remitentes (sin filtrar por asunto). Se respeta el limite de dias hacia atras.
             </p>
             <div className="mb-4 p-3 sm:p-4 bg-slate-50 dark:bg-dark-lighter rounded-xl">
               <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Dias hacia atras</label>
@@ -1174,6 +1195,22 @@ const Transacciones = ({ token, theme }) => {
                 <button type="button" onClick={handleSaveConfig} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all flex-shrink-0">Guardar</button>
               </div>
               <p className="text-[10px] text-slate-400 mt-1.5">Cuantos dias hacia atras revisar en Gmail (max. 999)</p>
+            </div>
+            <div className="mb-4 p-3 sm:p-4 bg-slate-50 dark:bg-dark-lighter rounded-xl">
+              <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Carga masiva</label>
+              <textarea
+                value={bulkRemitentes}
+                onChange={e => setBulkRemitentes(e.target.value)}
+                placeholder={["reply@info.bice.cl", "biceinforma@bancobice.cl", "serviciodetransferencias@bancochile.cl"].join('\n')}
+                rows={4}
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-mono outline-none focus:border-blue-500 transition-all dark:text-slate-200 mb-2"
+              />
+              <div className="flex items-center gap-2 text-[10px] text-slate-400 mb-2">
+                <span>Pega uno por linea, separados por espacio, coma, punto y coma u <span className="font-mono">OR</span></span>
+              </div>
+              <button type="button" onClick={handleBulkReplace} className="flex items-center justify-center gap-2 w-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all">
+                <Plus size={14} /> Reemplazar todo
+              </button>
             </div>
             <form onSubmit={handleCreateFilter} className="space-y-3 mb-6 p-3 sm:p-4 bg-slate-50 dark:bg-dark-lighter rounded-xl">
               <div>

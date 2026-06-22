@@ -18,16 +18,25 @@ async function fetchLatestTransactions(userId) {
 
     const query = await buildGmailQuery(userId);
 
-    const listRes = await gmail.users.messages.list({
-      userId: 'me',
-      q: query,
-      maxResults: 20,
-    });
+	    const allIds = [];
+	    let pageToken = undefined;
+	    do {
+	      const listRes = await gmail.users.messages.list({
+	        userId: 'me',
+	        q: query,
+	        maxResults: 20,
+	        pageToken: pageToken,
+	      });
+	      for (const msg of listRes.data.messages || []) {
+	        allIds.push(msg.id);
+	      }
+	      pageToken = listRes.data.nextPageToken || null;
+	    } while (pageToken && allIds.length < 500);
 
-    const messages = listRes.data.messages || [];
-    results.fetched = messages.length;
+	    results.fetched = allIds.length;
 
-    for (const msg of messages) {
+	    for (const id of allIds) {
+	      const msg = { id };
       try {
         const fullMsg = await gmail.users.messages.get({
           userId: 'me',
