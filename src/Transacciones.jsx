@@ -941,7 +941,7 @@ const Transacciones = ({ token, theme }) => {
       {(summary.length > 0 || transactions.filter(tx => tx.tipo_tarjeta).length > 0) && (() => {
         const bankTotals = {};
         for (const tx of transactions) {
-          if (!tx.tipo_tarjeta) continue;
+          if (!tx.tipo_tarjeta || tx.tipo_transaccion === 'interno') continue;
           const bank = tx.banco || 'Otros';
           if (!bankTotals[bank]) bankTotals[bank] = {};
           const tipo = tx.tipo_tarjeta;

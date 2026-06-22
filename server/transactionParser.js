@@ -162,9 +162,9 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   let tipo_transaccion_auto = null;
   if (tipo_movimiento === 'Transferencia') {
-    if (/a terceros|transferencia enviada|giro por transferencia/i.test(bodyText)) {
+    if (/a terceros|transferencia enviada|giro por transferencia|realizaste una transferencia|transferiste|comprobante de transferencia/i.test(bodyText)) {
       tipo_transaccion_auto = 'gasto';
-    } else if (/recibida|abono por|depósito por transferencia/i.test(bodyText)) {
+    } else if (/recibida|abono por|depósito por transferencia|recibiste un depósito|monto recibido/i.test(bodyText)) {
       tipo_transaccion_auto = 'ingreso';
     } else if (/traspaso|entre cuentas|movimiento interno/i.test(bodyText)) {
       tipo_transaccion_auto = 'interno';
@@ -200,7 +200,7 @@ async function parseHTML(html, headers = {}, userId = null) {
     comercio = simplifyComercio(comercioRaw || '');
 
     if (!comercio && tipo_movimiento === 'Transferencia') {
-      const nombreRaw = extractTableValue($, tableRows, 'nombre y apellido');
+      const nombreRaw = extractTableValue($, tableRows, 'nombre');
       if (nombreRaw) comercio = simplifyComercio(nombreRaw);
     }
   }
@@ -253,10 +253,15 @@ async function parseHTML(html, headers = {}, userId = null) {
   }
 
   if (!comercio && tipo_movimiento === 'Transferencia') {
-    const nombreMatch = bodyText.match(/Nombre\s+y\s+Apellido[:\s]?(.*?)(?=\s*Monto|\s*Rut|\s*Email|\s*Banco|$)/i);
+    const nombreMatch = bodyText.match(/Nombre\s+(?:del\s+)?(?:destinatario|remitente|y\s+Apellido)[:\s]?(.*?)(?=\s*Monto|\s*Rut|\s*Email|\s*Banco|$)/i);
     if (nombreMatch && nombreMatch[1].trim()) {
       comercio = simplifyComercio(nombreMatch[1].trim());
     }
+  }
+
+  if (!comercio && tipo_movimiento === 'Transferencia') {
+    const bancoOrigen = extractTableValue($, $('tr').toArray().filter(r => $(r).children('td').length >= 2), 'banco de origen');
+    if (bancoOrigen) comercio = simplifyComercio(bancoOrigen);
   }
 
   let categoria = categorize(comercio || '', comercio || '', bodyText);
