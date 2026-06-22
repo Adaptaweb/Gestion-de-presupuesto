@@ -648,12 +648,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   useEffect(() => {
     if (filteredMonths.length > 0 && !dashboardMonth) {
       const now = new Date();
-      const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const prevMonthName = MONTH_NAMES[prevMonth.getMonth()];
-      const prevYearStr = prevMonth.getFullYear().toString();
-      const prevMonthStr = `${prevMonthName} ${prevYearStr}`;
-      if (filteredMonths.includes(prevMonthStr)) {
-        setDashboardMonth(prevMonthStr);
+      const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const currentMonthName = MONTH_NAMES[currentMonth.getMonth()];
+      const currentYearStr = currentMonth.getFullYear().toString();
+      const currentMonthStr = `${currentMonthName} ${currentYearStr}`;
+      if (filteredMonths.includes(currentMonthStr)) {
+        setDashboardMonth(currentMonthStr);
       } else {
         setDashboardMonth(filteredMonths[0]);
       }
@@ -2542,9 +2542,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               </div>
             </div>
           </div>
-        ) : activeTab === 'transacciones' ? (
-          <Transacciones token={token} theme={theme} />
-        ) : null}
+        ) : (
+          <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
+            <Transacciones token={token} theme={theme} />
+          </div>
+        )}
 
         {isAddingDebt && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
@@ -2588,7 +2590,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                    <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
@@ -2720,7 +2722,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                    <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
@@ -2845,7 +2847,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" />
+                    <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
@@ -3006,7 +3008,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   </div>
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
-                    <input type="number" min="1" max="28" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: parseInt(e.target.value) || 1 })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
+                    <input type="number" min="1" max="31" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
