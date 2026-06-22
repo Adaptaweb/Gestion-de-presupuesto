@@ -3,7 +3,6 @@ import {
   TrendingDown,
   Plus,
   Trash2,
-  Calendar,
   X,
   CreditCard,
   Droplets,
@@ -17,23 +16,19 @@ import {
   FileText,
   PiggyBank,
   Palette,
+  Sun,
+  Moon,
   ArrowDownCircle,
   Building2,
   ListChecks,
   Settings2,
   ImageIcon,
   Sparkles,
-  BrainCircuit,
   Lightbulb,
   Loader2,
   ChevronRight,
   TrendingUp,
   MinusCircle,
-  Moon,
-  Sun,
-  LogOut,
-  Users,
-  User,
   Search,
   Car,
   Phone,
@@ -122,6 +117,7 @@ import Login from './Login.jsx';
 import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
 import Transacciones from './Transacciones.jsx';
+import { UserMenu } from './components/user-dropdown';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -591,7 +587,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
   const [themeColor, setThemeColor] = useState(() => localStorage.getItem('themeColor') || 'indigo');
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const theme = THEMES[themeColor];
 
   const getHeaders = () => ({
@@ -602,12 +597,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
     }
-  }, [isDarkMode]);
+  }, []); // runs once on mount only
 
   useEffect(() => {
     fetch('/api/data', { headers: getHeaders() })
@@ -1407,6 +1398,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   };
 
   return (
+    <div className={isDarkMode ? 'dark' : ''}>
     <div className="min-h-screen bg-slate-50 dark:bg-dark-darker p-1 md:p-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-[100%] lg:max-w-[1920px] mx-auto">
 
@@ -1422,110 +1414,42 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 py-2 rounded-xl shadow-sm">
-              <User size={16} className="text-slate-400" />
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{user.name}</span>
-              {user.role === 'admin' && (
-                <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">Admin</span>
-              )}
-            </div>
-
-            {user.role === 'admin' && (
-              <button
-                onClick={onOpenAdmin}
-                className="flex items-center gap-1.5 md:gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-700 dark:text-slate-300 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all shadow-sm"
-              >
-                <Users size={16} /> <span className="hidden sm:inline">Usuarios</span>
-              </button>
-            )}
-
-            <div className="relative">
-              <button
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
-                title="Cambiar color del tema"
-              >
-                <Palette size={16} />
-              </button>
-              {showColorPicker && (
-                <div className="absolute right-0 sm:right-4 top-12 sm:top-14 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-4 z-[100] w-64 sm:w-72 animate-in fade-in zoom-in-95 duration-200">
-                  <div className="flex justify-between items-center mb-3">
-                    <p className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Color del tema</p>
-                    <button onClick={() => setShowColorPicker(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={14} /></button>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 sm:gap-3">
-                    {THEME_COLORS.map(color => (
-                      <button
-                        key={color}
-                        onClick={() => { setThemeColor(color); setShowColorPicker(false); localStorage.setItem('themeColor', color); }}
-                        className="flex flex-col items-center gap-1 sm:gap-1.5 group"
-                      >
-                        <div
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all flex items-center justify-center ${themeColor === color ? 'ring-[3px] ring-offset-2 ring-slate-400 dark:ring-offset-slate-800 scale-110' : 'hover:scale-110 group-hover:shadow-lg'}`}
-                          style={{ backgroundColor: THEME_COLOR_HEX[color] }}
-                        >
-                          {themeColor === color && (
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-[8px] sm:text-[9px] font-bold text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors capitalize">{color === 'indigo' ? 'Índigo' : color === 'blue' ? 'Azul' : color === 'emerald' ? 'Esmeralda' : color === 'purple' ? 'Púrpura' : color === 'rose' ? 'Rosa' : color === 'amber' ? 'Ámbar' : color === 'teal' ? 'Cian' : 'Gris'}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={generateFinancialAdvice}
-              disabled={isAiLoading}
-              className={`flex items-center gap-1.5 md:gap-2 ${theme.btnPrimary} text-white px-3 md:px-5 py-2 md:py-2.5 rounded-xl md:rounded-2xl text-xs md:text-sm font-black shadow-lg ${theme.shadowBtn} transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100`}
-            >
-              {isAiLoading ? <Loader2 className="animate-spin" size={16} /> : <BrainCircuit size={16} />}
-              <span className="hidden sm:inline">Consultar IA ✨</span><span className="sm:hidden">IA ✨</span>
-            </button>
-
-            <div className="relative">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 md:px-4 py-2 pr-8 rounded-xl text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer shadow-sm"
-              >
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-              <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            <button onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])} className="flex items-center gap-1.5 md:gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-700 dark:text-slate-300 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all shadow-sm">
-              <Calendar size={16} /> <span className="hidden sm:inline">+1 Mes</span>
-            </button>
             {syncStatus !== 'idle' && (
               <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}>
                 {syncStatus === 'saving' ? <Loader2 size={14} className="animate-spin" /> : syncStatus === 'saved' ? <ClipboardCheck size={14} /> : <X size={14} />}
                 {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : 'Error'}
               </div>
             )}
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
-                className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
-              >
-                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-              <button
-                onClick={onLogout}
-                className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
-                title="Cerrar sesión"
-              >
-                <LogOut size={16} />
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                const newMode = !isDarkMode
+                setIsDarkMode(newMode)
+                document.documentElement.classList.toggle('dark')
+                localStorage.setItem('theme', newMode ? 'dark' : 'light')
+              }}
+              className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+              title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
+            >
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            <UserMenu
+              user={user}
+              themeColor={themeColor}
+              setThemeColor={(color) => { setThemeColor(color); localStorage.setItem('themeColor', color); }}
+              isDarkMode={isDarkMode}
+              setIsDarkMode={setIsDarkMode}
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+              availableYears={availableYears}
+              activeTab={activeTab}
+              months={months}
+              setMonths={setMonths}
+              getNextMonthStr={getNextMonthStr}
+              onOpenAdmin={onOpenAdmin}
+              onLogout={onLogout}
+              generateFinancialAdvice={generateFinancialAdvice}
+              isAiLoading={isAiLoading}
+            />
           </div>
         </header>
 
@@ -3371,6 +3295,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         )}
 
       </div>
+    </div>
     </div>
   );
 };
