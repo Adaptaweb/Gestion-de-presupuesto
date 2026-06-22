@@ -966,7 +966,7 @@ const Transacciones = ({ token, theme }) => {
           bankTotals[bank][tipo].count += 1;
         }
         return (
-          <div key={filterMonth + '-' + filterCat} className="animate-slide-fade grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+          <div key={filterMonth + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {summary.length > 0 && (
               <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-2.5 sm:p-3">
                 <div className="text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">Categorías</div>

@@ -1495,7 +1495,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             onClick={() => setActiveTab('transacciones')}
             className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
-            <Mail size={16} /> <span className="hidden sm:inline">Transacciones</span><span className="sm:hidden">Correo</span>
+            <Mail size={16} /> Transacciones
           </button>
         </div>
 
@@ -1594,8 +1594,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalCuotas)}</div>
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{cuotasPagadasMes} pagadas</span>
-                          <span className="hidden sm:inline">·</span>
-                          <span className="hidden sm:inline">{cuotasPendientesMes} pendientes</span>
+                          <span>·</span>
+                          <span>{cuotasPendientesMes} pendientes</span>
                         </div>
                       </div>
                     </div>
@@ -1613,8 +1613,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalGastos)}</div>
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{gastosPagados} pagados</span>
-                          <span className="hidden sm:inline">·</span>
-                          <span className="hidden sm:inline">{gastosFijos.length - gastosPagados} pendientes</span>
+                          <span>·</span>
+                          <span>{gastosFijos.length - gastosPagados} pendientes</span>
                         </div>
                       </div>
                     </div>
@@ -1632,8 +1632,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalSubs)}</div>
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{subsActivas.length} activas</span>
-                          {proximosCobros.length > 0 && <span className="hidden sm:inline">·</span>}
-                          {proximosCobros.length > 0 && <span className="hidden sm:inline">Próx: día {proximosCobros[0]?.dia}</span>}
+                          {proximosCobros.length > 0 && <span>·</span>}
+                          {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
                         </div>
                       </div>
                     </div>
@@ -1651,8 +1651,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras < 0 ? 'animate-pulse' : ''}`}>{formatCurrency(disponibleExtras)}</div>
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{pctDisponible.toFixed(0)}% libre</span>
-                          <span className="hidden sm:inline">·</span>
-                          <span className="hidden sm:inline font-bold">{saludLabel}</span>
+                          <span>·</span>
+                          <span className="font-bold">{saludLabel}</span>
                         </div>
                       </div>
                     </div>
@@ -1691,7 +1691,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                     {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[8px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <div className="flex-1 h-1.5 bg-slate-100 dark:bg-dark-lighter rounded-full overflow-hidden">
+                                    <div className="flex-1 h-2 sm:h-1.5 bg-slate-100 dark:bg-dark-lighter rounded-full overflow-hidden">
                                       <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
                                     </div>
                                     <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
@@ -2042,22 +2042,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
             <div className="bg-white dark:bg-dark-normal rounded-[2.5rem] shadow-2xl shadow-slate-200 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter overflow-hidden mb-12">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left min-w-[1100px]">
+                <table className="w-full border-collapse text-left min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50/50 dark:bg-dark-normal/50 border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter min-w-[160px] sm:min-w-[280px]">
+                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter min-w-[120px] sm:min-w-[280px]">
                         <span className="hidden sm:inline">Detalle de Gastos</span><span className="sm:hidden">Detalle</span>
                       </th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
                         return (
-                          <th key={mes} className={`p-3 min-w-[130px] text-center border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white dark:bg-dark-lighter/20'}`}>
+                          <th key={mes} className={`p-3 min-w-[100px] text-center border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white dark:bg-dark-lighter/20'}`}>
                             <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
                             <div className="text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
                           </th>
                         );
                       })}
-                          <th className={`hidden sm:table-cell p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-dark-lighter ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                          <th className={`hidden portrait:table-cell sm:table-cell p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-dark-lighter ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <div className="flex items-center justify-center gap-1">
                           <TrendingUp size={12} className={theme.tabText} />
                           <span className={`text-[10px] font-white uppercase tracking-tighter`}>Progreso</span>
@@ -2072,7 +2072,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal group-hover:bg-slate-50 dark:group-hover:bg-dark-lighter/50 z-10 border-r border-slate-100 dark:border-dark-lighter">
                             <div className="flex justify-between items-center">
                               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                 <div className="relative p-1 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0">
+                                 <div className="relative p-1 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden hidden sm:flex w-7 h-7 sm:w-10 sm:h-10 items-center justify-center flex-shrink-0">
                                    {item.tipo === 'cuota' ? renderDebtIcon(item) : item.tipo === 'suscripcion' ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
                                    {item.tipo === 'cuota' && item.bancoLogo && (
                                      <img src={item.bancoLogo} alt={item.banco} className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 object-contain bg-white dark:bg-dark-normal rounded-full p-0.5 border border-slate-200 dark:border-dark-lightest" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -2084,7 +2084,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                     {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                     {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
                                     {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
-                                    {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
+                                    {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
                                   </div>
                                   <span className="text-[8px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
                                     {item.tipo === 'cuota' ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : item.tipo === 'abono' ? 'Abono' : 'Fijo'}
@@ -2223,7 +2223,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                             }
                           })}
                           {item.tipo === 'cuota' ? (
-                            <td className={`hidden sm:table-cell p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-10`}>
+                            <td className={`hidden portrait:table-cell sm:table-cell p-1.5 sm:p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-10`}>
                               {(() => {
                                 const mesTermino = calculateEndDate(item.mesInicio, item.cuotasTotales, item.isContribuciones);
                                 let cur = toDateVal(item.mesInicio);
@@ -2240,19 +2240,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                 const faltantes = totalCuotas - pagadas;
                                 const pct = totalCuotas > 0 ? (pagadas / totalCuotas) * 100 : 0;
                                 return (
-                                  <div className="flex flex-col items-center gap-1">
-                                    <span className={`text-[10px] font-black`}>{pagadas}/{totalCuotas} pagadas</span>
-                                    <div className="w-full h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
+                                  <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                                    <span className={`text-[8px] sm:text-[10px] font-black whitespace-nowrap`}>{pagadas}/{totalCuotas} <span className="hidden sm:inline">pagadas</span></span>
+                                    <div className="w-full h-1 sm:h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
                                       <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
                                     </div>
-                                    <span className={`text-[9px] font-bold`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
+                                    <span className={`text-[7px] sm:text-[9px] font-bold whitespace-nowrap`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
                                   </div>
                                 );
                               })()}
                             </td>
                           ) : (
-                            <td className={`hidden sm:table-cell p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-10`}>
-                              <span className={`text-xs ${theme.tabText} opacity-30`}>—</span>
+                            <td className={`hidden portrait:table-cell sm:table-cell p-1.5 sm:p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-10`}>
+                              <span className={`text-[8px] sm:text-xs ${theme.tabText} opacity-30`}>—</span>
                             </td>
                           )}
                         </tr>
@@ -2277,7 +2277,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2296,7 +2296,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2315,7 +2315,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2334,7 +2334,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2362,7 +2362,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2381,7 +2381,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                           </td>
                         );
                       })}
-                      <td className={`hidden sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
+                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
                         <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
@@ -2413,14 +2413,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
             <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse min-w-[900px]">
+                <table className="w-full border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[120px] sm:min-w-[260px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
+                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[100px] sm:min-w-[200px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
                         return (
-                          <th key={mes} className={`p-2 sm:p-3 text-center min-w-[120px] sm:min-w-[140px] border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white/50 dark:bg-dark-lighter/30'}`}>
+                          <th key={mes} className={`p-2 sm:p-3 text-center min-w-[80px] sm:min-w-[100px] border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white/50 dark:bg-dark-lighter/30'}`}>
                             <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
                             <div className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
                           </th>
