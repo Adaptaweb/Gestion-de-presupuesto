@@ -125,7 +125,7 @@ async function convertToClp(usdAmount) {
   return Math.round(usdAmount * rate);
 }
 
-const KNOWN_TABLE_LABELS = ['monto', 'fecha', 'comercio', 'número tarjeta', 'nro tarjeta', 'numero tarjeta', 'hora', 'cuotas', 'valor cuota'];
+const KNOWN_TABLE_LABELS = ['monto', 'fecha', 'comercio', 'número tarjeta', 'nro tarjeta', 'numero tarjeta', 'hora', 'cuotas', 'valor cuota', 'nombre y apellido', 'nombre', 'n° cuenta', 'nro cuenta', 'banco', 'rut', 'email', 'tipo de cuenta'];
 
 function hasRealDataTable($) {
   const allRows = $('tr').toArray().filter(r => $(r).children('td').length >= 2);
@@ -147,7 +147,7 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   let tipo_movimiento = 'Compra';
   if (bodyText.includes('retiro') || bodyText.includes('Retiro')) tipo_movimiento = 'Retiro';
-  else if (bodyText.includes('transferencia') || bodyText.includes('Transferencia')) tipo_movimiento = 'Transferencia';
+  else if (bodyText.includes('transferencia') || bodyText.includes('Transferencia') || bodyText.includes('traspaso') || bodyText.includes('Traspaso')) tipo_movimiento = 'Transferencia';
   else if (/cargo/i.test(bodyText)) {
     const falsePositives = ['devolución de este cargo', 'validar tu tarjeta', 'hacen un cargo de', 'este cargo tarda'];
     const isValidation = falsePositives.some(t => bodyText.toLowerCase().includes(t));
@@ -159,6 +159,17 @@ async function parseHTML(html, headers = {}, userId = null) {
   let tipo_tarjeta = '';
   if (/d[eé]bito/.test(allText)) tipo_tarjeta = 'Débito';
   else if (/cr[eé]dito/.test(allText)) tipo_tarjeta = 'Crédito';
+
+  let tipo_transaccion_auto = null;
+  if (tipo_movimiento === 'Transferencia') {
+    if (/a terceros|transferencia enviada|giro por transferencia/i.test(bodyText)) {
+      tipo_transaccion_auto = 'gasto';
+    } else if (/recibida|abono por|depósito por transferencia/i.test(bodyText)) {
+      tipo_transaccion_auto = 'ingreso';
+    } else if (/traspaso|entre cuentas|movimiento interno/i.test(bodyText)) {
+      tipo_transaccion_auto = 'interno';
+    }
+  }
 
   const messageId = headers['message-id'] || headers['Message-ID'] || headers['message_id'] || '';
 
@@ -187,6 +198,11 @@ async function parseHTML(html, headers = {}, userId = null) {
 
     let comercioRaw = extractTableValue($, tableRows, 'comercio');
     comercio = simplifyComercio(comercioRaw || '');
+
+    if (!comercio && tipo_movimiento === 'Transferencia') {
+      const nombreRaw = extractTableValue($, tableRows, 'nombre y apellido');
+      if (nombreRaw) comercio = simplifyComercio(nombreRaw);
+    }
   }
 
   if (!monto && hasUsd) {
@@ -222,11 +238,24 @@ async function parseHTML(html, headers = {}, userId = null) {
       const strongTags = $('strong').toArray();
       for (const tag of strongTags) {
         const text = $(tag).text().trim();
-        if (text.length > 3 && !text.toLowerCase().includes('débito') && !text.toLowerCase().includes('debito') && !text.includes('@')) {
+        if (text.length > 3
+          && !text.toLowerCase().includes('débito')
+          && !text.toLowerCase().includes('debito')
+          && !text.includes('@')
+          && !text.toLowerCase().includes('transferencia')
+          && !text.toLowerCase().includes('comprobante de')
+        ) {
           comercio = simplifyComercio(text);
           break;
         }
       }
+    }
+  }
+
+  if (!comercio && tipo_movimiento === 'Transferencia') {
+    const nombreMatch = bodyText.match(/Nombre\s+y\s+Apellido[:\s]?(.*?)(?=\s*Monto|\s*Rut|\s*Email|\s*Banco|$)/i);
+    if (nombreMatch && nombreMatch[1].trim()) {
+      comercio = simplifyComercio(nombreMatch[1].trim());
     }
   }
 
@@ -239,7 +268,7 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   if (!monto || !fecha) return {};
 
-  return { banco: bank, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId };
+  return { banco: bank, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto };
 }
 
 function parseMonto(raw) {

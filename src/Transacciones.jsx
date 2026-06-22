@@ -308,14 +308,14 @@ const ReviewCard = ({
                   <button
                     key={cat}
                     onClick={() => setReviewCat(cat)}
-                    className={`flex flex-col items-center gap-1 flex-shrink-0 px-2.5 py-2 rounded-xl transition-all duration-200 border ${
+                    className={`flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl transition-all duration-200 border ${
                       selected
                         ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm scale-105`
                         : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
                     }`}
                   >
                     <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                    <span className={`text-[8px] font-bold whitespace-nowrap leading-none ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
+                    <span className={`text-[8px] font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-500'}`}>{cat}</span>
                   </button>
                 );
               })}
@@ -887,7 +887,8 @@ const Transacciones = ({ token, theme }) => {
   }
 
   return (
-    <div className="animate-in fade-in duration-500 space-y-6">
+    <>
+      <div className="animate-in fade-in duration-500 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
           <Mail className={theme.tabText} size={20} /> Transacciones
@@ -1206,6 +1207,8 @@ const Transacciones = ({ token, theme }) => {
         </div>
       )}
 
+        </div>
+
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
         <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
@@ -1233,7 +1236,7 @@ const Transacciones = ({ token, theme }) => {
           />
         </div>
       )}
-    </div>
+    </>
   );
 };
 
