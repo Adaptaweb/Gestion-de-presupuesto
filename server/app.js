@@ -6,6 +6,7 @@ import db from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import cache from './cache.js';
+import { createJob, getJob } from './jobQueue.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
 
@@ -456,17 +457,16 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
 
     const { categoria, comercio, tipo_tarjeta, banco, revisado, tipo_gasto, tipo_transaccion, fecha, monto } = req.body;
     const finalComercio = comercio !== undefined ? comercio : tx.comercio;
-    let updatedCount = 0;
-
     if (categoria !== undefined) {
       await db.run('UPDATE transacciones_extraidas SET categoria = ? WHERE id = ?', categoria, req.params.id);
       await db.run(
         "INSERT INTO clasificacion_comercios (user_id, comercio, categoria, updated_at) VALUES (?, ?, ?, NOW()) ON CONFLICT(user_id, comercio) DO UPDATE SET categoria = EXCLUDED.categoria, updated_at = NOW()",
         tx.user_id, finalComercio.toLowerCase(), categoria);
-      const result = await db.run(
+      db.run(
         "UPDATE transacciones_extraidas SET categoria = ? WHERE user_id = ? AND LOWER(comercio) = LOWER(?) AND id != ?",
-        categoria, tx.user_id, finalComercio, req.params.id);
-      updatedCount = result.changes;
+        categoria, tx.user_id, finalComercio, req.params.id)
+        .then(result => console.log(`[BACKGROUND] Bulk categorized ${result.changes} transactions with comercio=${finalComercio}`))
+        .catch(err => console.error('[BACKGROUND] Bulk categorize error:', err.message));
     }
     if (comercio !== undefined) {
       await db.run('UPDATE transacciones_extraidas SET comercio = ? WHERE id = ?', comercio, req.params.id);
@@ -497,7 +497,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     cache.delByPattern(`tx:*:${req.user.id}`);
     cache.del(`tx:meses:${req.user.id}`);
     cache.delByPattern(`tx:pendientes:${req.user.id}`);
-    res.json({ transaction: updated, updatedCount });
+    res.json({ transaction: updated });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al actualizar transacción' });
@@ -506,14 +506,24 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
 
 app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
   try {
-    const result = await fetchLatestTransactions(req.user.id);
-    cache.delByPattern(`tx:*:${req.user.id}`);
-    cache.del(`tx:meses:${req.user.id}`);
-    cache.delByPattern(`tx:pendientes:${req.user.id}`);
-    res.json(result);
+    const userId = req.user.id;
+    const job = createJob('revisar-correos', async () => {
+      const result = await fetchLatestTransactions(userId);
+      cache.delByPattern(`tx:*:${userId}`);
+      cache.del(`tx:meses:${userId}`);
+      cache.delByPattern(`tx:pendientes:${userId}`);
+      return result;
+    });
+    res.json({ jobId: job.id });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+app.get('/api/transacciones/revisar/status/:jobId', authenticateToken, async (req, res) => {
+  const job = getJob(req.params.jobId);
+  if (!job) return res.status(404).json({ error: 'Job no encontrado' });
+  res.json({ status: job.status, result: job.result, error: job.error });
 });
 
 app.get('/api/transacciones/pendientes', authenticateToken, async (req, res) => {
@@ -612,16 +622,21 @@ app.post('/api/filtros/replace', authenticateToken, async (req, res) => {
 
     const userId = req.user.id;
 
-    await db.run('DELETE FROM filtros_correo WHERE user_id = ?', userId);
+    db.run('DELETE FROM filtros_correo WHERE user_id = ?', userId)
+      .then(() => {
+        const inserts = filtered.map(remitente => {
+          const id = `filtro-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          return db.run('INSERT INTO filtros_correo (id, user_id, remitente, asunto) VALUES (?, ?, ?, NULL)', id, userId, remitente);
+        });
+        return Promise.all(inserts);
+      })
+      .then(() => {
+        cache.del(`filtros:${userId}`);
+        console.log(`[BACKGROUND] Replaced ${filtered.length} filters for user ${userId}`);
+      })
+      .catch(err => console.error('[BACKGROUND] Filter replace error:', err.message));
 
-    for (const remitente of filtered) {
-      const id = `filtro-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      await db.run('INSERT INTO filtros_correo (id, user_id, remitente, asunto) VALUES (?, ?, ?, NULL)', id, userId, remitente);
-    }
-
-    const filters = await db.all('SELECT * FROM filtros_correo WHERE user_id = ? ORDER BY created_at DESC', userId);
-    cache.del(`filtros:${userId}`);
-    res.json({ success: true, count: filtered.length, filters });
+    res.json({ success: true, count: filtered.length });
   } catch (error) {
     console.error('[Filtros] Error en replace:', error.message);
     res.status(500).json({ error: 'Error al reemplazar filtros' });

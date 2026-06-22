@@ -620,28 +620,48 @@ const Transacciones = ({ token, theme }) => {
 
   const handleCheckEmails = async () => {
     setChecking(true);
-    setStatusMsg(null);
+    setStatusMsg({ type: 'info', text: '⏳ Revisando correos...' });
     try {
       const res = await fetch('/api/transacciones/revisar', { method: 'POST', headers: getHeaders() });
-      const data = await res.json();
-      if (data.needsReauth) {
-        setStatusMsg({ type: 'error', text: `✗ ${data.message || 'Vuelve a autorizar Gmail'}` });
-        fetchStatus();
-      } else if (res.ok && !data.error) {
-        const msg = data.new > 0
-          ? `✓ ${data.new} nuevas transacciones encontradas`
-          : '✓ No hay transacciones nuevas';
-        setStatusMsg({ type: 'success', text: msg });
-        fetchTransactions();
-        fetchMonths();
-        fetchPendientesCount();
-      } else {
-        setStatusMsg({ type: 'error', text: `✗ ${data.error || 'Error al revisar'}` });
+      const { jobId } = await res.json();
+      if (!jobId) {
+        setStatusMsg({ type: 'error', text: '✗ Error al iniciar revisión' });
+        setChecking(false);
+        return;
       }
+      const poll = async () => {
+        const statusRes = await fetch(`/api/transacciones/revisar/status/${jobId}`, { headers: getHeaders() });
+        const job = await statusRes.json();
+        if (job.status === 'done') {
+          setChecking(false);
+          const data = job.result;
+          if (data.needsReauth) {
+            setStatusMsg({ type: 'error', text: `✗ ${data.message || 'Vuelve a autorizar Gmail'}` });
+            fetchStatus();
+          } else if (!data.error) {
+            const msg = data.new > 0
+              ? `✓ ${data.new} nuevas transacciones encontradas`
+              : '✓ No hay transacciones nuevas';
+            setStatusMsg({ type: 'success', text: msg });
+            fetchTransactions();
+            fetchMonths();
+            fetchPendientesCount();
+          } else {
+            setStatusMsg({ type: 'error', text: `✗ ${data.error || 'Error al revisar'}` });
+          }
+          setTimeout(() => setStatusMsg(null), 5000);
+        } else if (job.status === 'error') {
+          setChecking(false);
+          setStatusMsg({ type: 'error', text: `✗ ${job.error || 'Error al revisar correos'}` });
+          setTimeout(() => setStatusMsg(null), 5000);
+        } else {
+          setTimeout(poll, 2000);
+        }
+      };
+      poll();
     } catch (err) {
-      setStatusMsg({ type: 'error', text: `✗ ${err.message}` });
-    } finally {
       setChecking(false);
+      setStatusMsg({ type: 'error', text: `✗ ${err.message}` });
       setTimeout(() => setStatusMsg(null), 5000);
     }
   };
@@ -737,10 +757,6 @@ const Transacciones = ({ token, theme }) => {
       if (res.ok) {
         setShowEditModal(false);
         setEditingTx(null);
-        if (data.updatedCount > 0) {
-          setStatusMsg({ type: 'success', text: `✓ Categoría aplicada a ${data.updatedCount + 1} transacciones` });
-          setTimeout(() => setStatusMsg(null), 4000);
-        }
         if (showReview) {
           const updated = await fetchPendientes();
           if (updated.length === 0) {
