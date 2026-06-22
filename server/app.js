@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import db from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
+import cache from './cache.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
 
@@ -160,6 +161,13 @@ app.put('/api/admin/users/:id/password', authenticateToken, requireAdmin, async 
 app.get('/api/data', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
+    const cacheKey = `data:${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      console.log(`[CACHE] HIT data:${userId}`);
+      return res.json(cached);
+    }
+    console.log(`[CACHE] MISS data:${userId}`);
     const monthRows = await db.all('SELECT mes FROM meses WHERE user_id = ?', userId);
     const months = monthRows.map(m => m.mes);
 
@@ -209,7 +217,9 @@ app.get('/api/data', authenticateToken, async (req, res) => {
       return { ...a, diaPago: a.diaPago, facturacionAuto: Boolean(a.facturacionAuto), pagos };
     });
 
-    res.json({ months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos });
+    const payload = { months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos };
+    cache.set(cacheKey, payload, 300);
+    res.json(payload);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error loading data' });
@@ -219,6 +229,8 @@ app.get('/api/data', authenticateToken, async (req, res) => {
 app.post('/api/sync', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos } = req.body;
+
+  cache.del(`data:${userId}`);
 
   try {
     await db.transaction(async (tx) => {
@@ -361,14 +373,27 @@ app.get('/oauth2callback', async (req, res) => {
 });
 
 app.get('/api/transacciones/status', authenticateToken, async (req, res) => {
-  const authenticated = await hasValidTokens(req.user.id);
-  res.json({ authenticated, lastCheck: getLastCheckTime() });
+  const userId = req.user.id;
+  const cacheKey = `status:${userId}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
+  const authenticated = await hasValidTokens(userId);
+  const result = { authenticated, lastCheck: getLastCheckTime() };
+  cache.set(cacheKey, result, 60);
+  res.json(result);
 });
 
 app.get('/api/transacciones', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const { mes, categoria, banco, limit, offset, revisado } = req.query;
+
+    const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado })}`;
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      console.log(`[CACHE] HIT tx:${userId}`);
+      return res.json(cached);
+    }
 
     const conditions = ['user_id = ?'];
     const filterValues = [userId];
@@ -396,7 +421,9 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     const pendientesResult = await db.get('SELECT COUNT(*) as count FROM transacciones_extraidas WHERE user_id = ? AND (revisado = FALSE OR revisado IS NULL)', userId);
     const pendientes_count = pendientesResult.count;
 
-    res.json({ transactions, summary, total, pendientes_count, lastCheck: getLastCheckTime() });
+    const result = { transactions, summary, total, pendientes_count, lastCheck: getLastCheckTime() };
+    cache.set(cacheKey, result, 30);
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener transacciones' });
@@ -405,11 +432,17 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
 
 app.get('/api/transacciones/meses', authenticateToken, async (req, res) => {
   try {
+    const userId = req.user.id;
+    const cacheKey = `tx:meses:${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     const rows = await db.all(
       "SELECT DISTINCT SUBSTR(fecha, 1, 7) as mes FROM transacciones_extraidas WHERE user_id = ? AND fecha IS NOT NULL AND revisado = TRUE ORDER BY mes DESC",
-      req.user.id);
-    const months = rows.map(r => r.mes);
-    res.json({ months });
+      userId);
+    const result = { months: rows.map(r => r.mes) };
+    cache.set(cacheKey, result, 60);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener meses' });
   }
@@ -461,6 +494,9 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     }
 
     const updated = await db.get('SELECT * FROM transacciones_extraidas WHERE id = ?', req.params.id);
+    cache.delByPattern(`tx:*:${req.user.id}`);
+    cache.del(`tx:meses:${req.user.id}`);
+    cache.delByPattern(`tx:pendientes:${req.user.id}`);
     res.json({ transaction: updated, updatedCount });
   } catch (error) {
     console.error(error);
@@ -471,6 +507,9 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
 app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
   try {
     const result = await fetchLatestTransactions(req.user.id);
+    cache.delByPattern(`tx:*:${req.user.id}`);
+    cache.del(`tx:meses:${req.user.id}`);
+    cache.delByPattern(`tx:pendientes:${req.user.id}`);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -482,6 +521,10 @@ app.get('/api/transacciones/pendientes', authenticateToken, async (req, res) => 
     const userId = req.user.id;
     const { limit, offset } = req.query;
 
+    const cacheKey = `tx:pendientes:${userId}:${JSON.stringify({ limit, offset })}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     const countResult = await db.get("SELECT COUNT(*) as count FROM transacciones_extraidas WHERE user_id = ? AND (revisado = FALSE OR revisado IS NULL)", userId);
     const count = countResult.count;
 
@@ -491,7 +534,9 @@ app.get('/api/transacciones/pendientes', authenticateToken, async (req, res) => 
     if (offset) { sql += ' OFFSET ?'; params.push(parseInt(offset)); }
 
     const transactions = await db.all(sql, ...params);
-    res.json({ count, transactions });
+    const result = { count, transactions };
+    cache.set(cacheKey, result, 15);
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener pendientes' });
@@ -504,6 +549,9 @@ app.delete('/api/transacciones/:id', authenticateToken, async (req, res) => {
     if (!tx) return res.status(404).json({ error: 'Transacción no encontrada' });
     if (tx.user_id !== req.user.id) return res.status(403).json({ error: 'No autorizado' });
     await db.run('DELETE FROM transacciones_extraidas WHERE id = ?', req.params.id);
+    cache.delByPattern(`tx:*:${req.user.id}`);
+    cache.del(`tx:meses:${req.user.id}`);
+    cache.delByPattern(`tx:pendientes:${req.user.id}`);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar transacción' });
@@ -512,8 +560,14 @@ app.delete('/api/transacciones/:id', authenticateToken, async (req, res) => {
 
 app.get('/api/filtros', authenticateToken, async (req, res) => {
   try {
-    const filters = await db.all('SELECT * FROM filtros_correo WHERE user_id = ? ORDER BY created_at DESC', req.user.id);
-    res.json({ filters });
+    const userId = req.user.id;
+    const cacheKey = `filtros:${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+    const filters = await db.all('SELECT * FROM filtros_correo WHERE user_id = ? ORDER BY created_at DESC', userId);
+    const result = { filters };
+    cache.set(cacheKey, result, 300);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener filtros' });
   }
@@ -526,6 +580,7 @@ app.post('/api/filtros', authenticateToken, async (req, res) => {
     const id = `filtro-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     await db.run('INSERT INTO filtros_correo (id, user_id, remitente, asunto) VALUES (?, ?, ?, ?)', id, req.user.id, remitente, asunto || null);
     const filter = await db.get('SELECT * FROM filtros_correo WHERE id = ?', id);
+    cache.del(`filtros:${req.user.id}`);
     res.json({ filter });
   } catch (error) {
     res.status(500).json({ error: 'Error al crear filtro' });
@@ -538,6 +593,7 @@ app.delete('/api/filtros/:id', authenticateToken, async (req, res) => {
     if (!filter) return res.status(404).json({ error: 'Filtro no encontrado' });
     if (filter.user_id !== req.user.id) return res.status(403).json({ error: 'No autorizado' });
     await db.run('DELETE FROM filtros_correo WHERE id = ?', req.params.id);
+    cache.del(`filtros:${req.user.id}`);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar filtro' });
@@ -564,6 +620,7 @@ app.post('/api/filtros/replace', authenticateToken, async (req, res) => {
     }
 
     const filters = await db.all('SELECT * FROM filtros_correo WHERE user_id = ? ORDER BY created_at DESC', userId);
+    cache.del(`filtros:${userId}`);
     res.json({ success: true, count: filtered.length, filters });
   } catch (error) {
     console.error('[Filtros] Error en replace:', error.message);
@@ -573,12 +630,18 @@ app.post('/api/filtros/replace', authenticateToken, async (req, res) => {
 
 app.get('/api/config-extraccion', authenticateToken, async (req, res) => {
   try {
-    let config = await db.get('SELECT dias_atras FROM config_extraccion WHERE user_id = ?', req.user.id);
+    const userId = req.user.id;
+    const cacheKey = `config:${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+    let config = await db.get('SELECT dias_atras FROM config_extraccion WHERE user_id = ?', userId);
     if (!config) {
-      await db.run('INSERT INTO config_extraccion (user_id, dias_atras) VALUES (?, 3) ON CONFLICT DO NOTHING', req.user.id);
+      await db.run('INSERT INTO config_extraccion (user_id, dias_atras) VALUES (?, 3) ON CONFLICT DO NOTHING', userId);
       config = { dias_atras: 3 };
     }
-    res.json({ dias_atras: config.dias_atras });
+    const result = { dias_atras: config.dias_atras };
+    cache.set(cacheKey, result, 300);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener configuración' });
   }
@@ -590,6 +653,7 @@ app.put('/api/config-extraccion', authenticateToken, async (req, res) => {
     const days = parseInt(dias_atras);
     if (isNaN(days) || days < 1 || days > 999) return res.status(400).json({ error: 'Valor inválido (1-999)' });
     await db.run('INSERT INTO config_extraccion (user_id, dias_atras) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET dias_atras = EXCLUDED.dias_atras', req.user.id, days);
+    cache.del(`config:${req.user.id}`);
     res.json({ success: true, dias_atras: days });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar configuración' });
