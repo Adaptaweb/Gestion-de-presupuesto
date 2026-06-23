@@ -8,9 +8,16 @@ if (!process.env.DATABASE_URL) {
   dotenv.config({ path: path.resolve(__dirname, '../.env') });
 }
 
-const DATABASE_URL = process.env.DATABASE_URL;
+let DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
   throw new Error('DATABASE_URL no definida');
+}
+
+// Supabase pooler: 5432 = session mode, 6543 = transaction mode
+// Transaction mode libera la conexión tras cada query, esencial para serverless
+DATABASE_URL = DATABASE_URL.replace(':5432/', ':6543/');
+if (!DATABASE_URL.includes('pgbouncer=true')) {
+  DATABASE_URL += (DATABASE_URL.includes('?') ? '&' : '?') + 'pgbouncer=true';
 }
 
 const pool = new pg.Pool({
