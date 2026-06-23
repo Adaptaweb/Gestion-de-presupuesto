@@ -629,8 +629,21 @@ const Transacciones = ({ token, theme }) => {
         setChecking(false);
         return;
       }
-      const poll = async () => {
+      const poll = async (attempt = 0) => {
+        if (attempt > 150) {
+          setChecking(false);
+          setStatusMsg({ type: 'error', text: '✗ La revisión está tardando demasiado. Intenta de nuevo.' });
+          setTimeout(() => setStatusMsg(null), 5000);
+          return;
+        }
         const statusRes = await fetch(`/api/transacciones/revisar/status/${jobId}`, { headers: getHeaders() });
+        if (!statusRes.ok) {
+          setChecking(false);
+          const err = await statusRes.json().catch(() => ({ error: 'Error al consultar estado' }));
+          setStatusMsg({ type: 'error', text: `✗ ${err.error || 'Error al revisar correos'}` });
+          setTimeout(() => setStatusMsg(null), 5000);
+          return;
+        }
         const job = await statusRes.json();
         if (job.status === 'done') {
           setChecking(false);
@@ -655,7 +668,7 @@ const Transacciones = ({ token, theme }) => {
           setStatusMsg({ type: 'error', text: `✗ ${job.error || 'Error al revisar correos'}` });
           setTimeout(() => setStatusMsg(null), 5000);
         } else {
-          setTimeout(poll, 2000);
+          setTimeout(() => poll(attempt + 1), 2000);
         }
       };
       poll();
