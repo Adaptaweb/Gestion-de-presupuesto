@@ -161,12 +161,17 @@ const BANK_ICONS = {
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
-  reviewTipoTransaccion, setReviewTipoTransaccion, reviewSaving,
-  onClose, onPrev, onNext, onConfirm, onConfirmComplete, onEdit
+  reviewSaving, theme,
+  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [exitDir, setExitDir] = useState(null);
   const sliderRef = useRef(null);
+
+  const txType = tx.tipo_transaccion || 'gasto';
+  const isGasto = txType === 'gasto';
+  const isIngreso = txType === 'ingreso';
+  const isInterno = txType === 'interno';
 
   const formatCurrency2 = (val) => {
     if (val == null) return '$0';
@@ -190,9 +195,8 @@ const ReviewCard = ({
     return '';
   };
 
-  const isIngreso = reviewTipoTransaccion === 'ingreso';
-  const amountSign = isIngreso ? '+' : '';
-  const amountColor = isIngreso
+  const amountSign = isIngreso && !isInterno ? '+' : '';
+  const amountColor = isIngreso && !isInterno
     ? 'text-emerald-600 dark:text-emerald-400'
     : 'text-slate-800 dark:text-white';
 
@@ -226,6 +230,16 @@ const ReviewCard = ({
     });
   };
 
+  const handleNoEs = async () => {
+    if (isExiting) return;
+    if (typeof onConfirmNoEs !== 'function') return;
+    const ok = await onConfirmNoEs();
+    if (ok === false) return;
+    animateExit('right', () => {
+      if (typeof onConfirmComplete === 'function') onConfirmComplete();
+    });
+  };
+
   return (
     <div
       className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden ${
@@ -253,7 +267,7 @@ const ReviewCard = ({
       </div>
 
       <div className="w-full bg-slate-200/60 dark:bg-slate-800/40 h-1 flex-shrink-0">
-        <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500 ease-out" style={{ width: `${((reviewIdx + 1) / pendingCount) * 100}%` }} />
+        <div className={`h-full rounded-full transition-all duration-500 ease-out ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${((reviewIdx + 1) / pendingCount) * 100}%` }} />
       </div>
 
       <div className="flex-1 px-4 py-4 overflow-y-scroll no-scrollbar flex flex-col gap-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -330,37 +344,7 @@ const ReviewCard = ({
           </div>
         </div>
 
-        <div>
-          <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Tipo de transaccion</label>
-          <div className="grid grid-cols-3 gap-1.5">
-            {[
-              { key: 'gasto', label: 'Gasto', icon: Banknote, bg: 'bg-amber-100 dark:bg-amber-500/20', color: 'text-amber-600 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-500/50', shadow: 'shadow-amber-500/10' },
-              { key: 'ingreso', label: 'Ingreso', icon: TrendingUp, bg: 'bg-emerald-100 dark:bg-emerald-500/20', color: 'text-emerald-600 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-500/50', shadow: 'shadow-emerald-500/10' },
-              { key: 'interno', label: 'Interno', icon: Ban, bg: 'bg-red-100 dark:bg-red-500/20', color: 'text-red-600 dark:text-red-300', border: 'border-red-300 dark:border-red-500/50', shadow: 'shadow-red-500/10' },
-            ].map(tipo => {
-              const selected = reviewTipoTransaccion === tipo.key;
-              return (
-                <button
-                  key={tipo.key}
-                  onClick={() => {
-                    setReviewTipoTransaccion(tipo.key);
-                    if (tipo.key !== 'gasto') setReviewTipoGasto(null);
-                  }}
-                  className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 border ${
-                    selected
-                      ? `${tipo.bg} ${tipo.color} ${tipo.border} shadow-sm`
-                      : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
-                  }`}
-                >
-                  <tipo.icon size={13} />
-                  {tipo.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {reviewTipoTransaccion === 'gasto' && (
+        {isGasto && (
           <div className="animate-in fade-in slide-in-from-top-1 duration-200">
             <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
             <div className="grid grid-cols-3 gap-1.5">
@@ -388,6 +372,13 @@ const ReviewCard = ({
             </div>
           </div>
         )}
+
+        {isInterno && (
+          <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 text-center">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Detectado como traspaso entre cuentas</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">Se registrará como Interno</p>
+          </div>
+        )}
       </div>
 
       <div className="flex-shrink-0 px-4 py-3 space-y-2 border-t border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
@@ -403,10 +394,10 @@ const ReviewCard = ({
           <button
             onClick={handleConfirm}
             disabled={reviewSaving}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50 active:scale-95"
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 ${theme.btnPrimary} text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 active:scale-95`}
           >
             {reviewSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-            Confirmar
+            {isGasto ? 'Confirmar gasto' : isIngreso ? 'Confirmar ingreso' : 'Confirmar'}
           </button>
           <button
             onClick={handleNext}
@@ -416,6 +407,15 @@ const ReviewCard = ({
             <ArrowRight size={18} />
           </button>
         </div>
+        {!isInterno && (
+          <button
+            onClick={handleNoEs}
+            disabled={reviewSaving}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all disabled:opacity-50"
+          >
+            {isGasto ? 'No es Gasto' : 'No es Ingreso'}
+          </button>
+        )}
         <button
           onClick={onEdit}
           className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all"
@@ -464,7 +464,6 @@ const Transacciones = ({ token, theme }) => {
   const [reviewIdx, setReviewIdx] = useState(0);
   const [reviewCat, setReviewCat] = useState('Otros');
   const [reviewTipoGasto, setReviewTipoGasto] = useState(null);
-  const [reviewTipoTransaccion, setReviewTipoTransaccion] = useState('gasto');
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewVisible, setReviewVisible] = useState(false);
   const [reviewDirection, setReviewDirection] = useState('forward');
@@ -799,7 +798,6 @@ const Transacciones = ({ token, theme }) => {
     setReviewIdx(0);
     setReviewCat(first.categoria || 'Otros');
     setReviewTipoGasto(first.tipo_gasto || null);
-    setReviewTipoTransaccion(first.tipo_transaccion || 'gasto');
     setReviewDirection('forward');
     setReviewVisible(false);
     setShowReview(true);
@@ -823,13 +821,48 @@ const Transacciones = ({ token, theme }) => {
     const tx = pendingTxs[reviewIdx];
     if (!tx) return false;
     setReviewSaving(true);
+    const txType = tx.tipo_transaccion || 'gasto';
+    const categoria = txType === 'interno' ? 'Interno' : reviewCat;
     try {
       const res = await fetch(`/api/transacciones/${tx.id}`, {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
-          categoria: reviewCat,
-          tipo_gasto: reviewTipoTransaccion === 'gasto' ? reviewTipoGasto : null,
-          tipo_transaccion: reviewTipoTransaccion,
+          categoria,
+          tipo_gasto: txType === 'gasto' ? reviewTipoGasto : null,
+          tipo_transaccion: txType,
+          revisado: true
+        })
+      });
+      setReviewSaving(false);
+      if (!res.ok) {
+        setStatusMsg({ type: 'error', text: '✗ No se pudo guardar la transacción' });
+        setTimeout(() => setStatusMsg(null), 4000);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error(err);
+      setReviewSaving(false);
+      setStatusMsg({ type: 'error', text: '✗ Error de red al guardar' });
+      setTimeout(() => setStatusMsg(null), 4000);
+      return false;
+    }
+  };
+
+  const handleConfirmNoEs = async () => {
+    const tx = pendingTxs[reviewIdx];
+    if (!tx) return false;
+    setReviewSaving(true);
+    const txType = tx.tipo_transaccion || 'gasto';
+    const newType = txType === 'gasto' ? 'no_es_gasto' : 'no_es_ingreso';
+    const newCat = txType === 'gasto' ? 'No es Gasto' : 'No es Ingreso';
+    try {
+      const res = await fetch(`/api/transacciones/${tx.id}`, {
+        method: 'PUT', headers: getHeaders(),
+        body: JSON.stringify({
+          categoria: newCat,
+          tipo_gasto: null,
+          tipo_transaccion: newType,
           revisado: true
         })
       });
@@ -868,7 +901,6 @@ const Transacciones = ({ token, theme }) => {
       const next = pendingTxs[nextIdx];
       setReviewCat(next.categoria || 'Otros');
       setReviewTipoGasto(next.tipo_gasto || null);
-      setReviewTipoTransaccion(next.tipo_transaccion || 'gasto');
     }
   };
 
@@ -887,7 +919,6 @@ const Transacciones = ({ token, theme }) => {
       const next = pendingTxs[nextIdx];
       setReviewCat(next.categoria || 'Otros');
       setReviewTipoGasto(next.tipo_gasto || null);
-      setReviewTipoTransaccion(next.tipo_transaccion || 'gasto');
     }
   };
 
@@ -967,7 +998,7 @@ const Transacciones = ({ token, theme }) => {
       {(summary.length > 0 || transactions.filter(tx => tx.tipo_tarjeta).length > 0) && (() => {
         const bankTotals = {};
         for (const tx of transactions) {
-          if (!tx.tipo_tarjeta || tx.tipo_transaccion === 'interno') continue;
+          if (!tx.tipo_tarjeta || tx.tipo_transaccion === 'interno' || tx.tipo_transaccion === 'no_es_gasto' || tx.tipo_transaccion === 'no_es_ingreso') continue;
           const bank = tx.banco || 'Otros';
           if (!bankTotals[bank]) bankTotals[bank] = {};
           const tipo = tx.tipo_tarjeta;
@@ -1084,18 +1115,20 @@ const Transacciones = ({ token, theme }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((tx, idx) => (
-                    <tr key={tx.id} onClick={() => handleEditTx(tx)} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors hover:bg-slate-50/50 dark:hover:bg-dark-lighter/30 cursor-pointer ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'}`}>
-                      <td className="p-2 sm:p-4 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDate(tx.fecha)}</td>
+                  {transactions.map((tx, idx) => {
+                    const isMuted = tx.tipo_transaccion === 'no_es_gasto' || tx.tipo_transaccion === 'no_es_ingreso' || tx.tipo_transaccion === 'interno';
+                    return (
+                    <tr key={tx.id} onClick={() => handleEditTx(tx)} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors hover:bg-slate-50/50 dark:hover:bg-dark-lighter/30 cursor-pointer ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
+                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold whitespace-nowrap ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{formatDate(tx.fecha)}</td>
                       <td className="p-2 sm:p-4">
-                        <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-                          {BANK_ICONS[tx.banco] && <img src={BANK_ICONS[tx.banco]} alt="" className="w-4 h-4 rounded-full" />}
+                        <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${isMuted ? 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500' : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                          {BANK_ICONS[tx.banco] && <img src={BANK_ICONS[tx.banco]} alt="" className={`w-4 h-4 rounded-full ${isMuted ? 'opacity-50' : ''}`} />}
                           {tx.banco || '-'}
                         </span>
                       </td>
-                      <td className="p-2 sm:p-4 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">{tx.comercio || '-'}</td>
-                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-black text-right ${tx.tipo_transaccion === 'ingreso' || tx.tipo_transaccion === 'interno' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
-  {tx.tipo_transaccion === 'ingreso' || tx.tipo_transaccion === 'interno' ? '+' : ''}{formatCurrency(tx.monto)}
+                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>{tx.comercio || '-'}</td>
+                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-black text-right ${isMuted ? 'text-slate-400 dark:text-slate-500' : tx.tipo_transaccion === 'ingreso' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
+  {!isMuted && (tx.tipo_transaccion === 'ingreso' ? '+' : '')}{formatCurrency(tx.monto)}
 </td>
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
                         {tx.tipo_tarjeta ? (
@@ -1114,7 +1147,8 @@ const Transacciones = ({ token, theme }) => {
                         <button onClick={(e) => { e.stopPropagation(); handleDeleteTx(tx.id); }} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Eliminar"><Trash2 size={14} /></button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                    })}
                 </tbody>
               </table>
             </div>
@@ -1338,16 +1372,15 @@ const Transacciones = ({ token, theme }) => {
             setReviewCat={setReviewCat}
             reviewTipoGasto={reviewTipoGasto}
             setReviewTipoGasto={setReviewTipoGasto}
-            reviewTipoTransaccion={reviewTipoTransaccion}
-            setReviewTipoTransaccion={setReviewTipoTransaccion}
             reviewSaving={reviewSaving}
+            theme={theme}
             onClose={handleCloseReview}
             onPrev={handlePrevReview}
             onNext={handleSkipReview}
             onConfirm={handleConfirmReview}
+            onConfirmNoEs={handleConfirmNoEs}
             onConfirmComplete={handleConfirmComplete}
             onEdit={handleEditReviewTx}
-            theme={theme}
           />
         </div>
       )}
