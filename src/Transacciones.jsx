@@ -4,7 +4,7 @@ import {
   Settings2, Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
-  Banknote, TrendingUp, Wallet, Clock, Save
+  Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight
 } from 'lucide-react';
 
 const CATEGORY_LIST = [
@@ -161,6 +161,7 @@ const BANK_ICONS = {
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
+  reviewTipoTransaccion, setReviewTipoTransaccion,
   reviewSaving, theme,
   onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit
 }) => {
@@ -168,10 +169,12 @@ const ReviewCard = ({
   const [exitDir, setExitDir] = useState(null);
   const sliderRef = useRef(null);
 
-  const txType = tx.tipo_transaccion || 'gasto';
-  const isGasto = txType === 'gasto';
-  const isIngreso = txType === 'ingreso';
-  const isInterno = txType === 'interno';
+  const detectedType = tx.tipo_transaccion || 'gasto';
+  const effectiveType = reviewTipoTransaccion || detectedType;
+  const isGasto = effectiveType === 'gasto';
+  const isIngreso = effectiveType === 'ingreso';
+  const isInterno = effectiveType === 'interno';
+  const detectedAsInterno = detectedType === 'interno';
 
   const formatCurrency2 = (val) => {
     if (val == null) return '$0';
@@ -373,10 +376,29 @@ const ReviewCard = ({
           </div>
         )}
 
-        {isInterno && (
-          <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 text-center">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Detectado como traspaso entre cuentas</p>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">Se registrará como Interno</p>
+        {detectedAsInterno && !reviewTipoTransaccion && (
+          <div className="space-y-2">
+            <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 text-center">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Detectado como traspaso entre cuentas</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">Selecciona el tipo real de esta transacción</p>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { key: 'gasto', label: 'Es un Gasto', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
+                { key: 'ingreso', label: 'Es un Ingreso', icon: TrendingUp, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/20', border: 'border-emerald-300 dark:border-emerald-500/50' },
+                { key: 'interno', label: 'Es Interno', icon: ArrowLeftRight, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-dark-lighter', border: 'border-slate-300 dark:border-dark-lightest' },
+              ].map(tipo => (
+                <button
+                  key={tipo.key}
+                  onClick={() => setReviewTipoTransaccion(tipo.key === 'interno' ? null : tipo.key)}
+                  className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-xs font-bold transition-all border ${
+                    tipo.bg} ${tipo.color} ${tipo.border} hover:shadow-sm active:scale-95`}
+                >
+                  <tipo.icon size={16} />
+                  {tipo.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -464,6 +486,7 @@ const Transacciones = ({ token, theme }) => {
   const [reviewIdx, setReviewIdx] = useState(0);
   const [reviewCat, setReviewCat] = useState('Otros');
   const [reviewTipoGasto, setReviewTipoGasto] = useState(null);
+  const [reviewTipoTransaccion, setReviewTipoTransaccion] = useState(null);
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewVisible, setReviewVisible] = useState(false);
   const [reviewDirection, setReviewDirection] = useState('forward');
@@ -798,6 +821,7 @@ const Transacciones = ({ token, theme }) => {
     setReviewIdx(0);
     setReviewCat(first.categoria || 'Otros');
     setReviewTipoGasto(first.tipo_gasto || null);
+    setReviewTipoTransaccion(null);
     setReviewDirection('forward');
     setReviewVisible(false);
     setShowReview(true);
@@ -821,7 +845,7 @@ const Transacciones = ({ token, theme }) => {
     const tx = pendingTxs[reviewIdx];
     if (!tx) return false;
     setReviewSaving(true);
-    const txType = tx.tipo_transaccion || 'gasto';
+    const txType = reviewTipoTransaccion || tx.tipo_transaccion || 'gasto';
     const categoria = txType === 'interno' ? 'Interno' : reviewCat;
     try {
       const res = await fetch(`/api/transacciones/${tx.id}`, {
@@ -853,7 +877,7 @@ const Transacciones = ({ token, theme }) => {
     const tx = pendingTxs[reviewIdx];
     if (!tx) return false;
     setReviewSaving(true);
-    const txType = tx.tipo_transaccion || 'gasto';
+    const txType = reviewTipoTransaccion || tx.tipo_transaccion || 'gasto';
     const newType = txType === 'gasto' ? 'no_es_gasto' : 'no_es_ingreso';
     const newCat = txType === 'gasto' ? 'No es Gasto' : 'No es Ingreso';
     try {
@@ -901,6 +925,7 @@ const Transacciones = ({ token, theme }) => {
       const next = pendingTxs[nextIdx];
       setReviewCat(next.categoria || 'Otros');
       setReviewTipoGasto(next.tipo_gasto || null);
+      setReviewTipoTransaccion(null);
     }
   };
 
@@ -919,6 +944,7 @@ const Transacciones = ({ token, theme }) => {
       const next = pendingTxs[nextIdx];
       setReviewCat(next.categoria || 'Otros');
       setReviewTipoGasto(next.tipo_gasto || null);
+      setReviewTipoTransaccion(null);
     }
   };
 
@@ -930,7 +956,7 @@ const Transacciones = ({ token, theme }) => {
     const prev = pendingTxs[prevIdx];
     setReviewCat(prev.categoria || 'Otros');
     setReviewTipoGasto(prev.tipo_gasto || null);
-    setReviewTipoTransaccion(prev.tipo_transaccion || 'gasto');
+    setReviewTipoTransaccion(null);
   };
 
   const handleEditReviewTx = () => {
@@ -944,6 +970,7 @@ const Transacciones = ({ token, theme }) => {
     setReviewIdx(0);
     setReviewCat(tx.categoria || 'Otros');
     setReviewTipoGasto(tx.tipo_gasto || null);
+    setReviewTipoTransaccion(null);
     setReviewVisible(false);
     setShowReview(true);
     requestAnimationFrame(() => {
@@ -1384,6 +1411,8 @@ const Transacciones = ({ token, theme }) => {
             setReviewCat={setReviewCat}
             reviewTipoGasto={reviewTipoGasto}
             setReviewTipoGasto={setReviewTipoGasto}
+            reviewTipoTransaccion={reviewTipoTransaccion}
+            setReviewTipoTransaccion={setReviewTipoTransaccion}
             reviewSaving={reviewSaving}
             theme={theme}
             onClose={handleCloseReview}
