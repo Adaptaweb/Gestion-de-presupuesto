@@ -170,11 +170,13 @@ CREATE TABLE "transacciones_extraidas" (
   "fecha_extraccion" TEXT DEFAULT (NOW()),
   "revisado" BOOLEAN DEFAULT FALSE,
   "tipo_gasto" TEXT,
-  "tipo_transaccion" TEXT DEFAULT 'gasto'
+  "tipo_transaccion" TEXT DEFAULT 'gasto',
+  "gmail_msg_id" TEXT
 );
 CREATE INDEX "idx_transacciones_user_id" ON "transacciones_extraidas"("user_id");
 CREATE INDEX "idx_transacciones_fecha" ON "transacciones_extraidas"("fecha");
 CREATE INDEX "idx_transacciones_categoria" ON "transacciones_extraidas"("categoria");
+CREATE INDEX "idx_transacciones_gmail_msg_id" ON "transacciones_extraidas"("gmail_msg_id");
 
 CREATE TABLE "gmail_tokens" (
   "user_id" TEXT PRIMARY KEY REFERENCES "users"("id") ON DELETE CASCADE,

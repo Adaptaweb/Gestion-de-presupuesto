@@ -620,7 +620,6 @@ const Transacciones = ({ token, theme }) => {
 
   const handleCheckEmails = async () => {
     setChecking(true);
-    setStatusMsg({ type: 'info', text: '⏳ Revisando correos...' });
     try {
       const res = await fetch('/api/transacciones/revisar', { method: 'POST', headers: getHeaders() });
       const { jobId } = await res.json();
@@ -791,7 +790,7 @@ const Transacciones = ({ token, theme }) => {
   const handleOpenReview = async () => {
     const txs = await fetchPendientes();
     if (txs.length === 0) {
-      setStatusMsg({ type: 'success', text: '✓ No hay transacciones pendientes' });
+      setStatusMsg({ type: 'info', text: 'Sin pendientes por revisar' });
       setTimeout(() => setStatusMsg(null), 4000);
       return;
     }
@@ -951,18 +950,16 @@ const Transacciones = ({ token, theme }) => {
               {statusMsg.text}
             </span>
           )}
-          {pendientesCount > 0 && (
-            <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
-              <Check size={14} />
-              Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
-            </button>
-          )}
+          <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
+            <Check size={14} />
+            Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
+          </button>
           <button onClick={() => setShowFilterModal(true)} className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition-all">
             <Settings2 size={14} /> <span className="hidden sm:inline">Reglas</span>
           </button>
           <button onClick={handleCheckEmails} disabled={checking} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all disabled:opacity-50`}>
             {checking ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-            <span className="hidden sm:inline">Revisar correos</span><span className="sm:hidden">Revisar</span>
+            <span className="hidden sm:inline">{checking ? 'Revisando...' : 'Revisar correos'}</span><span className="sm:hidden">{checking ? '...' : 'Revisar'}</span>
           </button>
         </div>
       </div>

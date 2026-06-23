@@ -36,10 +36,10 @@ async function fetchLatestTransactions(userId) {
     results.fetched = allIds.length;
 
     const existingRows = await db.all(
-      'SELECT email_id FROM transacciones_extraidas WHERE user_id = $1 AND email_id = ANY($2)',
+      'SELECT gmail_msg_id FROM transacciones_extraidas WHERE user_id = $1 AND gmail_msg_id = ANY($2)',
       userId, allIds
     );
-    const existingIds = new Set(existingRows.map(r => r.email_id));
+    const existingIds = new Set(existingRows.map(r => r.gmail_msg_id));
     const newIds = allIds.filter(id => !existingIds.has(id));
 
     const CONCURRENCY = 5;
@@ -88,15 +88,16 @@ async function processEmail(msgId, gmail, userId, results) {
     const subject = (headers['subject'] || '').slice(0, 200);
 
     await db.run(
-      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12)
+      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13)
        ON CONFLICT (email_id) DO UPDATE SET
          asunto = EXCLUDED.asunto,
          tipo_tarjeta = EXCLUDED.tipo_tarjeta,
+         gmail_msg_id = EXCLUDED.gmail_msg_id,
          fecha_extraccion = NOW(),
          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
-      id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto'
+      id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto', msgId
     );
 
     results.new++;
