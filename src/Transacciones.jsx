@@ -18,7 +18,7 @@ const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
   reviewTipoTransaccion, setReviewTipoTransaccion,
-  reviewSaving, theme,
+  reviewSaving, theme, isDarkMode,
   onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit
 }) => {
   const [isExiting, setIsExiting] = useState(false);
@@ -1284,6 +1284,7 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
             setReviewTipoTransaccion={setReviewTipoTransaccion}
             reviewSaving={reviewSaving}
             theme={theme}
+            isDarkMode={isDarkMode}
             onClose={handleCloseReview}
             onPrev={handlePrevReview}
             onNext={handleSkipReview}
