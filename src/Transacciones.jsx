@@ -939,6 +939,18 @@ const Transacciones = ({ token, theme }) => {
     handleEditTx(tx);
   };
 
+  const handleReclasificarTx = (tx) => {
+    setPendingTxs([tx]);
+    setReviewIdx(0);
+    setReviewCat(tx.categoria || 'Otros');
+    setReviewTipoGasto(tx.tipo_gasto || null);
+    setReviewVisible(false);
+    setShowReview(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setReviewVisible(true));
+    });
+  };
+
   const currentReviewTx = pendingTxs[reviewIdx] || null;
 
   if (authStatus === false) {
@@ -1118,7 +1130,7 @@ const Transacciones = ({ token, theme }) => {
                   {transactions.map((tx, idx) => {
                     const isMuted = tx.tipo_transaccion === 'no_es_gasto' || tx.tipo_transaccion === 'no_es_ingreso' || tx.tipo_transaccion === 'interno';
                     return (
-                    <tr key={tx.id} onClick={() => handleEditTx(tx)} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors hover:bg-slate-50/50 dark:hover:bg-dark-lighter/30 cursor-pointer ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
+                    <tr key={tx.id} onClick={() => handleReclasificarTx(tx)} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors hover:bg-slate-50/50 dark:hover:bg-dark-lighter/30 cursor-pointer ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
                       <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold whitespace-nowrap ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{formatDate(tx.fecha)}</td>
                       <td className="p-2 sm:p-4">
                         <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${isMuted ? 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500' : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
@@ -1143,7 +1155,7 @@ const Transacciones = ({ token, theme }) => {
                         <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[tx.categoria] || CATEGORY_COLORS['Otros']}`}>{tx.categoria}</span>
                       </td>
                       <td className="p-2 sm:p-4 text-center">
-                        <button onClick={(e) => { e.stopPropagation(); handleEditTx(tx); }} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="Editar"><Edit3 size={14} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); handleReclasificarTx(tx); }} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="Reclasificar"><Edit3 size={14} /></button>
                         <button onClick={(e) => { e.stopPropagation(); handleDeleteTx(tx.id); }} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Eliminar"><Trash2 size={14} /></button>
                       </td>
                     </tr>
