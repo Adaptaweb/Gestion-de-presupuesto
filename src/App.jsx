@@ -568,7 +568,7 @@ const getAhorroBankInfo = (bankName) => {
 };
 
 const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('transacciones');
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState(null);
@@ -1474,10 +1474,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
         <div className="flex gap-1 sm:gap-2 md:gap-4 mb-4 md:mb-8 bg-slate-200/50 dark:bg-dark-normal/50 p-1 sm:p-1.5 rounded-xl sm:rounded-[1.5rem] w-full md:w-fit overflow-x-auto">
           <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            onClick={() => setActiveTab('transacciones')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
-            <LayoutDashboard size={16} /> <span className="hidden sm:inline">Dashboard</span><span className="sm:hidden">Dash</span>
+            <Mail size={16} /> Transacciones
           </button>
           <button
             onClick={() => setActiveTab('general')}
@@ -1492,10 +1492,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             <PiggyBank size={16} /> <span className="hidden sm:inline">Gestión de Ahorros</span><span className="sm:hidden">Ahorros</span>
           </button>
           <button
-            onClick={() => setActiveTab('transacciones')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
-            <Mail size={16} /> Transacciones
+            <LayoutDashboard size={16} /> <span className="hidden sm:inline">Resumen</span><span className="sm:hidden">Res</span>
           </button>
         </div>
 
