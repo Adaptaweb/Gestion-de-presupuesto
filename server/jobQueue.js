@@ -1,19 +1,29 @@
 import db from './db.js';
 
 let jobIdCounter = 0;
+let tableEnsured = false;
 
-await db.run(`CREATE TABLE IF NOT EXISTS "jobs" (
-  "id" TEXT PRIMARY KEY,
-  "type" TEXT NOT NULL,
-  "status" TEXT NOT NULL DEFAULT 'pending',
-  "result" TEXT,
-  "error" TEXT,
-  "created_at" TIMESTAMP DEFAULT NOW(),
-  "done_at" TIMESTAMP
-)`);
+async function ensureTable() {
+  if (tableEnsured) return;
+  try {
+    await db.run(`CREATE TABLE IF NOT EXISTS "jobs" (
+      "id" TEXT PRIMARY KEY,
+      "type" TEXT NOT NULL,
+      "status" TEXT NOT NULL DEFAULT 'pending',
+      "result" TEXT,
+      "error" TEXT,
+      "created_at" TIMESTAMP DEFAULT NOW(),
+      "done_at" TIMESTAMP
+    )`);
+    tableEnsured = true;
+  } catch (err) {
+    console.error('[JobQueue] Table init error:', err.message);
+  }
+}
 
 setInterval(async () => {
   try {
+    await ensureTable();
     await db.run(`DELETE FROM "jobs" WHERE "done_at" IS NOT NULL AND "done_at" < NOW() - INTERVAL '5 minutes'`);
     await db.run(`DELETE FROM "jobs" WHERE "created_at" < NOW() - INTERVAL '1 hour'`);
   } catch (err) {
@@ -22,6 +32,7 @@ setInterval(async () => {
 }, 60000);
 
 export async function createJob(type, asyncFn) {
+  await ensureTable();
   const id = `job-${Date.now()}-${++jobIdCounter}`;
 
   await db.run(
@@ -57,6 +68,7 @@ export async function createJob(type, asyncFn) {
 }
 
 export async function getJob(jobId) {
+  await ensureTable();
   const row = await db.get(`SELECT * FROM "jobs" WHERE "id" = $1`, jobId);
   if (!row) return null;
   return {
