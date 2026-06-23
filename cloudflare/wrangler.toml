@@ -1,0 +1,8 @@
+name = "gastos-email-worker"
+main = "email-worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+VERCEL_URL = "https://gastos.adaptaweb.cl"
+
+# Run: wrangler secret put WEBHOOK_SECRET
