@@ -302,7 +302,7 @@ const AdminPanel = ({ onBack, token }) => {
       </div>
 
       {showCreateModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-dark-normal rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
