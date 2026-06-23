@@ -4,6 +4,7 @@
 -- NOTE: All identifiers quoted to preserve camelCase
 -- ============================================================
 
+DROP TABLE IF EXISTS "jobs" CASCADE;
 DROP TABLE IF EXISTS "clasificacion_comercios" CASCADE;
 DROP TABLE IF EXISTS "config_extraccion" CASCADE;
 DROP TABLE IF EXISTS "filtros_correo" CASCADE;
@@ -196,6 +197,16 @@ CREATE INDEX "idx_filtros_correo_user_id" ON "filtros_correo"("user_id");
 CREATE TABLE "config_extraccion" (
   "user_id" TEXT PRIMARY KEY REFERENCES "users"("id") ON DELETE CASCADE,
   "dias_atras" INTEGER DEFAULT 3
+);
+
+CREATE TABLE "jobs" (
+  "id" TEXT PRIMARY KEY,
+  "type" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "result" TEXT,
+  "error" TEXT,
+  "created_at" TIMESTAMP DEFAULT NOW(),
+  "done_at" TIMESTAMP
 );
 
 CREATE TABLE "clasificacion_comercios" (

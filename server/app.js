@@ -507,7 +507,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
 app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const job = createJob('revisar-correos', async () => {
+    const job = await createJob('revisar-correos', async () => {
       const result = await fetchLatestTransactions(userId);
       cache.delByPattern(`tx:*:${userId}`);
       cache.del(`tx:meses:${userId}`);
@@ -521,7 +521,7 @@ app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/transacciones/revisar/status/:jobId', authenticateToken, async (req, res) => {
-  const job = getJob(req.params.jobId);
+  const job = await getJob(req.params.jobId);
   if (!job) return res.status(404).json({ error: 'Job no encontrado' });
   res.json({ status: job.status, result: job.result, error: job.error });
 });
