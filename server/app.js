@@ -518,11 +518,13 @@ app.post('/api/transacciones/manual', authenticateToken, async (req, res) => {
     }
 
     const now = new Date().toISOString();
+    const manualId = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const rows = await db.all(
       `INSERT INTO transacciones_extraidas
-       (user_id, monto, comercio, fecha, fecha_extraccion, banco, tipo_tarjeta, categoria, tipo_gasto, tipo_transaccion, revisado, asunto, remitente, gmail_msg_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)
+       (id, user_id, monto, comercio, fecha, fecha_extraccion, banco, tipo_tarjeta, categoria, tipo_gasto, tipo_transaccion, revisado, asunto, email_id, gmail_msg_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)
        RETURNING *`,
+      manualId,
       userId,
       parseFloat(monto),
       comercio || 'Ingreso manual',
@@ -534,8 +536,8 @@ app.post('/api/transacciones/manual', authenticateToken, async (req, res) => {
       tipo_gasto || null,
       tipo_transaccion,
       'Ingreso manual',
-      'manual@entry',
-      'manual-' + Date.now()
+      manualId,
+      manualId
     );
 
     const tx = rows[0];
