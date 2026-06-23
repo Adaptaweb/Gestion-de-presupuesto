@@ -505,6 +505,50 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/api/transacciones/manual', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { tipo_transaccion, monto, comercio, fecha, banco, tipo_tarjeta, categoria, tipo_gasto } = req.body;
+
+    if (!monto || parseFloat(monto) === 0) {
+      return res.status(400).json({ error: 'El monto es requerido y debe ser mayor a 0' });
+    }
+    if (!tipo_transaccion) {
+      return res.status(400).json({ error: 'El tipo de transacción es requerido' });
+    }
+
+    const now = new Date().toISOString();
+    const rows = await db.all(
+      `INSERT INTO transacciones_extraidas
+       (user_id, monto, comercio, fecha, fecha_extraccion, banco, tipo_tarjeta, categoria, tipo_gasto, tipo_transaccion, revisado, asunto, remitente, gmail_msg_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?, ?)
+       RETURNING *`,
+      userId,
+      parseFloat(monto),
+      comercio || 'Ingreso manual',
+      fecha || new Date().toISOString().slice(0, 10),
+      now,
+      banco || null,
+      tipo_tarjeta || null,
+      categoria || 'Otros',
+      tipo_gasto || null,
+      tipo_transaccion,
+      'Ingreso manual',
+      'manual@entry',
+      'manual-' + Date.now()
+    );
+
+    const tx = rows[0];
+    cache.delByPattern(`tx:*:${userId}`);
+    cache.del(`tx:meses:${userId}`);
+    cache.delByPattern(`tx:pendientes:${userId}`);
+    res.status(201).json({ transaction: tx });
+  } catch (error) {
+    console.error('[ManualEntry] Error:', error.message);
+    res.status(500).json({ error: 'Error al crear transacción manual' });
+  }
+});
+
 app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;

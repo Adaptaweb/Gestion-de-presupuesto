@@ -6,157 +6,13 @@ import {
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight
 } from 'lucide-react';
+import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 
-const CATEGORY_LIST = [
-  'Casa y cuentas', 'Mercadería', 'Gustitos', 'Transporte', 'Compras',
-  'Salud y deportes', 'Educación', 'Suscripciones', 'Viajes y vacaciones',
-  'Donaciones y regalos', 'Otros', 'Ahorro', 'Sueldo', 'Inversiones / Renta',
-  'Otros ingresos', 'Gastos bancarios', 'Intereses', 'Créditos de consumo',
-  'Sin categoría', 'Juegos'
-];
-
-const CATEGORY_COLORS = {
-  'Casa y cuentas': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  'Mercadería': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  'Gustitos': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-  'Transporte': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  'Compras': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
-  'Salud y deportes': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  'Educación': 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
-  'Suscripciones': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
-  'Viajes y vacaciones': 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
-  'Donaciones y regalos': 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300',
-  'Otros': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300',
-  'Ahorro': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-  'Sueldo': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  'Inversiones / Renta': 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
-  'Otros ingresos': 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300',
-  'Gastos bancarios': 'bg-stone-100 text-stone-700 dark:bg-stone-900/30 dark:text-stone-300',
-  'Intereses': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-  'Créditos de consumo': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  'Sin categoría': 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-300',
-  'Juegos': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-};
-
-const CATEGORY_BAR_COLORS = {
-  'Casa y cuentas': 'bg-amber-400 dark:bg-amber-500',
-  'Mercadería': 'bg-orange-400 dark:bg-orange-500',
-  'Gustitos': 'bg-rose-400 dark:bg-rose-500',
-  'Transporte': 'bg-blue-400 dark:bg-blue-500',
-  'Compras': 'bg-pink-400 dark:bg-pink-500',
-  'Salud y deportes': 'bg-green-400 dark:bg-green-500',
-  'Educación': 'bg-violet-400 dark:bg-violet-500',
-  'Suscripciones': 'bg-indigo-400 dark:bg-indigo-500',
-  'Viajes y vacaciones': 'bg-cyan-400 dark:bg-cyan-500',
-  'Donaciones y regalos': 'bg-fuchsia-400 dark:bg-fuchsia-500',
-  'Otros': 'bg-slate-400 dark:bg-slate-500',
-  'Ahorro': 'bg-emerald-400 dark:bg-emerald-500',
-  'Sueldo': 'bg-yellow-400 dark:bg-yellow-500',
-  'Inversiones / Renta': 'bg-teal-400 dark:bg-teal-500',
-  'Otros ingresos': 'bg-lime-400 dark:bg-lime-500',
-  'Gastos bancarios': 'bg-stone-400 dark:bg-stone-500',
-  'Intereses': 'bg-sky-400 dark:bg-sky-500',
-  'Créditos de consumo': 'bg-red-400 dark:bg-red-500',
-  'Sin categoría': 'bg-zinc-400 dark:bg-zinc-500',
-  'Juegos': 'bg-purple-400 dark:bg-purple-500',
-};
-
-const CATEGORY_ICON_BG = {
-  'Casa y cuentas': 'bg-amber-100 dark:bg-amber-500/20',
-  'Mercadería': 'bg-orange-100 dark:bg-orange-500/20',
-  'Gustitos': 'bg-rose-100 dark:bg-rose-500/20',
-  'Transporte': 'bg-blue-100 dark:bg-blue-500/20',
-  'Compras': 'bg-pink-100 dark:bg-pink-500/20',
-  'Salud y deportes': 'bg-green-100 dark:bg-green-500/20',
-  'Educación': 'bg-violet-100 dark:bg-violet-500/20',
-  'Suscripciones': 'bg-indigo-100 dark:bg-indigo-500/20',
-  'Viajes y vacaciones': 'bg-cyan-100 dark:bg-cyan-500/20',
-  'Donaciones y regalos': 'bg-fuchsia-100 dark:bg-fuchsia-500/20',
-  'Otros': 'bg-slate-100 dark:bg-slate-500/20',
-  'Ahorro': 'bg-emerald-100 dark:bg-emerald-500/20',
-  'Sueldo': 'bg-yellow-100 dark:bg-yellow-500/20',
-  'Inversiones / Renta': 'bg-teal-100 dark:bg-teal-500/20',
-  'Otros ingresos': 'bg-lime-100 dark:bg-lime-500/20',
-  'Gastos bancarios': 'bg-stone-100 dark:bg-stone-500/20',
-  'Intereses': 'bg-sky-100 dark:bg-sky-500/20',
-  'Créditos de consumo': 'bg-red-100 dark:bg-red-500/20',
-  'Sin categoría': 'bg-zinc-100 dark:bg-zinc-500/20',
-  'Juegos': 'bg-purple-100 dark:bg-purple-500/20',
-};
-
-const CATEGORY_ICON_COLOR = {
-  'Casa y cuentas': 'text-amber-500 dark:text-amber-300',
-  'Mercadería': 'text-orange-500 dark:text-orange-300',
-  'Gustitos': 'text-rose-500 dark:text-rose-300',
-  'Transporte': 'text-blue-500 dark:text-blue-300',
-  'Compras': 'text-pink-500 dark:text-pink-300',
-  'Salud y deportes': 'text-green-500 dark:text-green-300',
-  'Educación': 'text-violet-500 dark:text-violet-300',
-  'Suscripciones': 'text-indigo-500 dark:text-indigo-300',
-  'Viajes y vacaciones': 'text-cyan-500 dark:text-cyan-300',
-  'Donaciones y regalos': 'text-fuchsia-500 dark:text-fuchsia-300',
-  'Otros': 'text-slate-500 dark:text-slate-300',
-  'Ahorro': 'text-emerald-500 dark:text-emerald-300',
-  'Sueldo': 'text-yellow-500 dark:text-yellow-300',
-  'Inversiones / Renta': 'text-teal-500 dark:text-teal-300',
-  'Otros ingresos': 'text-lime-500 dark:text-lime-300',
-  'Gastos bancarios': 'text-stone-500 dark:text-stone-300',
-  'Intereses': 'text-sky-500 dark:text-sky-300',
-  'Créditos de consumo': 'text-red-500 dark:text-red-300',
-  'Sin categoría': 'text-zinc-500 dark:text-zinc-300',
-  'Juegos': 'text-purple-500 dark:text-purple-300',
-};
-
-const CATEGORY_EMOJI = {
-  'Casa y cuentas': '🏠',
-  'Mercadería': '🛒',
-  'Gustitos': '🍻',
-  'Transporte': '🚗',
-  'Compras': '🛍️',
-  'Salud y deportes': '❤️',
-  'Educación': '🎓',
-  'Suscripciones': '📱',
-  'Viajes y vacaciones': '🏖️',
-  'Donaciones y regalos': '🎁',
-  'Otros': '👤',
-  'Ahorro': '🐷',
-  'Sueldo': '💰',
-  'Inversiones / Renta': '📈',
-  'Otros ingresos': '💲',
-  'Gastos bancarios': '🏦',
-  'Intereses': '%',
-  'Créditos de consumo': '💸',
-  'Sin categoría': '➖',
-  'Juegos': '🎮',
-};
-
-const BANK_COLORS = {
-  'BCI': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  'Santander': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  'Banco de Chile': 'bg-blue-100 text-blue-700 dark:bg-blue-100 dark:text-blue-700',
-  'Banco Estado': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-  'Mach': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-};
-
-const BANK_ACCENT = {
-  'BCI': 'border-l-red-500',
-  'Santander': 'border-l-red-500',
-  'Banco de Chile': 'border-l-blue-500',
-  'Banco Estado': 'border-l-sky-500',
-  'Mach': 'border-l-purple-500',
-};
-
-const BANK_ICONS = {
-  'BCI': '/chile-icons/bancos/bci.png',
-  'Santander': '/chile-icons/bancos/santander.png',
-  'Banco de Chile': '/chile-icons/bancos/banco_de_chile.png',
-  'Banco Estado': '/chile-icons/bancos/banco_estado.png',
-  'Mach': '/chile-icons/medios-pago/mach.png',
-  'Scotiabank': '/chile-icons/bancos/scotiabank.png',
-  'Itaú': '/chile-icons/bancos/itau.png',
-  'Banco Falabella': '/chile-icons/bancos/banco_falabella.png',
-  'Banco Paris': '/chile-icons/bancos/paris.png',
-};
+import {
+  CATEGORY_LIST, CATEGORY_COLORS, CATEGORY_BAR_COLORS,
+  CATEGORY_ICON_BG, CATEGORY_ICON_COLOR, CATEGORY_EMOJI,
+  BANK_COLORS, BANK_ACCENT, BANK_ICONS
+} from './constants.js';
 
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
@@ -463,6 +319,7 @@ const Transacciones = ({ token, theme }) => {
   const [filters, setFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [newFilterRemitente, setNewFilterRemitente] = useState('');
   const [newFilterAsunto, setNewFilterAsunto] = useState('');
   const [bulkRemitentes, setBulkRemitentes] = useState('');
@@ -594,6 +451,20 @@ const Transacciones = ({ token, theme }) => {
   useEffect(() => {
     setPage(0);
   }, [filterCat, filterMonth]);
+
+  useEffect(() => {
+    const handleOpenConfig = () => setShowConfigModal(true);
+    const handleOpenFilters = () => setShowFilterModal(true);
+    const handleOpenManual = () => setShowManualEntry(true);
+    window.addEventListener('opencode:open-config', handleOpenConfig);
+    window.addEventListener('opencode:open-filters', handleOpenFilters);
+    window.addEventListener('opencode:open-manual', handleOpenManual);
+    return () => {
+      window.removeEventListener('opencode:open-config', handleOpenConfig);
+      window.removeEventListener('opencode:open-filters', handleOpenFilters);
+      window.removeEventListener('opencode:open-manual', handleOpenManual);
+    };
+  }, []);
 
   const months = availableMonths;
   const currentMonthStr = new Date().toISOString().slice(0, 7);
@@ -1021,16 +892,6 @@ const Transacciones = ({ token, theme }) => {
               {statusMsg.text}
             </span>
           )}
-          <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
-            <Check size={14} />
-            Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
-          </button>
-          <button onClick={() => setShowFilterModal(true)} className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition-all">
-            <Settings2 size={14} /> <span className="hidden sm:inline">Reglas</span>
-          </button>
-          <button onClick={() => setShowConfigModal(true)} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
-            <Settings2 size={16} /> <span className="hidden sm:inline">Configurar</span><span className="sm:hidden">Conf</span>
-          </button>
         </div>
       </div>
 
@@ -1106,7 +967,7 @@ const Transacciones = ({ token, theme }) => {
         );
       })()}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[140px] max-w-[200px]">
           <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
@@ -1127,6 +988,13 @@ const Transacciones = ({ token, theme }) => {
             })}
           </select>
         </div>
+        <button onClick={() => setShowManualEntry(true)} className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all">
+          <Plus size={14} /> <span className="hidden sm:inline">Ingreso Manual</span><span className="sm:hidden">+Manual</span>
+        </button>
+        <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
+          <Check size={14} />
+          Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
+        </button>
       </div>
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
@@ -1425,6 +1293,14 @@ const Transacciones = ({ token, theme }) => {
           />
         </div>
       )}
+
+      <ManualTransactionPanel
+        show={showManualEntry}
+        onClose={() => setShowManualEntry(false)}
+        onCreated={() => { fetchTransactions(); fetchMonths(); }}
+        theme={theme}
+        token={token}
+      />
     </>
   );
 };

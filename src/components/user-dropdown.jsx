@@ -1,6 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit, Calendar,
   Plus, LogOut, ChevronDown, Check, Loader2,
+  Settings2, Filter,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -58,6 +59,22 @@ export function UserMenu({
               <span>Usuarios</span>
             </DropdownMenuItem>
           )}
+
+          <DropdownMenuItem
+            onClick={() => window.dispatchEvent(new CustomEvent('opencode:open-config'))}
+            className="p-2 rounded-lg cursor-pointer"
+          >
+            <Settings2 size={16} className="mr-2 text-slate-500" />
+            <span>Configurar</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => window.dispatchEvent(new CustomEvent('opencode:open-filters'))}
+            className="p-2 rounded-lg cursor-pointer"
+          >
+            <Filter size={16} className="mr-2 text-slate-500" />
+            <span>Reglas</span>
+          </DropdownMenuItem>
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="p-2 rounded-lg cursor-pointer">
