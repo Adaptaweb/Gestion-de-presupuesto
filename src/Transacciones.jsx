@@ -440,6 +440,7 @@ const Transacciones = ({ token, theme }) => {
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
   const [newFilterRemitente, setNewFilterRemitente] = useState('');
   const [newFilterAsunto, setNewFilterAsunto] = useState('');
   const [bulkRemitentes, setBulkRemitentes] = useState('');
@@ -957,9 +958,8 @@ const Transacciones = ({ token, theme }) => {
           <button onClick={() => setShowFilterModal(true)} className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition-all">
             <Settings2 size={14} /> <span className="hidden sm:inline">Reglas</span>
           </button>
-          <button onClick={handleCheckEmails} disabled={checking} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all disabled:opacity-50`}>
-            {checking ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-            <span className="hidden sm:inline">{checking ? 'Revisando...' : 'Revisar correos'}</span><span className="sm:hidden">{checking ? '...' : 'Revisar'}</span>
+          <button onClick={() => setShowConfigModal(true)} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+            <Settings2 size={16} /> <span className="hidden sm:inline">Configurar</span><span className="sm:hidden">Conf</span>
           </button>
         </div>
       </div>
@@ -1066,7 +1066,7 @@ const Transacciones = ({ token, theme }) => {
           <div className="text-center py-16">
             <Inbox size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
             <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">No hay transacciones clasificadas</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Presiona "Revisar correos" para buscar notificaciones bancarias y luego clasifícalas en Pendientes</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Presiona "Configurar" para importar correos bancarios anteriores y luego clasifícalas en Pendientes</p>
           </div>
         ) : (
           <>
@@ -1264,6 +1264,58 @@ const Transacciones = ({ token, theme }) => {
                     <button onClick={() => handleDeleteFilter(f.id)} className="ml-2 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0" title="Eliminar regla"><Trash2 size={14} /></button>
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Config Modal */}
+      {showConfigModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                <Settings2 className={theme.tabText} size={20} /> Configuración
+              </h3>
+              <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+            </div>
+
+            <div className="mb-6 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+              <label className="text-[10px] font-black uppercase text-blue-500 dark:text-blue-400 mb-2 block">Reenvío automático</label>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
+                Para procesar transacciones en tiempo real, configura un filtro en Gmail:
+              </p>
+              <ol className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 list-decimal list-inside mb-3">
+                <li>Abre <b>Gmail → Configuración → Filtros y direcciones bloqueadas → Crear filtro</b></li>
+                <li>En <b>De</b>: <code className="bg-slate-200 dark:bg-dark-lighter px-1 rounded text-[11px]">{'from:(@bci.cl OR @bancochile.cl OR @santander.cl OR @bancoestado.cl)'}</code></li>
+                <li>Click <b>Crear filtro → Reenviar a</b>:</li>
+              </ol>
+              <div className="bg-white dark:bg-dark-normal rounded-xl p-3 border border-blue-200 dark:border-blue-700 mb-3">
+                <code className="text-sm font-bold text-blue-700 dark:text-blue-300 break-all select-all">{`parse+${(() => { try { return JSON.parse(atob(token.split('.')[1])).id; } catch { return 'TU_ID'; } })()}@adaptaweb.cl`}</code>
+              </div>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                Cada vez que llegue una notificación bancaria se analizará automáticamente.
+              </p>
+            </div>
+
+            <div className="p-3 sm:p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
+              <label className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-2 block">Sincronizar historial</label>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
+                Importa correos bancarios anteriores a la primera vez que configuras la app.
+              </p>
+              <button onClick={handleCheckEmails} disabled={checking} className={`flex items-center justify-center gap-2 w-full ${theme.btnPrimary} text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all disabled:opacity-50`}>
+                {checking ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                {checking ? 'Revisando correos...' : 'Sincronizar correos anteriores'}
+              </button>
+              {statusMsg && (
+                <span className={`inline-block text-xs px-3 py-1.5 rounded-lg font-medium mt-3 ${
+                  statusMsg.type === 'success' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
+                  statusMsg.type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                }`}>
+                  {statusMsg.text}
+                </span>
               )}
             </div>
           </div>

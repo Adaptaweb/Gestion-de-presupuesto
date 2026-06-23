@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import db from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
+import { parseHTML } from './transactionParser.js';
 import cache from './cache.js';
 import { createJob, getJob } from './jobQueue.js';
 
@@ -524,6 +525,60 @@ app.get('/api/transacciones/revisar/status/:jobId', authenticateToken, async (re
   const job = await getJob(req.params.jobId);
   if (!job) return res.status(404).json({ error: 'Job no encontrado' });
   res.json({ status: job.status, result: job.result, error: job.error });
+});
+
+// Webhook de Cloudflare Email Worker
+app.post('/api/webhook/email', async (req, res) => {
+  try {
+    const secret = req.headers['x-webhook-secret'];
+    if (secret !== process.env.WEBHOOK_SECRET) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { userId, from, subject, html, messageId } = req.body;
+    if (!userId || !html) {
+      return res.status(400).json({ error: 'Missing userId or html' });
+    }
+
+    const headers = {
+      from: from || '',
+      subject: subject || '',
+      'message-id': messageId || '',
+      date: new Date().toISOString(),
+      to: '',
+    };
+
+    const parsed = await parseHTML(html, headers, userId);
+    if (!parsed || !parsed.monto || !parsed.fecha) {
+      return res.json({ success: false, reason: 'no_parsed_data' });
+    }
+
+    const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const emailId = messageId || `wb-${Date.now()}`;
+    const subjectSafe = (subject || '').slice(0, 200);
+
+    await db.run(
+      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13)
+       ON CONFLICT (email_id) DO UPDATE SET
+         asunto = EXCLUDED.asunto,
+         tipo_tarjeta = EXCLUDED.tipo_tarjeta,
+         gmail_msg_id = EXCLUDED.gmail_msg_id,
+         fecha_extraccion = NOW(),
+         comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
+         tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
+      id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
+    );
+
+    cache.delByPattern(`tx:*:${userId}`);
+    cache.del(`tx:meses:${userId}`);
+    cache.delByPattern(`tx:pendientes:${userId}`);
+
+    res.json({ success: true, transaction: parsed });
+  } catch (error) {
+    console.error('[Webhook] Error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get('/api/transacciones/pendientes', authenticateToken, async (req, res) => {
