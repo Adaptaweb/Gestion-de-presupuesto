@@ -133,7 +133,7 @@ const ReviewCard = ({
         <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-4 text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             {BANK_ICONS[tx.banco] && (
-              <img src={BANK_ICONS[tx.banco]} alt="" className="w-8 h-8 rounded-full shadow" />
+              <img src={BANK_ICONS[tx.banco]} alt="" className={`w-8 h-8 rounded-full shadow ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />
             )}
             <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{tx.banco || 'Banco'}</span>
           </div>
@@ -305,7 +305,7 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ token, theme }) => {
+const Transacciones = ({ token, theme, isDarkMode }) => {
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -842,11 +842,8 @@ const Transacciones = ({ token, theme }) => {
     setReviewCat(tx.categoria || 'Otros');
     setReviewTipoGasto(tx.tipo_gasto || null);
     setReviewTipoTransaccion(null);
-    setReviewVisible(false);
     setShowReview(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => setReviewVisible(true));
-    });
+    setReviewVisible(true);
   };
 
   const currentReviewTx = pendingTxs[reviewIdx] || null;
@@ -877,7 +874,7 @@ const Transacciones = ({ token, theme }) => {
 
   return (
     <>
-      <div className="animate-in fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 lg:pr-28 pb-24">
+      <div className="animate-in fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
           <Mail className={theme.tabText} size={20} /> Transacciones
@@ -937,7 +934,7 @@ const Transacciones = ({ token, theme }) => {
               return (
                 <div key={bank} className={`bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-3 sm:p-4 ${BANK_ACCENT[bank] || ''}`}>
                   <div className="flex items-center gap-3 mb-2">
-                    {BANK_ICONS[bank] && <img src={BANK_ICONS[bank]} alt="" className="w-8 h-8 rounded-full" />}
+                    {BANK_ICONS[bank] && <img src={BANK_ICONS[bank]} alt="" className={`w-8 h-8 rounded-full ${isDarkMode && bank === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />}
                     <span className="text-xs font-black text-slate-700 dark:text-slate-300">{bank}</span>
                   </div>
                   <div className="space-y-1">
@@ -1022,11 +1019,11 @@ const Transacciones = ({ token, theme }) => {
                   {transactions.map((tx, idx) => {
                     const isMuted = tx.tipo_transaccion === 'no_es_gasto' || tx.tipo_transaccion === 'no_es_ingreso' || tx.tipo_transaccion === 'interno';
                     return (
-                    <tr key={tx.id} onClick={() => handleReclasificarTx(tx)} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors hover:bg-slate-50/50 dark:hover:bg-dark-lighter/30 cursor-pointer ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
+                    <tr key={tx.id} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
                       <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold whitespace-nowrap ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{formatDate(tx.fecha)}</td>
                       <td className="p-2 sm:p-4">
                         <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${isMuted ? 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500' : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-                          {BANK_ICONS[tx.banco] && <img src={BANK_ICONS[tx.banco]} alt="" className={`w-4 h-4 rounded-full ${isMuted ? 'opacity-50' : ''}`} />}
+                          {BANK_ICONS[tx.banco] && <img src={BANK_ICONS[tx.banco]} alt="" className={`w-4 h-4 rounded-full ${isMuted ? 'opacity-50' : ''} ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />}
                           {tx.banco || '-'}
                         </span>
                       </td>
@@ -1271,7 +1268,7 @@ const Transacciones = ({ token, theme }) => {
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-0 sm:p-4 transition-opacity duration-300" style={{ opacity: reviewVisible ? 1 : 0 }}>
+        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center p-0 sm:p-4 transition-all duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}

@@ -1500,7 +1500,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         </div>
 
         {activeTab === 'dashboard' && !!dashboardMonth && (
-          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in duration-500">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in duration-500 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
@@ -2024,7 +2024,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         )}
 
         {activeTab === 'general' ? (
-          <div key="general-tab" className="animate-slide-fade">
+          <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-end gap-2 mb-4">
               <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
@@ -2391,7 +2391,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             </div>
           </div>
         ) : activeTab === 'ahorros' ? (
-          <div key="ahorros-tab" className="space-y-8 animate-slide-fade">
+          <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
@@ -2544,7 +2544,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </div>
         ) : (
           <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
-            <Transacciones token={token} theme={theme} />
+            <Transacciones token={token} theme={theme} isDarkMode={isDarkMode} />
           </div>
         )}
 
