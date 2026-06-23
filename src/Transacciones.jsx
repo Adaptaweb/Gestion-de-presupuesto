@@ -877,7 +877,7 @@ const Transacciones = ({ token, theme }) => {
 
   return (
     <>
-      <div className="animate-in fade-in duration-500 space-y-6">
+      <div className="animate-in fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 lg:pr-28 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
           <Mail className={theme.tabText} size={20} /> Transacciones
