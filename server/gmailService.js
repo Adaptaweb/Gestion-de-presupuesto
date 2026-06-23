@@ -18,66 +18,34 @@ async function fetchLatestTransactions(userId) {
 
     const query = await buildGmailQuery(userId);
 
-	    const allIds = [];
-	    let pageToken = undefined;
-	    do {
-	      const listRes = await gmail.users.messages.list({
-	        userId: 'me',
-	        q: query,
-	        maxResults: 20,
-	        pageToken: pageToken,
-	      });
-	      for (const msg of listRes.data.messages || []) {
-	        allIds.push(msg.id);
-	      }
-	      pageToken = listRes.data.nextPageToken || null;
-	    } while (pageToken && allIds.length < 500);
-
-	    results.fetched = allIds.length;
-
-	    for (const id of allIds) {
-	      const msg = { id };
-      try {
-        const fullMsg = await gmail.users.messages.get({
-          userId: 'me',
-          id: msg.id,
-          format: 'full',
-        });
-
-        const headers = {};
-        const payload = fullMsg.data.payload;
-        for (const h of payload.headers || []) {
-          headers[h.name.toLowerCase()] = h.value;
-        }
-
-        const emailId = headers['message-id'] || headers['message_id'] || msg.id;
-
-        const body = getEmailBody(payload);
-        if (!body) continue;
-
-        const parsed = await parseHTML(body, headers, userId);
-        if (!parsed || !parsed.monto || !parsed.fecha) continue;
-
-        const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const subject = (headers['subject'] || '').slice(0, 200);
-
-        const existing = await db.get('SELECT id, revisado FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2', emailId, userId);
-        if (existing) {
-          await db.run(
-            "UPDATE transacciones_extraidas SET asunto = $1, tipo_tarjeta = $2, fecha_extraccion = NOW(), comercio = CASE WHEN $3 != '' AND revisado = FALSE THEN $3 ELSE comercio END, tipo_transaccion = CASE WHEN $4 IS NOT NULL AND revisado = FALSE THEN $4 ELSE tipo_transaccion END WHERE id = $5",
-            subject, parsed.tipo_tarjeta || '', parsed.comercio || '', parsed.tipo_transaccion_auto || null, existing.id);
-          results.transactions.push(parsed);
-        } else {
-          await db.run(
-            "INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12)",
-            id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto');
-          results.new++;
-          results.transactions.push(parsed);
-        }
-      } catch (msgErr) {
-        results.errors++;
-        console.error('[GmailService] Error processing message:', msgErr.message);
+    const allIds = [];
+    let pageToken = undefined;
+    do {
+      const listRes = await gmail.users.messages.list({
+        userId: 'me',
+        q: query,
+        maxResults: 100,
+        pageToken: pageToken,
+      });
+      for (const msg of listRes.data.messages || []) {
+        allIds.push(msg.id);
       }
+      pageToken = listRes.data.nextPageToken || null;
+    } while (pageToken && allIds.length < 500);
+
+    results.fetched = allIds.length;
+
+    const existingRows = await db.all(
+      'SELECT email_id FROM transacciones_extraidas WHERE user_id = $1 AND email_id = ANY($2)',
+      userId, allIds
+    );
+    const existingIds = new Set(existingRows.map(r => r.email_id));
+    const newIds = allIds.filter(id => !existingIds.has(id));
+
+    const CONCURRENCY = 5;
+    for (let i = 0; i < newIds.length; i += CONCURRENCY) {
+      const chunk = newIds.slice(i, i + CONCURRENCY);
+      await Promise.all(chunk.map(id => processEmail(id, gmail, userId, results)));
     }
   } catch (err) {
     console.error('[GmailService] Error:', err.message);
@@ -92,6 +60,51 @@ async function fetchLatestTransactions(userId) {
   }
 
   return results;
+}
+
+async function processEmail(msgId, gmail, userId, results) {
+  try {
+    const fullMsg = await gmail.users.messages.get({
+      userId: 'me',
+      id: msgId,
+      format: 'full',
+    });
+
+    const headers = {};
+    const payload = fullMsg.data.payload;
+    for (const h of payload.headers || []) {
+      headers[h.name.toLowerCase()] = h.value;
+    }
+
+    const emailId = headers['message-id'] || headers['message_id'] || msgId;
+
+    const body = getEmailBody(payload);
+    if (!body) return;
+
+    const parsed = await parseHTML(body, headers, userId);
+    if (!parsed || !parsed.monto || !parsed.fecha) return;
+
+    const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const subject = (headers['subject'] || '').slice(0, 200);
+
+    await db.run(
+      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12)
+       ON CONFLICT (email_id) DO UPDATE SET
+         asunto = EXCLUDED.asunto,
+         tipo_tarjeta = EXCLUDED.tipo_tarjeta,
+         fecha_extraccion = NOW(),
+         comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
+         tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
+      id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto'
+    );
+
+    results.new++;
+    results.transactions.push(parsed);
+  } catch (msgErr) {
+    results.errors++;
+    console.error('[GmailService] Error processing message:', msgErr.message);
+  }
 }
 
 function getEmailBody(payload) {
