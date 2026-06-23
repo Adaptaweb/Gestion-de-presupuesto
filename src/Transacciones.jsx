@@ -988,9 +988,6 @@ const Transacciones = ({ token, theme }) => {
             })}
           </select>
         </div>
-        <button onClick={() => setShowManualEntry(true)} className="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all">
-          <Plus size={14} /> <span className="hidden sm:inline">Ingreso Manual</span><span className="sm:hidden">+Manual</span>
-        </button>
         <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
           <Check size={14} />
           Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
@@ -1079,6 +1076,13 @@ const Transacciones = ({ token, theme }) => {
           Ultima revision: {new Date(lastCheck).toLocaleString('es-CL')}
         </p>
       )}
+
+      <button
+        onClick={() => setShowManualEntry(true)}
+        className={`fixed bottom-6 right-6 lg:bottom-8 lg:right-8 z-40 ${theme.btnPrimary} text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${theme.shadowBtn}`}
+      >
+        <Plus size={20} /> Ingreso Manual
+      </button>
 
       {/* Edit Transaction Modal */}
       {showEditModal && editingTx && (

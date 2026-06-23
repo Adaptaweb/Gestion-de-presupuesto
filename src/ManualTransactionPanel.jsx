@@ -83,6 +83,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
         setTimeout(() => {
           resetForm();
           if (typeof onCreated === 'function') onCreated();
+          onClose();
         }, 250);
       } else {
         setError(data.error || 'Error al guardar');
@@ -127,6 +128,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
         setTimeout(() => {
           resetForm();
           if (typeof onCreated === 'function') onCreated();
+          onClose();
         }, 250);
       } else {
         setError(data.error || 'Error al guardar');
