@@ -111,6 +111,7 @@ import {
   Headphones,
   PieChart,
   CalendarDays,
+  Calendar,
   Activity
 } from 'lucide-react';
 import Login from './Login.jsx';
@@ -1438,13 +1439,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               setThemeColor={(color) => { setThemeColor(color); localStorage.setItem('themeColor', color); }}
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
-              selectedYear={selectedYear}
-              setSelectedYear={setSelectedYear}
-              availableYears={availableYears}
-              activeTab={activeTab}
-              months={months}
-              setMonths={setMonths}
-              getNextMonthStr={getNextMonthStr}
               onOpenAdmin={onOpenAdmin}
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
@@ -2025,19 +2019,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
         {activeTab === 'general' ? (
           <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-end gap-2 mb-4">
-              <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
-                <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
-              </button>
-              <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
-                <Receipt size={16} /> Gasto Fijo <Plus size={16} />
-              </button>
-              <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 transition-all`}>
-                <TrendingUp size={16} /> Abono <Plus size={16} />
-              </button>
-              <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
-                <RefreshCw size={16} /> Suscripciones <Plus size={16} />
-              </button>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Calendar size={16} className="text-slate-400 flex-shrink-0" />
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 py-2 rounded-xl text-xs font-black text-slate-700 dark:text-slate-300 outline-none cursor-pointer appearance-none"
+                >
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                  <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
+                </button>
+                <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                  <Receipt size={16} /> Gasto Fijo <Plus size={16} />
+                </button>
+                <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 transition-all`}>
+                  <TrendingUp size={16} /> Abono <Plus size={16} />
+                </button>
+                <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                  <RefreshCw size={16} /> Suscripciones <Plus size={16} />
+                </button>
+                <button onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
+                  <Plus size={16} /> +1 Mes
+                </button>
+              </div>
             </div>
 
             <div className="bg-white dark:bg-dark-normal rounded-[2.5rem] shadow-2xl shadow-slate-200 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter overflow-hidden mb-12">
@@ -2393,9 +2404,23 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
         ) : activeTab === 'ahorros' ? (
           <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
-                <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
-              </h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
+                  <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Calendar size={16} className="text-slate-400 flex-shrink-0" />
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className={`${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} border ${theme.borderAccent} ${theme.badgeBgDark} px-3 py-2 rounded-xl text-xs font-black outline-none cursor-pointer appearance-none`}
+                  >
+                    {availableYears.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="flex gap-2 w-full md:w-auto">
                 <button
                   onClick={getSavingsPlan}

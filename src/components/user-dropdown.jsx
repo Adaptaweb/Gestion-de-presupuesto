@@ -1,6 +1,6 @@
 import {
-  User, Users, Palette, BrainCircuit, Calendar,
-  Plus, LogOut, ChevronDown, Check, Loader2,
+  User, Users, Palette, BrainCircuit,
+  LogOut, ChevronDown, Check, Loader2,
   Settings2, Filter,
 } from 'lucide-react'
 import {
@@ -31,10 +31,6 @@ export function UserMenu({
   user,
   themeColor, setThemeColor,
   isDarkMode, setIsDarkMode,
-  selectedYear, setSelectedYear,
-  availableYears,
-  activeTab,
-  months, setMonths, getNextMonthStr,
   onOpenAdmin, onLogout,
   generateFinancialAdvice, isAiLoading,
 }) {
@@ -123,30 +119,7 @@ export function UserMenu({
             <span>Consultar IA ✨</span>
           </DropdownMenuItem>
 
-          {(activeTab === 'dashboard' || activeTab === 'general' || activeTab === 'ahorros') && (
-            <div className="flex items-center gap-2 px-2 py-1.5">
-              <Calendar size={16} className="text-slate-500 flex-shrink-0" />
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full bg-transparent border border-slate-200 dark:border-dark-lighter px-2 py-1 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 outline-none cursor-pointer appearance-none"
-              >
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-          )}
 
-          {activeTab === 'general' && (
-            <DropdownMenuItem
-              onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])}
-              className="p-2 rounded-lg cursor-pointer"
-            >
-              <Plus size={16} className="mr-2 text-slate-500" />
-              <span>+1 Mes</span>
-            </DropdownMenuItem>
-          )}
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
