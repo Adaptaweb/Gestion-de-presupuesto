@@ -7,6 +7,7 @@ import {
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
+import { useDeleteConfirm } from './components/DeleteConfirmModal.jsx';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -402,6 +403,8 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   const [reviewDirection, setReviewDirection] = useState('forward');
   const reviewSliderRef = useRef(null);
 
+  const { confirmDelete, DeleteModalComponent } = useDeleteConfirm();
+
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
@@ -663,15 +666,23 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   };
 
   const handleDeleteTx = async (id) => {
-    if (!window.confirm('¿Eliminar esta transacción?')) return;
-    try {
-      const res = await fetch(`/api/transacciones/${id}`, { method: 'DELETE', headers: getHeaders() });
-      if (res.ok) {
-        setTransactions(prev => prev.filter(tx => tx.id !== id));
-        fetchTransactions();
-        fetchMonths();
+    const txToDelete = transactions.find(t => t.id === id);
+    await confirmDelete({
+      title: '¿Eliminar transacción?',
+      itemName: txToDelete ? `${txToDelete.comercio || 'Transacción'} - $${Math.abs(txToDelete.monto)}` : 'esta transacción',
+      itemType: 'transacción',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/transacciones/${id}`, { method: 'DELETE', headers: getHeaders() });
+          if (res.ok) {
+            setTransactions(prev => prev.filter(tx => tx.id !== id));
+            fetchTransactions();
+            fetchMonths();
+          }
+        } catch (err) { console.error(err); }
+        return Promise.resolve();
       }
-    } catch (err) { console.error(err); }
+    });
   };
 
   const handleBulkReplace = async () => {
@@ -708,10 +719,20 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   };
 
   const handleDeleteFilter = async (id) => {
-    try {
-      const res = await fetch(`/api/filtros/${id}`, { method: 'DELETE', headers: getHeaders() });
-      if (res.ok) fetchFilters();
-    } catch (err) { console.error(err); }
+    const filterToDelete = filters.find(f => f.id === id);
+    await confirmDelete({
+      title: '¿Eliminar filtro?',
+      itemName: filterToDelete ? filterToDelete.remitente : 'este filtro',
+      itemType: 'filtro',
+      message: 'Ya no se filtrarán emails de este remitente.',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/filtros/${id}`, { method: 'DELETE', headers: getHeaders() });
+          if (res.ok) fetchFilters();
+        } catch (err) { console.error(err); }
+        return Promise.resolve();
+      }
+    });
   };
 
   const handleSaveConfig = async () => {
@@ -1514,6 +1535,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
         theme={theme}
         token={token}
       />
+      <DeleteModalComponent />
     </>
   );
 };

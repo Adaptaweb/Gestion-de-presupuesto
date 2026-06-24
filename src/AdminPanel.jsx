@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Shield, Trash2, Key, X, Loader2, ArrowLeft, Mail, Ban, CheckCircle, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { useDeleteConfirm } from './components/DeleteConfirmModal.jsx';
 
 const AdminPanel = ({ onBack, token }) => {
   const [users, setUsers] = useState([]);
@@ -10,7 +11,9 @@ const AdminPanel = ({ onBack, token }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
-  const [showPassword, setShowPassword] = useState(false);
+const [showPassword, setShowPassword] = useState(false);
+
+  const { confirmDelete, DeleteModalComponent } = useDeleteConfirm();
 
   const fetchUsers = async () => {
     try {
@@ -53,24 +56,32 @@ const AdminPanel = ({ onBack, token }) => {
   };
 
   const handleDeleteUser = async (user) => {
-    if (!confirm(`¿Eliminar a ${user.name}? Esta acción no se puede deshacer.`)) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        fetchUsers();
-      } else {
-        const data = await res.json();
-        setError(data.error);
+    await confirmDelete({
+      title: '¿Eliminar usuario?',
+      itemName: user.name,
+      itemType: 'usuario',
+      message: 'El usuario y todos sus datos serán eliminados. Esta acción no se puede deshacer.',
+      onConfirm: async () => {
+        setActionLoading(true);
+        try {
+          const res = await fetch(`/api/admin/users/${user.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            fetchUsers();
+          } else {
+            const data = await res.json();
+            setError(data.error);
+          }
+        } catch (err) {
+          setError('Error al eliminar usuario');
+        } finally {
+          setActionLoading(false);
+        }
+        return Promise.resolve();
       }
-    } catch (err) {
-      setError('Error al eliminar usuario');
-    } finally {
-      setActionLoading(false);
-    }
+    });
   };
 
   const handleResetPassword = async (userId) => {
@@ -393,6 +404,7 @@ const AdminPanel = ({ onBack, token }) => {
         </div>
       )}
     </div>
+    <DeleteModalComponent />
     </div>
   );
 };

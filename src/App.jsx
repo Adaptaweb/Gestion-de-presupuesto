@@ -121,6 +121,7 @@ import Transacciones from './Transacciones.jsx';
 import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
+import { useDeleteConfirm } from './components/DeleteConfirmModal.jsx';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -620,6 +621,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     reorderCategorias, reorderCategoriasLocal,
     getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText,
   } = useCategorias(token);
+  const { confirmDelete, isDeleting, DeleteModalComponent } = useDeleteConfirm();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark' ||
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -704,8 +706,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const [editingAccount, setEditingAccount] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
-  const [descTooltip, setDescTooltip] = useState(null);
-  const descTooltipTimer = useRef(null);
   const [bancoSearch, setBancoSearch] = useState('');
   const [fixedBancoSearch, setFixedBancoSearch] = useState('');
   const [subBancoSearch, setSubBancoSearch] = useState('');
@@ -2132,7 +2132,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                  </div>
                                  <div className="flex flex-col min-w-0 cursor-pointer" onClick={() => setViewingItem({ tipo: item.tipo, data: item })}>
                                   <div className="flex items-center gap-1 sm:gap-2">
-                                    <span className="font-black text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title={item.descripcion} onClick={(e) => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); if (descTooltipTimer.current) clearTimeout(descTooltipTimer.current); setDescTooltip({ id: item.id, text: item.descripcion, x: rect.left + rect.width / 2, y: rect.top - 4 }); descTooltipTimer.current = setTimeout(() => { setDescTooltip(null); descTooltipTimer.current = null; }, 2000); }}>{item.descripcion}</span>
+                                    <span className="font-black text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title={item.descripcion}>{item.descripcion}</span>
                                     {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                     {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
                                     {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
@@ -2144,12 +2144,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                 </div>
                               </div>
 <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all flex-shrink-0">
-                                <button onClick={() => handleEditItem(item)} className="p-1 sm:p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={12} className="sm:hidden" /><Pencil size={14} className="hidden sm:inline" /></button>
+                                <button onClick={() => handleEditItem(item)} className="hidden sm:inline-flex p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={14} /></button>
                                 <button onClick={() => {
-                                  if (item.tipo === 'cuota') setDeudas(deudas.filter(x => x.id !== item.id));
-                                  else if (item.tipo === 'suscripcion') setSuscripciones(suscripciones.filter(x => x.id !== item.id));
-                                  else if (item.tipo === 'abono') setAbonos(abonos.filter(x => x.id !== item.id));
-                                  else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
+                                  const itemType = item.tipo === 'cuota' ? 'deuda' : item.tipo === 'suscripcion' ? 'suscripción' : item.tipo === 'abono' ? 'abono' : 'gasto fijo';
+                                  confirmDelete({
+                                    title: `¿Eliminar ${itemType}?`,
+                                    itemName: item.descripcion,
+                                    itemType: itemType,
+                                    onConfirm: async () => {
+                                      if (item.tipo === 'cuota') setDeudas(deudas.filter(x => x.id !== item.id));
+                                      else if (item.tipo === 'suscripcion') setSuscripciones(suscripciones.filter(x => x.id !== item.id));
+                                      else if (item.tipo === 'abono') setAbonos(abonos.filter(x => x.id !== item.id));
+                                      else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
+                                      return Promise.resolve();
+                                    }
+                                  });
                                 }} className="hidden sm:inline-flex p-1.5 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
                               </div>
                             </div>
@@ -2440,13 +2449,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   </tfoot>
                 </table>
               </div>
-            </div>
-          </div>
-        )} {descTooltip && (
-          <div className="fixed z-[9999] pointer-events-none" style={{ left: descTooltip.x, top: descTooltip.y }}>
-            <div className="bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap -translate-x-1/2 -translate-y-full">
-              {descTooltip.text}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
             </div>
           </div>
         )} {activeTab === 'ahorros' && (
@@ -3396,7 +3398,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             </div>
           </div>
         )}
-
+        <DeleteModalComponent />
       </div>
     </div>
     </div>

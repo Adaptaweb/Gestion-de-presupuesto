@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, GripVertical, Edit3, Trash2, ArrowLeft, Check } from 'lucide-react';
 import ColorPicker from './ColorPicker.jsx';
 import EmojiPicker from './EmojiPicker.jsx';
+import { useDeleteConfirm } from './DeleteConfirmModal.jsx';
 
 const TIPO_LABELS = { gasto: 'Gasto', ingreso: 'Ingreso', ambos: 'Ambos' };
 
@@ -40,6 +41,8 @@ export default function CategoriasConfig({
   const [dragCat, setDragCat] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
   const [toast, setToast] = useState(null);
+
+  const { confirmDelete, DeleteModalComponent } = useDeleteConfirm();
 
   if (!show) return null;
 
@@ -87,13 +90,21 @@ export default function CategoriasConfig({
   };
 
   const handleDelete = async (cat) => {
-    if (!window.confirm(`¿Eliminar "${cat.nombre}"?\nLas transacciones pasarán a "Sin categoría".`)) return;
-    try {
-      await onDeleteCategoria(cat.id);
-      showToast('Categoría eliminada');
-    } catch (e) {
-      alert(e.message);
-    }
+    await confirmDelete({
+      title: '¿Eliminar categoría?',
+      itemName: cat.nombre,
+      itemType: 'categoría',
+      message: 'Las transacciones pasarán a "Sin categoría".',
+      onConfirm: async () => {
+        try {
+          await onDeleteCategoria(cat.id);
+          showToast('Categoría eliminada');
+        } catch (e) {
+          alert(e.message);
+        }
+        return Promise.resolve();
+      }
+    });
   };
 
   const handleDragStart = (e, cat, idx) => {
@@ -324,6 +335,7 @@ export default function CategoriasConfig({
           </div>
         </div>
       )}
+      <DeleteModalComponent />
     </>
   );
 }
