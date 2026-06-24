@@ -644,7 +644,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     fetch('/api/data', { headers: getHeaders() })
       .then(res => res.json())
       .then(data => {
-        if (data.months && data.months.length > 0) setMonths(data.months);
+        if (data.months && data.months.length > 0) setMonths(expandToFullYearMonths(data.months));
         if (data.deudas && data.deudas.length > 0) setDeudas(data.deudas);
         if (data.gastosFijos && data.gastosFijos.length > 0) setGastosFijos(data.gastosFijos);
         if (data.abonos && data.abonos.length > 0) setAbonos(data.abonos);
@@ -682,7 +682,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   });
 
   const filteredMonths = useMemo(() => {
-    return months.filter(m => m.endsWith(selectedYear));
+    return months.filter(m => m.endsWith(selectedYear)).sort((a, b) => toDateVal(a) - toDateVal(b));
   }, [months, selectedYear]);
 
   useEffect(() => {
@@ -924,6 +924,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   };
 
   const getNextMonthStr = (monthStr) => fromDateVal(toDateVal(monthStr) + 1);
+
+  const expandToFullYearMonths = (monthArr) => {
+    const years = [...new Set(monthArr.map(m => m.split(' ')[1]))];
+    const expanded = [];
+    years.forEach(y => {
+      for (let i = 0; i < 12; i++) expanded.push(`${MONTH_NAMES[i]} ${y}`);
+    });
+    return [...new Set(expanded)].sort((a, b) => toDateVal(a) - toDateVal(b));
+  };
 
   const calculateEndDate = (startMonth, duration, isContribuciones = false) => {
     if (isContribuciones) {
@@ -2086,7 +2095,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                   <RefreshCw size={16} /> Suscripciones <Plus size={16} />
                 </button>
-                <button onClick={() => setMonths([...months, getNextMonthStr(months[months.length - 1])])} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
+                <button onClick={() => { const sorted = [...months].sort((a, b) => toDateVal(a) - toDateVal(b)); setMonths([...months, getNextMonthStr(sorted[sorted.length - 1])]); }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
                   <Plus size={16} /> +1 Mes
                 </button>
               </div>
