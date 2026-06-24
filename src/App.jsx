@@ -1530,6 +1530,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </button>
         </div>
 
+        {!showCategoriasConfig && <>
         {activeTab === 'dashboard' && !!dashboardMonth && (
           <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in duration-500 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
@@ -2620,8 +2621,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             getCatIconColor={getCatIconColor}
             getCatText={getCatText}
           />
-        </div>
+        </div></>}
 
+        {showCategoriasConfig && (
         <CategoriasConfig
           show={showCategoriasConfig}
           onClose={() => setShowCategoriasConfig(false)}
@@ -2633,6 +2635,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           isDarkMode={isDarkMode}
           getCatStyle={getCatStyle}
         />
+        )}
 
         {isAddingDebt && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
