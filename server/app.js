@@ -829,6 +829,22 @@ app.post('/api/categorias', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/categorias/reorder', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { orderedIds } = req.body;
+    if (!Array.isArray(orderedIds)) return res.status(400).json({ error: 'orderedIds debe ser un array' });
+
+    for (let i = 0; i < orderedIds.length; i++) {
+      await db.run('UPDATE categorias SET orden = ? WHERE id = ? AND user_id = ?', i, orderedIds[i], userId);
+    }
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al reordenar categorías' });
+  }
+});
+
 app.put('/api/categorias/:id', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -879,22 +895,6 @@ app.delete('/api/categorias/:id', authenticateToken, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error al eliminar categoría' });
-  }
-});
-
-app.put('/api/categorias/reorder', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { orderedIds } = req.body;
-    if (!Array.isArray(orderedIds)) return res.status(400).json({ error: 'orderedIds debe ser un array' });
-
-    for (let i = 0; i < orderedIds.length; i++) {
-      await db.run('UPDATE categorias SET orden = ? WHERE id = ? AND user_id = ?', i, orderedIds[i], userId);
-    }
-    res.json({ success: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Error al reordenar categorías' });
   }
 });
 
