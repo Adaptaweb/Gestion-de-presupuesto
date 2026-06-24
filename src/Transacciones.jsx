@@ -7,7 +7,7 @@ import {
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
-import { useDeleteConfirm } from './components/DeleteConfirmModal.jsx';
+import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -403,7 +403,33 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   const [reviewDirection, setReviewDirection] = useState('forward');
   const reviewSliderRef = useRef(null);
 
-  const { confirmDelete, DeleteModalComponent } = useDeleteConfirm();
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = (options) => {
+    return new Promise((resolve) => {
+      setDeleteModal({
+        isOpen: true,
+        title: options.title || '¿Eliminar elemento?',
+        itemName: options.itemName || '',
+        itemType: options.itemType || 'elemento',
+        message: options.message || '',
+        onConfirm: () => {
+          setIsDeleting(true);
+          Promise.resolve(options.onConfirm?.()).finally(() => {
+            setIsDeleting(false);
+            setDeleteModal(prev => ({ ...prev, isOpen: false }));
+            resolve(true);
+          });
+        }
+      });
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal(prev => ({ ...prev, isOpen: false }));
+    return false;
+  };
 
   const getHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
@@ -1535,7 +1561,16 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
         theme={theme}
         token={token}
       />
-      <DeleteModalComponent />
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={deleteModal.onConfirm}
+        title={deleteModal.title}
+        itemName={deleteModal.itemName}
+        itemType={deleteModal.itemType}
+        message={deleteModal.message}
+        isDeleting={isDeleting}
+      />
     </>
   );
 };

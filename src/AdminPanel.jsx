@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Shield, Trash2, Key, X, Loader2, ArrowLeft, Mail, Ban, CheckCircle, UserPlus, Eye, EyeOff } from 'lucide-react';
-import { useDeleteConfirm } from './components/DeleteConfirmModal.jsx';
+import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 
 const AdminPanel = ({ onBack, token }) => {
   const [users, setUsers] = useState([]);
@@ -11,9 +11,34 @@ const AdminPanel = ({ onBack, token }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
-const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { confirmDelete, DeleteModalComponent } = useDeleteConfirm();
+  const confirmDelete = (options) => {
+    return new Promise((resolve) => {
+      setDeleteModal({
+        isOpen: true,
+        title: options.title || '¿Eliminar elemento?',
+        itemName: options.itemName || '',
+        itemType: options.itemType || 'elemento',
+        message: options.message || '',
+        onConfirm: () => {
+          setIsDeleting(true);
+          Promise.resolve(options.onConfirm?.()).finally(() => {
+            setIsDeleting(false);
+            setDeleteModal(prev => ({ ...prev, isOpen: false }));
+            resolve(true);
+          });
+        }
+      });
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal(prev => ({ ...prev, isOpen: false }));
+    return false;
+  };
 
   const fetchUsers = async () => {
     try {
@@ -404,7 +429,16 @@ const [showPassword, setShowPassword] = useState(false);
         </div>
       )}
     </div>
-    <DeleteModalComponent />
+    <DeleteConfirmModal
+      isOpen={deleteModal.isOpen}
+      onClose={closeDeleteModal}
+      onConfirm={deleteModal.onConfirm}
+      title={deleteModal.title}
+      itemName={deleteModal.itemName}
+      itemType={deleteModal.itemType}
+      message={deleteModal.message}
+      isDeleting={isDeleting}
+    />
   </div>
   );
 };

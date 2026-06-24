@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, GripVertical, Edit3, Trash2, ArrowLeft, Check } from 'lucide-react';
 import ColorPicker from './ColorPicker.jsx';
 import EmojiPicker from './EmojiPicker.jsx';
-import { useDeleteConfirm } from './DeleteConfirmModal.jsx';
+import { DeleteConfirmModal } from './DeleteConfirmModal.jsx';
 
 const TIPO_LABELS = { gasto: 'Gasto', ingreso: 'Ingreso', ambos: 'Ambos' };
 
@@ -41,8 +41,33 @@ export default function CategoriasConfig({
   const [dragCat, setDragCat] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
   const [toast, setToast] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { confirmDelete, DeleteModalComponent } = useDeleteConfirm();
+  const confirmDelete = (options) => {
+    return new Promise((resolve) => {
+      setDeleteModal({
+        isOpen: true,
+        title: options.title || '¿Eliminar elemento?',
+        itemName: options.itemName || '',
+        itemType: options.itemType || 'elemento',
+        message: options.message || '',
+        onConfirm: () => {
+          setIsDeleting(true);
+          Promise.resolve(options.onConfirm?.()).finally(() => {
+            setIsDeleting(false);
+            setDeleteModal(prev => ({ ...prev, isOpen: false }));
+            resolve(true);
+          });
+        }
+      });
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal(prev => ({ ...prev, isOpen: false }));
+    return false;
+  };
 
   if (!show) return null;
 
@@ -335,7 +360,16 @@ export default function CategoriasConfig({
           </div>
         </div>
       )}
-      <DeleteModalComponent />
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={deleteModal.onConfirm}
+        title={deleteModal.title}
+        itemName={deleteModal.itemName}
+        itemType={deleteModal.itemType}
+        message={deleteModal.message}
+        isDeleting={isDeleting}
+      />
     </>
   );
 }

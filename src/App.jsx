@@ -121,7 +121,7 @@ import Transacciones from './Transacciones.jsx';
 import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
-import { useDeleteConfirm } from './components/DeleteConfirmModal.jsx';
+import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -621,13 +621,39 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     reorderCategorias, reorderCategoriasLocal,
     getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText,
   } = useCategorias(token);
-  const { confirmDelete, isDeleting, DeleteModalComponent } = useDeleteConfirm();
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark' ||
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
   const [themeColor, setThemeColor] = useState(() => localStorage.getItem('themeColor') || 'kk');
   const theme = THEMES[themeColor];
+
+  const confirmDelete = (options) => {
+    return new Promise((resolve) => {
+      setDeleteModal({
+        isOpen: true,
+        title: options.title || '¿Eliminar elemento?',
+        itemName: options.itemName || '',
+        itemType: options.itemType || 'elemento',
+        message: options.message || '',
+        onConfirm: () => {
+          setIsDeleting(true);
+          Promise.resolve(options.onConfirm?.()).finally(() => {
+            setIsDeleting(false);
+            setDeleteModal(prev => ({ ...prev, isOpen: false }));
+            resolve(true);
+          });
+        }
+      });
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal(prev => ({ ...prev, isOpen: false }));
+    return false;
+  };
 
   const getHeaders = () => ({
     'Content-Type': 'application/json',
@@ -3407,7 +3433,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             </div>
           </div>
         )}
-        <DeleteModalComponent />
+        <DeleteConfirmModal
+          isOpen={deleteModal.isOpen}
+          onClose={closeDeleteModal}
+          onConfirm={deleteModal.onConfirm}
+          title={deleteModal.title}
+          itemName={deleteModal.itemName}
+          itemType={deleteModal.itemType}
+          message={deleteModal.message}
+          isDeleting={isDeleting}
+        />
       </div>
     </div>
     </div>
