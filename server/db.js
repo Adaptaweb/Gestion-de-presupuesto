@@ -138,5 +138,49 @@ async function seedDefaultCategorias(userId) {
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias };
+async function normalizeUserOrden(userId) {
+  const cats = await db.all(
+    'SELECT id, orden FROM categorias WHERE user_id = ? ORDER BY orden ASC, nombre ASC',
+    userId
+  );
+  let changed = false;
+  for (let i = 0; i < cats.length; i++) {
+    if (cats[i].orden !== i) {
+      await db.run('UPDATE categorias SET orden = ? WHERE id = ?', i, cats[i].id);
+      changed = true;
+    }
+  }
+  if (changed) console.log(`[NORMALIZE] Global orden reassigned for user ${userId}`);
+}
+
+async function reassignOrphanTransactions(userId) {
+  const txRows = await db.all(
+    'SELECT DISTINCT categoria FROM transacciones_extraidas WHERE user_id = ? AND categoria IS NOT NULL',
+    userId
+  );
+  const catRows = await db.all(
+    'SELECT nombre FROM categorias WHERE user_id = ?',
+    userId
+  );
+  const catNames = new Set(catRows.map(c => c.nombre));
+
+  for (const { categoria } of txRows) {
+    if (catNames.has(categoria)) continue;
+    const firstWord = categoria.split(' ')[0];
+    const match = catRows.find(c =>
+      c.nombre.includes(categoria) ||
+      categoria.includes(c.nombre) ||
+      (c.nombre.includes(firstWord) && firstWord.length > 2)
+    );
+    if (match) {
+      await db.run(
+        'UPDATE transacciones_extraidas SET categoria = ? WHERE user_id = ? AND categoria = ?',
+        match.nombre, userId, categoria
+      );
+      console.log(`[REASSIGN] user=${userId}: "${categoria}" → "${match.nombre}"`);
+    }
+  }
+}
+
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions };
 export default db;

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
@@ -785,10 +785,12 @@ app.get('/api/categorias', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     await ensureCategoriasTable();
+    await normalizeUserOrden(userId);
+    await reassignOrphanTransactions(userId);
     await seedDefaultCategorias(userId);
 
     const rows = await db.all(
-      'SELECT id, nombre, color_hex, emoji, tipo, orden FROM categorias WHERE user_id = ? AND activo = 1 ORDER BY tipo, orden ASC, nombre ASC',
+      'SELECT id, nombre, color_hex, emoji, tipo, orden FROM categorias WHERE user_id = ? AND activo = 1 ORDER BY orden ASC, nombre ASC',
       userId
     );
     res.json({ categorias: rows });
@@ -807,8 +809,8 @@ app.post('/api/categorias', authenticateToken, async (req, res) => {
     await ensureCategoriasTable();
 
     const maxOrden = await db.get(
-      'SELECT COALESCE(MAX(orden), -1) + 1 as next FROM categorias WHERE user_id = ? AND tipo = ?',
-      userId, tipo || 'gasto'
+      'SELECT COALESCE(MAX(orden), -1) + 1 as next FROM categorias WHERE user_id = ?',
+      userId
     );
 
     const id = `cat-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
