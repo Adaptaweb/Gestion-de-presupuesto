@@ -2630,6 +2630,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           onUpdateCategoria={updateCategoria}
           onDeleteCategoria={deleteCategoria}
           theme={theme}
+          isDarkMode={isDarkMode}
+          getCatStyle={getCatStyle}
         />
 
         {isAddingDebt && (
