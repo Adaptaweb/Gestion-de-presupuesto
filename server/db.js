@@ -119,12 +119,18 @@ async function ensureCategoriasTable() {
     orden INTEGER NOT NULL DEFAULT 0,
     activo INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
     UNIQUE(user_id, nombre)
   )`);
+  try {
+    await db.run('ALTER TABLE categorias ADD COLUMN "deleted_at" TIMESTAMPTZ DEFAULT NULL');
+  } catch (e) {
+    // columna ya existe, ignorar
+  }
 }
 
 async function seedDefaultCategorias(userId) {
-  const existing = await db.get('SELECT 1 FROM categorias WHERE user_id = ? LIMIT 1', userId);
+  const existing = await db.get('SELECT 1 FROM categorias WHERE user_id = ? AND activo = 1 AND deleted_at IS NULL LIMIT 1', userId);
   if (existing) return;
 
   for (let i = 0; i < DEFAULT_CATEGORIES.length; i++) {
@@ -140,7 +146,7 @@ async function seedDefaultCategorias(userId) {
 
 async function normalizeUserOrden(userId) {
   const cats = await db.all(
-    'SELECT id, orden FROM categorias WHERE user_id = ? ORDER BY orden ASC, nombre ASC',
+    'SELECT id, orden FROM categorias WHERE user_id = ? AND activo = 1 AND deleted_at IS NULL ORDER BY orden ASC, nombre ASC',
     userId
   );
   let changed = false;
@@ -159,7 +165,7 @@ async function reassignOrphanTransactions(userId) {
     userId
   );
   const catRows = await db.all(
-    'SELECT nombre FROM categorias WHERE user_id = ?',
+    'SELECT nombre FROM categorias WHERE user_id = ? AND activo = 1 AND deleted_at IS NULL',
     userId
   );
   const catNames = new Set(catRows.map(c => c.nombre));
