@@ -2097,7 +2097,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <table className="w-full border-collapse text-left min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50/50 dark:bg-dark-normal/50 border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter min-w-[28px] sm:min-w-[280px]">
+                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter w-[55px] min-w-[55px] sm:min-w-[280px] sm:w-auto">
                         <span className="hidden sm:inline">Detalle de Gastos</span><span className="sm:hidden">Detalle</span>
                       </th>
                       {filteredMonths.map((mes, idx) => {
@@ -2121,7 +2121,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                     {itemsUnificados.length > 0 ? (
                       itemsUnificados.map(item => (
                         <tr key={item.id} className="border-b border-slate-50 dark:border-dark-lighter/50 group hover:bg-slate-50/30 dark:hover:bg-dark-lighter/20">
-                          <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal group-hover:bg-slate-50 dark:group-hover:bg-dark-lighter/50 z-10 border-r border-slate-100 dark:border-dark-lighter">
+                          <td className="p-1.5 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal group-hover:bg-slate-50 dark:group-hover:bg-dark-lighter/50 z-10 border-r border-slate-100 dark:border-dark-lighter">
                             <div className="flex justify-between items-center">
                               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                                  <div className="relative p-1 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden hidden sm:flex w-7 h-7 sm:w-10 sm:h-10 items-center justify-center flex-shrink-0">
@@ -2143,14 +2143,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all flex-shrink-0">
-                                <button onClick={() => handleEditItem(item)} className="p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={14} /></button>
+<div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all flex-shrink-0">
+                                <button onClick={() => handleEditItem(item)} className="p-1 sm:p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={12} className="sm:hidden" /><Pencil size={14} className="hidden sm:inline" /></button>
                                 <button onClick={() => {
                                   if (item.tipo === 'cuota') setDeudas(deudas.filter(x => x.id !== item.id));
                                   else if (item.tipo === 'suscripcion') setSuscripciones(suscripciones.filter(x => x.id !== item.id));
                                   else if (item.tipo === 'abono') setAbonos(abonos.filter(x => x.id !== item.id));
                                   else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
-                                }} className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
+                                }} className="hidden sm:inline-flex p-1.5 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
                               </div>
                             </div>
                           </td>
