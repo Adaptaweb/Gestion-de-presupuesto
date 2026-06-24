@@ -308,6 +308,7 @@ const ReviewCard = ({
 const Transacciones = ({ token, theme, isDarkMode }) => {
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
+  const [bankTotals, setBankTotals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -374,6 +375,7 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
       if (res.ok) {
         setTransactions(data.transactions || []);
         setSummary(data.summary || []);
+        setBankTotals(data.bankTotals || []);
         setTotalCount(data.total || 0);
         setLastCheck(data.lastCheck);
         if (data.pendientes_count !== undefined) setPendientesCount(data.pendientes_count);
@@ -402,6 +404,7 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
       if (res.ok) {
         setTransactions(data.transactions || []);
         setSummary(data.summary || []);
+        setBankTotals(data.bankTotals || []);
         setTotalCount(data.total || 0);
         setLastCheck(data.lastCheck);
         if (data.pendientes_count !== undefined) setPendientesCount(data.pendientes_count);
@@ -928,16 +931,12 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
         </div>
       </div>
 
-      {(summary.length > 0 || transactions.filter(tx => tx.tipo_tarjeta).length > 0) && (() => {
-        const bankTotals = {};
-        for (const tx of transactions) {
-          if (!tx.tipo_tarjeta || tx.tipo_transaccion === 'interno' || tx.tipo_transaccion === 'no_es_gasto' || tx.tipo_transaccion === 'no_es_ingreso') continue;
-          const bank = tx.banco || 'Otros';
-          if (!bankTotals[bank]) bankTotals[bank] = {};
-          const tipo = tx.tipo_tarjeta;
-          if (!bankTotals[bank][tipo]) bankTotals[bank][tipo] = { total: 0, count: 0 };
-          bankTotals[bank][tipo].total += tx.monto;
-          bankTotals[bank][tipo].count += 1;
+      {(summary.length > 0 || bankTotals.length > 0) && (() => {
+        const bankTotalsMap = {};
+        for (const row of bankTotals) {
+          const bank = row.banco || 'Otros';
+          if (!bankTotalsMap[bank]) bankTotalsMap[bank] = {};
+          bankTotalsMap[bank][row.tipo_tarjeta] = { total: row.total, count: row.count };
         }
         return (
           <div key={filterMonth + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
@@ -964,7 +963,7 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
                 </div>
               </div>
             )}
-            {Object.entries(bankTotals).map(([bank, tipos]) => {
+            {Object.entries(bankTotalsMap).map(([bank, tipos]) => {
               const totalBank = Object.values(tipos).reduce((acc, t) => acc + t.total, 0);
               const totalCount = Object.values(tipos).reduce((acc, t) => acc + t.count, 0);
               return (
