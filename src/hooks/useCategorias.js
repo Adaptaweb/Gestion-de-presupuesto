@@ -124,6 +124,17 @@ export function useCategorias(token) {
     await fetchCategorias();
   }, [getHeaders, fetchCategorias]);
 
+  const reorderCategoriasLocal = useCallback((orderedIds) => {
+    setCategorias(prev => {
+      const orderMap = {};
+      orderedIds.forEach((id, i) => { orderMap[id] = i; });
+      return prev.map(c => ({
+        ...c,
+        orden: orderMap[c.id] !== undefined ? orderMap[c.id] : c.orden,
+      }));
+    });
+  }, []);
+
   const gastosCats = useMemo(
     () => categorias.filter(c => c.tipo === 'gasto' || c.tipo === 'ambos'),
     [categorias]
@@ -149,6 +160,7 @@ export function useCategorias(token) {
     updateCategoria,
     deleteCategoria,
     reorderCategorias,
+    reorderCategoriasLocal,
     getCatStyle,
     getCatBar,
     getCatIconBg,

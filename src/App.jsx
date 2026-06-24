@@ -617,6 +617,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const {
     categorias, gastosCats, ingresosCats,
     createCategoria, updateCategoria, deleteCategoria,
+    reorderCategorias, reorderCategoriasLocal,
     getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText,
   } = useCategorias(token);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -2631,6 +2632,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           onCreateCategoria={createCategoria}
           onUpdateCategoria={updateCategoria}
           onDeleteCategoria={deleteCategoria}
+          onReorderCategorias={reorderCategorias}
+          onReorderLocal={reorderCategoriasLocal}
           theme={theme}
           isDarkMode={isDarkMode}
           getCatStyle={getCatStyle}

@@ -13,7 +13,7 @@ function Toast({ msg, onDone }) {
     return () => clearTimeout(t);
   }, [onDone]);
   return (
-    <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-2 bg-emerald-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl font-bold text-sm transition-all duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+    <div className={`fixed top-20 right-6 z-[100] flex items-center gap-2 bg-emerald-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl font-bold text-sm transition-all duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
       <Check size={16} /> {msg}
     </div>
   );
@@ -26,6 +26,8 @@ export default function CategoriasConfig({
   onCreateCategoria,
   onUpdateCategoria,
   onDeleteCategoria,
+  onReorderCategorias,
+  onReorderLocal,
   theme,
   isDarkMode,
   getCatStyle,
@@ -137,13 +139,16 @@ export default function CategoriasConfig({
       const dragged = cats[data.idx];
       cats.splice(data.idx, 1);
       cats.splice(targetIdx, 0, dragged);
-
       const orderedIds = cats.map(c => c.id);
-      for (let i = 0; i < orderedIds.length; i++) {
-        await onUpdateCategoria(orderedIds[i], { orden: i });
-      }
+
+      onReorderLocal(orderedIds);
+      showToast('Orden actualizado');
+
+      onReorderCategorias(orderedIds).catch(err =>
+        console.error('Error reordering:', err)
+      );
     } catch (err) {
-      console.error('Error reordering:', err);
+      console.error('Error dropping:', err);
     }
   };
 
