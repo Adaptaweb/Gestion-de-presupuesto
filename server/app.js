@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
@@ -776,6 +776,123 @@ app.put('/api/config-extraccion', authenticateToken, async (req, res) => {
     res.json({ success: true, dias_atras: days });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar configuración' });
+  }
+});
+
+// ── Categorías ──
+
+app.get('/api/categorias', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await ensureCategoriasTable();
+    await seedDefaultCategorias(userId);
+
+    const rows = await db.all(
+      'SELECT id, nombre, color_hex, emoji, tipo, orden FROM categorias WHERE user_id = ? AND activo = 1 ORDER BY tipo, orden ASC, nombre ASC',
+      userId
+    );
+    res.json({ categorias: rows });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al obtener categorías' });
+  }
+});
+
+app.post('/api/categorias', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nombre, color_hex, emoji, tipo, orden } = req.body;
+    if (!nombre || !nombre.trim()) return res.status(400).json({ error: 'Nombre requerido' });
+
+    await ensureCategoriasTable();
+
+    const maxOrden = await db.get(
+      'SELECT COALESCE(MAX(orden), -1) + 1 as next FROM categorias WHERE user_id = ? AND tipo = ?',
+      userId, tipo || 'gasto'
+    );
+
+    const id = `cat-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    await db.run(
+      `INSERT INTO categorias (id, user_id, nombre, color_hex, emoji, tipo, orden)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      id, userId, nombre.trim(), color_hex || '#64748b', emoji || '📦', tipo || 'gasto', orden ?? maxOrden.next
+    );
+
+    const created = await db.get('SELECT * FROM categorias WHERE id = ?', id);
+    res.status(201).json({ categoria: created });
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'Ya existe una categoría con ese nombre' });
+    console.error(e);
+    res.status(500).json({ error: 'Error al crear categoría' });
+  }
+});
+
+app.put('/api/categorias/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const cat = await db.get('SELECT * FROM categorias WHERE id = ? AND user_id = ?', req.params.id, userId);
+    if (!cat) return res.status(404).json({ error: 'Categoría no encontrada' });
+
+    const { nombre, color_hex, emoji, tipo, orden } = req.body;
+    const oldName = cat.nombre;
+
+    if (nombre !== undefined && nombre.trim() && nombre.trim() !== oldName) {
+      // Update all transactions that used the old category name
+      await db.run(
+        'UPDATE transacciones_extraidas SET categoria = ? WHERE user_id = ? AND categoria = ?',
+        nombre.trim(), userId, oldName
+      );
+      await db.run(
+        'UPDATE categorias SET nombre = ? WHERE id = ?',
+        nombre.trim(), req.params.id
+      );
+    }
+    if (color_hex !== undefined) await db.run('UPDATE categorias SET color_hex = ? WHERE id = ?', color_hex, req.params.id);
+    if (emoji !== undefined) await db.run('UPDATE categorias SET emoji = ? WHERE id = ?', emoji, req.params.id);
+    if (tipo !== undefined) await db.run('UPDATE categorias SET tipo = ? WHERE id = ?', tipo, req.params.id);
+    if (orden !== undefined) await db.run('UPDATE categorias SET orden = ? WHERE id = ?', orden, req.params.id);
+
+    const updated = await db.get('SELECT * FROM categorias WHERE id = ?', req.params.id);
+    res.json({ categoria: updated });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al actualizar categoría' });
+  }
+});
+
+app.delete('/api/categorias/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const cat = await db.get('SELECT * FROM categorias WHERE id = ? AND user_id = ?', req.params.id, userId);
+    if (!cat) return res.status(404).json({ error: 'Categoría no encontrada' });
+
+    // Set transactions to 'Sin categoría' and delete the category
+    await db.run(
+      'UPDATE transacciones_extraidas SET categoria = ? WHERE user_id = ? AND categoria = ?',
+      'Sin categoría', userId, cat.nombre
+    );
+    await db.run('DELETE FROM categorias WHERE id = ?', req.params.id);
+
+    res.json({ success: true, nombre: cat.nombre });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al eliminar categoría' });
+  }
+});
+
+app.put('/api/categorias/reorder', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { orderedIds } = req.body;
+    if (!Array.isArray(orderedIds)) return res.status(400).json({ error: 'orderedIds debe ser un array' });
+
+    for (let i = 0; i < orderedIds.length; i++) {
+      await db.run('UPDATE categorias SET orden = ? WHERE id = ? AND user_id = ?', i, orderedIds[i], userId);
+    }
+    res.json({ success: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al reordenar categorías' });
   }
 });
 

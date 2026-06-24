@@ -119,6 +119,8 @@ import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
 import Transacciones from './Transacciones.jsx';
 import { UserMenu } from './components/user-dropdown';
+import CategoriasConfig from './components/CategoriasConfig.jsx';
+import { useCategorias } from './hooks/useCategorias.js';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -610,6 +612,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
   const [cuentasAhorro, setCuentasAhorro] = useState([]);
   const [ahorrosData, setAhorrosData] = useState({});
   const [loadingData, setLoadingData] = useState(true);
+  const [showCategoriasConfig, setShowCategoriasConfig] = useState(false);
+
+  const {
+    categorias, gastosCats, ingresosCats,
+    createCategoria, updateCategoria, deleteCategoria,
+    getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText,
+  } = useCategorias(token);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark' ||
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -1467,6 +1476,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
               onOpenAdmin={onOpenAdmin}
+              onOpenCategorias={() => setShowCategoriasConfig(true)}
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
               isAiLoading={isAiLoading}
@@ -2596,8 +2606,31 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </div>
         )}
         <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
-          <Transacciones token={token} theme={theme} isDarkMode={isDarkMode} />
+          <Transacciones
+            token={token}
+            theme={theme}
+            isDarkMode={isDarkMode}
+            categorias={categorias}
+            gastosCats={gastosCats}
+            ingresosCats={ingresosCats}
+            onCreateCategoria={createCategoria}
+            getCatStyle={getCatStyle}
+            getCatBar={getCatBar}
+            getCatIconBg={getCatIconBg}
+            getCatIconColor={getCatIconColor}
+            getCatText={getCatText}
+          />
         </div>
+
+        <CategoriasConfig
+          show={showCategoriasConfig}
+          onClose={() => setShowCategoriasConfig(false)}
+          categorias={categorias}
+          onCreateCategoria={createCategoria}
+          onUpdateCategoria={updateCategoria}
+          onDeleteCategoria={deleteCategoria}
+          theme={theme}
+        />
 
         {isAddingDebt && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">

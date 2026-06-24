@@ -9,8 +9,12 @@ import {
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 
 import {
-  CATEGORY_LIST, CATEGORY_COLORS, CATEGORY_BAR_COLORS,
-  CATEGORY_ICON_BG, CATEGORY_ICON_COLOR, CATEGORY_EMOJI,
+  CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
+  CATEGORY_COLORS as CATEGORY_COLORS_DEFAULT,
+  CATEGORY_BAR_COLORS as CATEGORY_BAR_COLORS_DEFAULT,
+  CATEGORY_ICON_BG as CATEGORY_ICON_BG_DEFAULT,
+  CATEGORY_ICON_COLOR as CATEGORY_ICON_COLOR_DEFAULT,
+  CATEGORY_EMOJI as CATEGORY_EMOJI_DEFAULT,
   BANK_COLORS, BANK_ACCENT, BANK_ICONS
 } from './constants.js';
 
@@ -19,13 +23,25 @@ const ReviewCard = ({
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
   reviewTipoTransaccion, setReviewTipoTransaccion,
   reviewSaving, theme, isDarkMode,
-  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit
+  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit,
+  CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_ICON_BG, CATEGORY_ICON_COLOR, CATEGORY_COLORS,
+  onCreateCategoria, categorias,
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [exitDir, setExitDir] = useState(null);
-  const sliderRef = useRef(null);
 
   const detectedType = tx.tipo_transaccion || 'gasto';
+  const sortedCats = categorias && categorias.length > 0
+    ? (() => {
+        const primary = detectedType === 'ingreso' ? ['ingreso', 'ambos'] : ['gasto', 'ambos'];
+        const secondary = detectedType === 'ingreso' ? ['gasto'] : ['ingreso'];
+        return [
+          ...categorias.filter(c => primary.includes(c.tipo)),
+          ...categorias.filter(c => secondary.includes(c.tipo)),
+        ].map(c => c.nombre);
+      })()
+    : CATEGORY_LIST;
+
   const effectiveType = reviewTipoTransaccion || detectedType;
   const isGasto = effectiveType === 'gasto';
   const isIngreso = effectiveType === 'ingreso';
@@ -164,42 +180,47 @@ const ReviewCard = ({
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros']}`}>{reviewCat}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={CATEGORY_COLORS[reviewCat]?.backgroundColor ? { backgroundColor: CATEGORY_COLORS[reviewCat].backgroundColor, color: CATEGORY_COLORS[reviewCat].color, border: `1px solid ${CATEGORY_COLORS[reviewCat].borderColor || 'transparent'}` } : {}}>
+              <span className={!CATEGORY_COLORS[reviewCat]?.backgroundColor ? CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros'] : ''}>{reviewCat}</span>
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => sliderRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
-              className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
-              title="Anterior categoría"
-            >
-              <ChevronLeft size={14} />
-            </button>
-            <div ref={sliderRef} className="flex-1 flex gap-1.5 overflow-x-scroll no-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {CATEGORY_LIST.map(cat => {
-                const selected = reviewCat === cat;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setReviewCat(cat)}
-                    className={`flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl transition-all duration-200 border ${
-                      selected
-                        ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm scale-105`
-                        : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
-                    }`}
-                  >
-                    <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                    <span className={`text-[8px] font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-200'}`}>{cat}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              onClick={() => sliderRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
-              className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
-              title="Siguiente categoría"
-            >
-              <ChevronRight size={14} />
-            </button>
+          <div className="flex flex-wrap gap-1.5">
+            {sortedCats.map(cat => {
+              const selected = reviewCat === cat;
+              const iconBg = CATEGORY_ICON_BG[cat];
+              const iconCol = CATEGORY_ICON_COLOR[cat];
+              const isStyle = iconBg?.backgroundColor !== undefined;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setReviewCat(cat)}
+                  style={selected && isStyle ? { backgroundColor: iconBg.backgroundColor, color: iconCol.color, borderColor: iconCol.color } : {}}
+                  className={`flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl transition-all duration-200 border ${
+                    selected
+                      ? (isStyle ? 'shadow-sm scale-105' : `${iconBg} border-current shadow-sm scale-105`)
+                      : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
+                  }`}
+                >
+                  <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
+                  <span className={`text-[8px] font-bold leading-tight text-center ${selected && !isStyle ? iconCol : ''}`} style={selected && isStyle ? { color: iconCol.color } : {}}>
+                    {cat}
+                  </span>
+                </button>
+              );
+            })}
+            {onCreateCategoria && (
+              <button
+                onClick={() => {
+                  const name = prompt('Nombre de la nueva categoría:');
+                  if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setReviewCat(c.nombre)).catch(e => alert(e.message));
+                }}
+                className="flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all"
+                title="Agregar categoría"
+              >
+                <span className="text-xl leading-none">+</span>
+                <span className="text-[8px] font-bold leading-tight text-center">Nueva</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -305,10 +326,36 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ token, theme, isDarkMode }) => {
+const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
+
+  const catColors = Object.fromEntries((categorias || []).map(c => [c.nombre, getCatStyle(c.color_hex)]));
+  const catEmojis = Object.fromEntries((categorias || []).map(c => [c.nombre, c.emoji]));
+  const catIconBg = Object.fromEntries((categorias || []).map(c => [c.nombre, { backgroundColor: getCatIconBg(c.color_hex) }]));
+  const catIconColor = Object.fromEntries((categorias || []).map(c => [c.nombre, { color: getCatIconColor(c.color_hex) }]));
+  const catBarColors = Object.fromEntries((categorias || []).map(c => [c.nombre, { backgroundColor: getCatBar(c.color_hex) }]));
+  const catList = (categorias || []).map(c => c.nombre);
+
+  const CATEGORY_LIST = catList.length > 0 ? catList : CATEGORY_LIST_DEFAULT;
+  const CATEGORY_COLORS = Object.keys(catColors).length > 0 ? catColors : CATEGORY_COLORS_DEFAULT;
+  const CATEGORY_EMOJI = Object.keys(catEmojis).length > 0 ? catEmojis : CATEGORY_EMOJI_DEFAULT;
+  const CATEGORY_BAR_COLORS = Object.keys(catBarColors).length > 0 ? catBarColors : CATEGORY_BAR_COLORS_DEFAULT;
+  const CATEGORY_ICON_BG = Object.keys(catIconBg).length > 0 ? catIconBg : CATEGORY_ICON_BG_DEFAULT;
+  const CATEGORY_ICON_COLOR = Object.keys(catIconColor).length > 0 ? catIconColor : CATEGORY_ICON_COLOR_DEFAULT;
+
+  const catBadgeStyle = (catName) => {
+    const val = CATEGORY_COLORS[catName] || CATEGORY_COLORS['Otros'];
+    if (typeof val === 'string') return { className: val };
+    return { style: { backgroundColor: val.backgroundColor, color: val.color } };
+  };
+
+  const catBarStyle = (catName) => {
+    const val = CATEGORY_BAR_COLORS[catName] || CATEGORY_BAR_COLORS['Otros'];
+    if (typeof val === 'string') return { className: val };
+    return { style: { backgroundColor: val.backgroundColor } };
+  };
 
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
@@ -982,9 +1029,9 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
                     const maxTotal = Math.max(...summary.map(s => s.total), 1);
                     return summary.map(s => (
                       <div key={s.categoria} className="flex items-center gap-1.5 text-[10px] sm:text-xs leading-tight">
-                        <span className={`font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 w-28 sm:w-32 text-left leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${CATEGORY_COLORS[s.categoria] || CATEGORY_COLORS['Otros']}`}>{s.categoria}</span>
+                        <span {...catBadgeStyle(s.categoria)} className={`font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 w-28 sm:w-32 text-left leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${catBadgeStyle(s.categoria).className || ''}`}>{s.categoria}</span>
                         <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden">
-                          <div className={`h-full rounded-full ${CATEGORY_BAR_COLORS[s.categoria] || CATEGORY_BAR_COLORS['Otros']}`} style={{ width: `${(s.total / maxTotal) * 100}%` }} />
+                          <div {...catBarStyle(s.categoria)} className={`h-full rounded-full ${catBarStyle(s.categoria).className || ''}`} style={{ width: `${(s.total / maxTotal) * 100}%`, ...(catBarStyle(s.categoria).style || {}) }} />
                         </div>
                         <span className="font-bold text-slate-600 dark:text-slate-400 flex-shrink-0">{formatCurrency(s.total)}</span>
                       </div>
@@ -1261,6 +1308,17 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
                 <select value={editCategoria} onChange={e => setEditCategoria(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
                   {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
                 </select>
+                {onCreateCategoria && (
+                  <button
+                    onClick={() => {
+                      const name = prompt('Nombre de la nueva categoría:');
+                      if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setEditCategoria(c.nombre)).catch(e => alert(e.message));
+                    }}
+                    className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-blue-500 transition-all"
+                  >
+                    <Plus size={12} /> Nueva categoría
+                  </button>
+                )}
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Tipo de tarjeta</label>
@@ -1438,6 +1496,13 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
             onConfirmNoEs={handleConfirmNoEs}
             onConfirmComplete={handleConfirmComplete}
             onEdit={handleEditReviewTx}
+            CATEGORY_LIST={CATEGORY_LIST}
+            CATEGORY_EMOJI={CATEGORY_EMOJI}
+            CATEGORY_ICON_BG={CATEGORY_ICON_BG}
+            CATEGORY_ICON_COLOR={CATEGORY_ICON_COLOR}
+            CATEGORY_COLORS={CATEGORY_COLORS}
+            onCreateCategoria={onCreateCategoria}
+            categorias={categorias}
           />
         </div>
       )}

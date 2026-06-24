@@ -85,4 +85,56 @@ const db = {
   pool,
 };
 
+const DEFAULT_CATEGORIES = [
+  { nombre: 'Casa y cuentas', color_hex: '#d97706', emoji: '🏠', tipo: 'gasto', orden: 0 },
+  { nombre: 'Mercadería', color_hex: '#ea580c', emoji: '🛒', tipo: 'gasto', orden: 1 },
+  { nombre: 'Gustitos', color_hex: '#e11d48', emoji: '🍻', tipo: 'gasto', orden: 2 },
+  { nombre: 'Transporte', color_hex: '#2563eb', emoji: '🚗', tipo: 'gasto', orden: 3 },
+  { nombre: 'Compras', color_hex: '#db2777', emoji: '🛍️', tipo: 'gasto', orden: 4 },
+  { nombre: 'Salud y deportes', color_hex: '#16a34a', emoji: '❤️', tipo: 'gasto', orden: 5 },
+  { nombre: 'Educación', color_hex: '#7c3aed', emoji: '🎓', tipo: 'gasto', orden: 6 },
+  { nombre: 'Suscripciones', color_hex: '#4f46e5', emoji: '📱', tipo: 'gasto', orden: 7 },
+  { nombre: 'Viajes y vacaciones', color_hex: '#06b6d4', emoji: '🏖️', tipo: 'gasto', orden: 8 },
+  { nombre: 'Donaciones y regalos', color_hex: '#c026d3', emoji: '🎁', tipo: 'gasto', orden: 9 },
+  { nombre: 'Gastos bancarios', color_hex: '#78716c', emoji: '🏦', tipo: 'gasto', orden: 10 },
+  { nombre: 'Créditos de consumo', color_hex: '#dc2626', emoji: '💸', tipo: 'gasto', orden: 11 },
+  { nombre: 'Juegos', color_hex: '#9333ea', emoji: '🎮', tipo: 'gasto', orden: 12 },
+  { nombre: 'Otros', color_hex: '#64748b', emoji: '👤', tipo: 'gasto', orden: 13 },
+  { nombre: 'Sueldo', color_hex: '#65a30d', emoji: '💰', tipo: 'ingreso', orden: 0 },
+  { nombre: 'Inversiones / Renta', color_hex: '#059669', emoji: '📈', tipo: 'ingreso', orden: 1 },
+  { nombre: 'Otros ingresos', color_hex: '#0d9488', emoji: '💲', tipo: 'ingreso', orden: 2 },
+  { nombre: 'Ahorro', color_hex: '#059669', emoji: '🐷', tipo: 'ambos', orden: 0 },
+  { nombre: 'Intereses', color_hex: '#0284c7', emoji: '%', tipo: 'ambos', orden: 1 },
+  { nombre: 'Sin categoría', color_hex: '#71717a', emoji: '➖', tipo: 'ambos', orden: 2 },
+];
+
+async function ensureCategoriasTable() {
+  await db.run(`CREATE TABLE IF NOT EXISTS categorias (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    nombre TEXT NOT NULL,
+    color_hex TEXT NOT NULL DEFAULT '#64748b',
+    emoji TEXT NOT NULL DEFAULT '📦',
+    tipo TEXT NOT NULL DEFAULT 'ambos',
+    orden INTEGER NOT NULL DEFAULT 0,
+    activo INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, nombre)
+  )`);
+}
+
+async function seedDefaultCategorias(userId) {
+  for (let i = 0; i < DEFAULT_CATEGORIES.length; i++) {
+    const cat = DEFAULT_CATEGORIES[i];
+    const id = `cat-def-${userId}-${i}`;
+    await db.run(
+      `INSERT INTO categorias (id, user_id, nombre, color_hex, emoji, tipo, orden)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (user_id, nombre) DO NOTHING`,
+      id, userId, cat.nombre, cat.color_hex, cat.emoji, cat.tipo, cat.orden
+    );
+  }
+}
+
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias };
 export default db;

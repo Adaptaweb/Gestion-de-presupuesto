@@ -1,7 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2,
-  Settings2, Filter,
+  Settings2, Filter, Tags,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -31,7 +31,7 @@ export function UserMenu({
   user,
   themeColor, setThemeColor,
   isDarkMode, setIsDarkMode,
-  onOpenAdmin, onLogout,
+  onOpenAdmin, onOpenCategorias, onLogout,
   generateFinancialAdvice, isAiLoading,
 }) {
   return (
@@ -70,6 +70,14 @@ export function UserMenu({
           >
             <Filter size={16} className="mr-2 text-slate-500" />
             <span>Reglas</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={onOpenCategorias}
+            className="p-2 rounded-lg cursor-pointer"
+          >
+            <Tags size={16} className="mr-2 text-slate-500" />
+            <span>Categorías</span>
           </DropdownMenuItem>
 
           <DropdownMenuSub>
