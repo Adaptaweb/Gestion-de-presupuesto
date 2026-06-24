@@ -2095,7 +2095,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <table className="w-full border-collapse text-left min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50/50 dark:bg-dark-normal/50 border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter min-w-[120px] sm:min-w-[280px]">
+                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter min-w-[80px] sm:min-w-[280px]">
                         <span className="hidden sm:inline">Detalle de Gastos</span><span className="sm:hidden">Detalle</span>
                       </th>
                       {filteredMonths.map((mes, idx) => {
@@ -2130,7 +2130,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                  </div>
                                  <div className="flex flex-col min-w-0 cursor-pointer" onClick={() => setViewingItem({ tipo: item.tipo, data: item })}>
                                   <div className="flex items-center gap-1 sm:gap-2">
-                                    <span className="font-black text-slate-800 dark:text-slate-200 text-[10px] sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{item.descripcion}</span>
+                                    <span className="font-black text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{item.descripcion}</span>
                                     {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                     {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
                                     {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
@@ -2292,7 +2292,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                                 return (
                                   <div className="flex flex-col items-center gap-0.5 sm:gap-1">
                                     <span className={`text-[8px] sm:text-[10px] font-black whitespace-nowrap`}>{pagadas}/{totalCuotas} <span className="hidden sm:inline">pagadas</span></span>
-                                    <div className="w-full h-1 sm:h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
+                                    <div className="w-full h-0.5 sm:h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
                                       <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
                                     </div>
                                     <span className={`text-[7px] sm:text-[9px] font-bold whitespace-nowrap`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
@@ -2480,7 +2480,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <table className="w-full border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[100px] sm:min-w-[200px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
+                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[55px] sm:min-w-[200px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
                         return (
