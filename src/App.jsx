@@ -697,6 +697,20 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
       });
   }, []);
 
+  const toDateVal = (s) => {
+    if (!s) return 0;
+    const parts = s.split(' ');
+    if (parts.length < 2) return 0;
+    const [n, y] = parts;
+    return parseInt(y) * 12 + MONTH_NAMES.indexOf(n);
+  };
+
+  const fromDateVal = (val) => {
+    const year = Math.floor(val / 12);
+    const monthIndex = val % 12;
+    return `${MONTH_NAMES[monthIndex]} ${year}`;
+  };
+
   const availableYears = useMemo(() => {
     const years = months.map(m => m.split(' ')[1]);
     return [...new Set(years)].sort((a, b) => parseInt(a) - parseInt(b));
@@ -934,20 +948,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
     return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); };
   }, [deudas, months, gastosFijos, abonos, sueldos, cuentasAhorro, ahorrosData, suscripciones]);
-
-  const toDateVal = (s) => {
-    if (!s) return 0;
-    const parts = s.split(' ');
-    if (parts.length < 2) return 0;
-    const [n, y] = parts;
-    return parseInt(y) * 12 + MONTH_NAMES.indexOf(n);
-  };
-
-  const fromDateVal = (val) => {
-    const year = Math.floor(val / 12);
-    const monthIndex = val % 12;
-    return `${MONTH_NAMES[monthIndex]} ${year}`;
-  };
 
   const getNextMonthStr = (monthStr) => fromDateVal(toDateVal(monthStr) + 1);
 
