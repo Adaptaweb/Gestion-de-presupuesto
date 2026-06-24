@@ -306,6 +306,10 @@ const ReviewCard = ({
 };
 
 const Transacciones = ({ token, theme, isDarkMode }) => {
+  const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
+    <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
+  );
+
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
   const [bankTotals, setBankTotals] = useState([]);
@@ -931,7 +935,37 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
         </div>
       </div>
 
-      {(summary.length > 0 || bankTotals.length > 0) && (() => {
+      {loading && !pageLoading ? (
+        <div className="grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 animate-slide-fade">
+          <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-2.5 sm:p-3 space-y-2">
+            <SkeletonBar w="65px" h="12px" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5"><SkeletonBar w="100px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="50px" h="10px" /></div>
+              <div className="flex items-center gap-1.5"><SkeletonBar w="80px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="45px" h="10px" /></div>
+              <div className="flex items-center gap-1.5"><SkeletonBar w="90px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="55px" h="10px" /></div>
+            </div>
+            <div className="border-t border-slate-100 dark:border-dark-lighter pt-1 flex justify-between">
+              <SkeletonBar w="30px" h="10px" /><SkeletonBar w="55px" h="10px" />
+            </div>
+          </div>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-3 sm:p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <SkeletonBar w="32px" h="32px" className="rounded-full" />
+                <SkeletonBar w="100px" h="14px" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between"><SkeletonBar w="50px" h="10px" /><SkeletonBar w="80px" h="10px" /></div>
+                <div className="flex items-center justify-between"><SkeletonBar w="55px" h="10px" /><SkeletonBar w="80px" h="10px" /></div>
+              </div>
+              <div className="border-t border-slate-100 dark:border-dark-lighter pt-1.5 flex justify-between">
+                <SkeletonBar w="35px" h="10px" /><SkeletonBar w="85px" h="10px" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (summary.length > 0 || bankTotals.length > 0) ? (
+        (() => {
         const bankTotalsMap = {};
         for (const row of bankTotals) {
           const bank = row.banco || 'Otros';
@@ -956,6 +990,9 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
                       </div>
                     ));
                   })()}
+
+
+
                 </div>
                 <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-200">
                   <span>Total</span>
@@ -995,9 +1032,11 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
                 </div>
               );
             })}
-          </div>
+           </div>
         );
-      })()}
+      })() ) : null }
+
+
 
       <div className="flex flex-wrap gap-2 items-center justify-between">
         <div className="flex flex-wrap gap-2 items-center">
@@ -1033,7 +1072,34 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
         {loading && transactions.length === 0 ? (
-          <div className="flex items-center justify-center py-16"><Loader2 size={32} className="animate-spin text-slate-400" /></div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
+                  <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Fecha</th>
+                  <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Banco</th>
+                  <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Comercio</th>
+                  <th className="p-2 sm:p-4 text-right font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Monto</th>
+                  <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Tipo</th>
+                  <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Categoría</th>
+                  <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest w-16">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-50 dark:border-dark-lighter/50">
+                    <td className="p-2 sm:p-4"><SkeletonBar w="68px" /></td>
+                    <td className="p-2 sm:p-4"><SkeletonBar w="85px" /></td>
+                    <td className="p-2 sm:p-4"><SkeletonBar w="130px" /></td>
+                    <td className="p-2 sm:p-4 text-right"><span className="inline-flex justify-end w-full"><SkeletonBar w="70px" /></span></td>
+                    <td className="p-2 sm:p-4 text-center hidden sm:table-cell"><span className="inline-flex justify-center w-full"><SkeletonBar w="55px" /></span></td>
+                    <td className="p-2 sm:p-4 text-center hidden sm:table-cell"><span className="inline-flex justify-center w-full"><SkeletonBar w="65px" /></span></td>
+                    <td className="p-2 sm:p-4 text-center"><span className="inline-flex justify-center gap-2 w-full"><SkeletonBar w="22px" h="22px" /><SkeletonBar w="22px" h="22px" /></span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : transactions.length === 0 && !loading ? (
           <div className="text-center py-16">
             <Inbox size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
