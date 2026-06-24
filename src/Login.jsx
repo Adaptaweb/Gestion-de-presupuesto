@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingDown, Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 
 const Login = ({ onLogin, onGoToRegister }) => {
   const [email, setEmail] = useState('');
@@ -36,17 +36,17 @@ const Login = ({ onLogin, onGoToRegister }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-darker flex items-center justify-center p-4 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex items-center justify-center p-4 font-sans transition-colors duration-300">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="bg-indigo-600 p-4 rounded-2xl shadow-lg shadow-indigo-200 inline-block mb-4">
-            <TrendingDown className="text-white" size={36} />
+          <div className="inline-block mb-4">
+            <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="w-16 h-16 mx-auto" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Finance Master</h1>
+          <h1 className="text-3xl font-black tracking-tight text-kk-dark dark:text-white">Kuentas Klaras</h1>
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Inicia sesión para continuar</p>
         </div>
 
-        <div className="bg-white dark:bg-dark-normal rounded-[2rem] shadow-2xl shadow-slate-200 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter p-8">
+        <div className="bg-white dark:bg-dark-normal rounded-[2rem] shadow-kk-md shadow-[#2DBC8B]/10 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-xl text-sm font-bold">
@@ -63,7 +63,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                  className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
                   placeholder="tu@email.com"
                 />
               </div>
@@ -78,7 +78,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                  className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
                   placeholder="••••••••"
                 />
               </div>
@@ -87,7 +87,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30 hover:bg-indigo-700 transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : 'Iniciar Sesión'}
             </button>
@@ -96,7 +96,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
           <div className="mt-6 text-center">
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
               ¿No tienes cuenta?{' '}
-              <button onClick={onGoToRegister} className="text-indigo-600 dark:text-indigo-400 font-black hover:underline">
+              <button onClick={onGoToRegister} className="text-kk-primary dark:text-kk-secondary font-black hover:underline">
                 Regístrate aquí
               </button>
             </p>

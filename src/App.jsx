@@ -133,6 +133,32 @@ const INITIAL_MONTHS = [
 ];
 
 const THEMES = {
+  kk: {
+    btnPrimary: 'bg-emerald-500 hover:bg-emerald-600 text-white',
+    shadowBtn: 'shadow-emerald-100 dark:shadow-emerald-900/30',
+    focusBorder: 'focus:border-emerald-500',
+    hoverBorder: 'hover:border-emerald-300',
+    iconAccent: 'text-emerald-400',
+    iconAccentDark: 'dark:text-emerald-300',
+    bgLight: 'bg-emerald-50/50',
+    bgLightDark: 'dark:bg-emerald-900/20',
+    bgLightSolid: 'bg-emerald-50',
+    bgLightDarkSolid: 'dark:bg-emerald-900',
+    badgeBg: 'bg-emerald-100',
+    badgeBgDark: 'dark:bg-emerald-900/30',
+    badgeText: 'text-emerald-700',
+    badgeTextDark: 'dark:text-emerald-300',
+    tabText: 'text-emerald-600',
+    headerIcon: 'bg-emerald-500',
+    headerIconShadow: 'shadow-emerald-200 dark:shadow-emerald-900/30',
+    btnDebt: 'bg-blue-600 hover:bg-blue-700 text-white',
+    btnFixed: 'bg-sky-500 hover:bg-sky-600 text-white',
+    btnSub: 'bg-rose-600 hover:bg-rose-700 text-white',
+    modalPrimary: 'bg-emerald-500 hover:bg-emerald-600 text-white',
+    borderAccent: 'border-emerald-500',
+    bgModalLight: 'bg-emerald-50 dark:bg-emerald-900/30',
+    inputBg: 'bg-emerald-50/50 dark:bg-emerald-900/20',
+  },
   indigo: {
     btnPrimary: 'bg-indigo-600 hover:bg-indigo-700',
     shadowBtn: 'shadow-indigo-100 dark:shadow-indigo-900/30',
@@ -343,8 +369,9 @@ const THEMES = {
   },
 };
 
-const THEME_COLORS = ['indigo', 'blue', 'emerald', 'purple', 'rose', 'amber', 'teal', 'slate'];
+const THEME_COLORS = ['kk', 'indigo', 'blue', 'emerald', 'purple', 'rose', 'amber', 'teal', 'slate'];
 const THEME_COLOR_HEX = {
+  kk: '#059669',
   indigo: '#4f46e5',
   blue: '#2563eb',
   emerald: '#059669',
@@ -587,7 +614,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
     return localStorage.getItem('theme') === 'dark' ||
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
-  const [themeColor, setThemeColor] = useState(() => localStorage.getItem('themeColor') || 'indigo');
+  const [themeColor, setThemeColor] = useState(() => localStorage.getItem('themeColor') || 'kk');
   const theme = THEMES[themeColor];
 
   const getHeaders = () => ({
@@ -1400,17 +1427,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-darker p-1 md:p-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+	      <div className="min-h-screen bg-kk-background dark:bg-dark-darker p-1 md:p-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-[100%] lg:max-w-[1920px] mx-auto">
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className={`${theme.headerIcon} p-2 md:p-3 rounded-2xl shadow-lg ${theme.headerIconShadow}`}>
-              <TrendingDown className="text-white" size={24} />
+            <div className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
+              <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Finance Master</h1>
-              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium tracking-tight hidden sm:block">Gestión Inteligente de Egresos</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-kk-dark dark:text-white">Kuentas Klaras</h1>
+              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium tracking-tight hidden sm:block">Tus finanzas claras, bajo control</p>
             </div>
           </div>
 
@@ -2039,7 +2066,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                 <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                   <Receipt size={16} /> Gasto Fijo <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 transition-all`}>
+                <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
                   <TrendingUp size={16} /> Abono <Plus size={16} />
                 </button>
                 <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
@@ -2687,7 +2714,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                       </div>
                       <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {filteredDebtIcons.length > 0 ? filteredDebtIcons.map(i => (
-                          <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === i.id ? `${theme.borderTheme} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                          <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <i.icon size={16} />
                             <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
@@ -2709,7 +2736,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                         {CHILE_PRESET_ICONS[debtChileCat]?.map(i => {
                           const val = `${debtChileCat}:${i.id}`;
                           return (
-                            <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === val ? `${theme.borderTheme} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                            <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                               <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
                               <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
@@ -2942,7 +2969,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
                   </div>
                 )}
 
-                <button type="submit" className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:opacity-90 transition-all mt-3 sm:mt-4`}>Registrar Abono</button>
+                <button type="submit" className={`w-full ${theme.btnPrimary} py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Registrar Abono</button>
               </form>
             </div>
           </div>
@@ -3375,8 +3402,8 @@ const App = () => {
 
   if (currentView === 'loading') {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
-        <Loader2 className="animate-spin text-indigo-600" size={40} />
+        <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
+        <Loader2 className="animate-spin text-kk-primary" size={40} />
       </div>
     );
   }

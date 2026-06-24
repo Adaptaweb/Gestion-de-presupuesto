@@ -15,14 +15,14 @@ import {
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu'
 
-const THEME_COLORS = ['indigo', 'blue', 'emerald', 'purple', 'rose', 'amber', 'teal', 'slate']
+const THEME_COLORS = ['kk', 'indigo', 'blue', 'emerald', 'purple', 'rose', 'amber', 'teal', 'slate']
 const THEME_COLOR_HEX = {
-  indigo: '#4f46e5', blue: '#2563eb', emerald: '#059669',
+  kk: '#059669', indigo: '#4f46e5', blue: '#2563eb', emerald: '#059669',
   purple: '#9333ea', rose: '#e11d48', amber: '#d97706',
   teal: '#0d9488', slate: '#475569',
 }
 const COLOR_NAMES = {
-  indigo: 'Índigo', blue: 'Azul', emerald: 'Esmeralda',
+  kk: 'Principal', indigo: 'Índigo', blue: 'Azul', emerald: 'Esmeralda',
   purple: 'Púrpura', rose: 'Rosa', amber: 'Ámbar',
   teal: 'Cian', slate: 'Gris',
 }
@@ -78,7 +78,7 @@ export function UserMenu({
               <span>Color del tema</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="p-3 rounded-xl min-w-[180px]">
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {THEME_COLORS.map(color => (
                   <button
                     key={color}

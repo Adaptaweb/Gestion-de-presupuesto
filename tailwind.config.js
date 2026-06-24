@@ -7,12 +7,27 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Manrope Variable', 'Manrope', 'sans-serif'],
+        kk: ['Manrope', 'sans-serif'],
+      },
       colors: {
+        kk: {
+          primary: '#2DBC8B',
+          secondary: '#6DE0B3',
+          dark: '#0E6B57',
+          light: '#E9FBF3',
+          background: '#F8FFFC',
+          success: '#22C55E',
+          warning: '#F59E0B',
+          danger: '#EF4444',
+          info: '#3B82F6',
+        },
         dark: {
-          darker: '#171717',
-          normal: '#262626',
-          lighter: '#3e3e3e',
-          lightest: '#4a4a4a',
+          darker: '#0A1F18',
+          normal: '#0E2A20',
+          lighter: '#143828',
+          lightest: '#1A4533',
         },
         border: 'var(--border)',
         input: 'var(--input)',
@@ -52,6 +67,14 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        'kk-sm': '10px',
+        'kk-md': '12px',
+        'kk-lg': '16px',
+        'kk-xl': '20px',
+      },
+      boxShadow: {
+        'kk-sm': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'kk-md': '0 8px 24px rgba(0, 0, 0, 0.12)',
       },
       animation: {
         'slide-down': 'slideDown 0.25s ease-out',
