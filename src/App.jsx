@@ -2442,14 +2442,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               </div>
             </div>
           </div>
-          {descTooltip && (
-            <div className="fixed z-[9999] pointer-events-none" style={{ left: descTooltip.x, top: descTooltip.y }}>
-              <div className="bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap -translate-x-1/2 -translate-y-full">
-                {descTooltip.text}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
-              </div>
+        )} {descTooltip && (
+          <div className="fixed z-[9999] pointer-events-none" style={{ left: descTooltip.x, top: descTooltip.y }}>
+            <div className="bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap -translate-x-1/2 -translate-y-full">
+              {descTooltip.text}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-700"></div>
             </div>
-          )}
+          </div>
         )} {activeTab === 'ahorros' && (
           <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
