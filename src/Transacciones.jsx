@@ -309,6 +309,7 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState(null);
   const [lastCheck, setLastCheck] = useState(null);
@@ -354,15 +355,20 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
     'Authorization': `Bearer ${token}`
   }), [token]);
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchTransactions = useCallback(async (isPageChange = false, explicitPage = null) => {
+    const currentPage = explicitPage !== null ? explicitPage : page;
     try {
-      setLoading(true);
+      if (isPageChange) {
+        setPageLoading(true);
+      } else {
+        setLoading(true);
+      }
       const params = new URLSearchParams();
       if (filterCat) params.set('categoria', filterCat);
       if (filterMonth) params.set('mes', filterMonth);
       params.set('revisado', 'true');
       params.set('limit', '10');
-      params.set('offset', String(page * 10));
+      params.set('offset', String(currentPage * 10));
       const res = await fetch(`/api/transacciones?${params.toString()}`, { headers: getHeaders() });
       const data = await res.json();
       if (res.ok) {
@@ -378,6 +384,35 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
       setError(err.message);
     } finally {
       setLoading(false);
+      setPageLoading(false);
+    }
+  }, [getHeaders, filterCat, filterMonth, page]);
+
+  const refreshTable = useCallback(async () => {
+    try {
+      setPageLoading(true);
+      const params = new URLSearchParams();
+      if (filterCat) params.set('categoria', filterCat);
+      if (filterMonth) params.set('mes', filterMonth);
+      params.set('revisado', 'true');
+      params.set('limit', '10');
+      params.set('offset', String(page * 10));
+      const res = await fetch(`/api/transacciones?${params.toString()}`, { headers: getHeaders() });
+      const data = await res.json();
+      if (res.ok) {
+        setTransactions(data.transactions || []);
+        setSummary(data.summary || []);
+        setTotalCount(data.total || 0);
+        setLastCheck(data.lastCheck);
+        if (data.pendientes_count !== undefined) setPendientesCount(data.pendientes_count);
+      }
+      const pendRes = await fetch('/api/transacciones/pendientes?limit=1', { headers: getHeaders() });
+      const pendData = await pendRes.json();
+      if (pendData.count !== undefined) setPendientesCount(pendData.count);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPageLoading(false);
     }
   }, [getHeaders, filterCat, filterMonth, page]);
 
@@ -441,15 +476,16 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
 
   useEffect(() => {
     fetchStatus();
-    fetchTransactions();
+    fetchTransactions(false);
     fetchFilters();
     fetchConfig();
     fetchMonths();
     fetchPendientesCount();
-  }, [fetchStatus, fetchTransactions, fetchFilters, fetchConfig, fetchMonths, fetchPendientesCount]);
+  }, []);
 
   useEffect(() => {
     setPage(0);
+    fetchTransactions(false, 0);
   }, [filterCat, filterMonth]);
 
   useEffect(() => {
@@ -964,37 +1000,42 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
         );
       })()}
 
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="relative flex-1 min-w-[140px] max-w-[200px]">
-          <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-            <option value="">Todas las categorías</option>
-            {CATEGORY_LIST.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+      <div className="flex flex-wrap gap-2 items-center justify-between">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative flex-1 min-w-[140px] max-w-[200px]">
+            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+              <option value="">Todas las categorías</option>
+              {CATEGORY_LIST.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div className="relative flex-1 min-w-[120px] max-w-[160px]">
+            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+              <option value="">Todos los meses</option>
+              {displayMonths.map(m => {
+                const [y, mo] = m.split('-');
+                const date = new Date(parseInt(y), parseInt(mo) - 1);
+                const label = date.toLocaleString('es-CL', { month: 'long', year: 'numeric' });
+                return <option key={m} value={m}>{label}</option>;
+              })}
+            </select>
+          </div>
+          <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
+            <Check size={14} />
+            Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
+          </button>
         </div>
-        <div className="relative flex-1 min-w-[120px] max-w-[160px]">
-          <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-            <option value="">Todos los meses</option>
-            {displayMonths.map(m => {
-              const [y, mo] = m.split('-');
-              const date = new Date(parseInt(y), parseInt(mo) - 1);
-              const label = date.toLocaleString('es-CL', { month: 'long', year: 'numeric' });
-              return <option key={m} value={m}>{label}</option>;
-            })}
-          </select>
-        </div>
-        <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
-          <Check size={14} />
-          Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
+        <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">
+          <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar
         </button>
       </div>
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
-        {loading ? (
+        {loading && transactions.length === 0 ? (
           <div className="flex items-center justify-center py-16"><Loader2 size={32} className="animate-spin text-slate-400" /></div>
-        ) : transactions.length === 0 ? (
+        ) : transactions.length === 0 && !loading ? (
           <div className="text-center py-16">
             <Inbox size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
             <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">No hay transacciones clasificadas</p>
@@ -1002,7 +1043,12 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
           </div>
         ) : (
           <>
-            <div key={'tx-page-' + page} className="animate-slide-fade overflow-x-auto">
+            <div className={`animate-slide-fade overflow-x-auto relative ${pageLoading ? 'opacity-60 pointer-events-none transition-opacity duration-150' : ''}`}>
+              {pageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <Loader2 size={28} className="animate-spin text-slate-400 dark:text-slate-500" />
+                </div>
+              )}
               <table className="w-full border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
@@ -1053,17 +1099,52 @@ const Transacciones = ({ token, theme, isDarkMode }) => {
                 </tbody>
               </table>
             </div>
-            {totalCount > 10 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-dark-lighter">
-                <span className="text-[10px] sm:text-xs text-slate-400 font-medium">
-                  {page * 10 + 1}–{Math.min((page + 1) * 10, totalCount)} de {totalCount}
-                </span>
-                <div className="flex gap-2">
-                  <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter hover:scale-105 active:scale-95 transition-all transition-transform disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100">Anterior</button>
-                  <button onClick={() => setPage(p => p + 1)} disabled={(page + 1) * 10 >= totalCount} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter hover:scale-105 active:scale-95 transition-all transition-transform disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100">Siguiente</button>
+            {totalCount > 10 && (() => {
+              const totalPages = Math.ceil(totalCount / 10);
+              const maxVisible = 5;
+              let startPage = Math.max(0, page - Math.floor(maxVisible / 2));
+              let endPage = Math.min(totalPages, startPage + maxVisible);
+              if (endPage - startPage < maxVisible) startPage = Math.max(0, endPage - maxVisible);
+              const pages = [];
+              for (let i = startPage; i < endPage; i++) pages.push(i);
+
+              return (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-dark-lighter">
+                  <button onClick={() => { const newP = Math.max(0, page - 1); setPage(newP); fetchTransactions(true, newP); }} disabled={page === 0}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                    Anterior
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {startPage > 0 && (
+                      <>
+                        <button onClick={() => { setPage(0); fetchTransactions(true, 0); }} className="w-8 h-8 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all">1</button>
+                        {startPage > 1 && <span className="px-1 text-slate-400 text-xs">…</span>}
+                      </>
+                    )}
+                    {pages.map(p => (
+                      <button key={p} onClick={() => { setPage(p); fetchTransactions(true, p); }}
+                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                          p === page
+                            ? 'bg-emerald-500 text-white shadow-md'
+                            : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter'
+                        }`}>
+                        {p + 1}
+                      </button>
+                    ))}
+                    {endPage < totalPages && (
+                      <>
+                        {endPage < totalPages - 1 && <span className="px-1 text-slate-400 text-xs">…</span>}
+                        <button onClick={() => { const lp = totalPages - 1; setPage(lp); fetchTransactions(true, lp); }} className="w-8 h-8 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all">{totalPages}</button>
+                      </>
+                    )}
+                  </div>
+                  <button onClick={() => { const newP = page + 1; setPage(newP); fetchTransactions(true, newP); }} disabled={(page + 1) * 10 >= totalCount}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                    Siguiente
+                  </button>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </>
         )}
       </div>

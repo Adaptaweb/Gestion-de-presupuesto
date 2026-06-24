@@ -2044,7 +2044,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
           </div>
         )}
 
-        {activeTab === 'general' ? (
+        {activeTab === 'general' && (
           <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
               <div className="flex items-center gap-2">
@@ -2428,7 +2428,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               </div>
             </div>
           </div>
-        ) : activeTab === 'ahorros' ? (
+        )} {activeTab === 'ahorros' && (
           <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
@@ -2594,11 +2594,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
               </div>
             </div>
           </div>
-        ) : (
-          <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
-            <Transacciones token={token} theme={theme} isDarkMode={isDarkMode} />
-          </div>
         )}
+        <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
+          <Transacciones token={token} theme={theme} isDarkMode={isDarkMode} />
+        </div>
 
         {isAddingDebt && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
