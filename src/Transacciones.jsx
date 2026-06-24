@@ -1199,7 +1199,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
                         ) : <span className="text-[10px] text-slate-300 dark:text-slate-600">—</span>}
                       </td>
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
-                        <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[tx.categoria] || CATEGORY_COLORS['Otros']}`}>{tx.categoria}</span>
+                        <span {...catBadgeStyle(tx.categoria)} className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${catBadgeStyle(tx.categoria).className || ''}`}>{tx.categoria}</span>
                       </td>
                       <td className="p-2 sm:p-4 text-center">
                         <button onClick={(e) => { e.stopPropagation(); handleReclasificarTx(tx); }} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="Reclasificar"><Edit3 size={14} /></button>
