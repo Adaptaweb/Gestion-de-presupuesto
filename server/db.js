@@ -124,13 +124,15 @@ async function ensureCategoriasTable() {
 }
 
 async function seedDefaultCategorias(userId) {
+  const existing = await db.get('SELECT 1 FROM categorias WHERE user_id = ? LIMIT 1', userId);
+  if (existing) return;
+
   for (let i = 0; i < DEFAULT_CATEGORIES.length; i++) {
     const cat = DEFAULT_CATEGORIES[i];
-    const id = `cat-def-${userId}-${i}`;
+    const id = `cat-${Date.now()}-${Math.random().toString(36).substr(2, 6)}-${i}`;
     await db.run(
       `INSERT INTO categorias (id, user_id, nombre, color_hex, emoji, tipo, orden)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (user_id, nombre) DO NOTHING`,
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       id, userId, cat.nombre, cat.color_hex, cat.emoji, cat.tipo, cat.orden
     );
   }
