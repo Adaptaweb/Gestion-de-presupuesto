@@ -405,7 +405,7 @@ const [showPassword, setShowPassword] = useState(false);
       )}
     </div>
     <DeleteModalComponent />
-    </div>
+  </div>
   );
 };
 
