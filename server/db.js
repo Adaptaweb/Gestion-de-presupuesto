@@ -108,6 +108,15 @@ const DEFAULT_CATEGORIES = [
   { nombre: 'Sin categoría', color_hex: '#71717a', emoji: '➖', tipo: 'ambos', orden: 2 },
 ];
 
+async function addCasillaColumn() {
+  try {
+    await db.run('ALTER TABLE users ADD COLUMN "casilla" TEXT UNIQUE DEFAULT NULL');
+    console.log('[MIGRATION] casilla column added to users table');
+  } catch (e) {
+    // columna ya existe, ignorar
+  }
+}
+
 async function ensureCategoriasTable() {
   await db.run(`CREATE TABLE IF NOT EXISTS categorias (
     id TEXT PRIMARY KEY,
@@ -188,5 +197,5 @@ async function reassignOrphanTransactions(userId) {
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions };
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn };
 export default db;

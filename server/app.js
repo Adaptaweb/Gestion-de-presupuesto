@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
@@ -14,6 +14,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-202
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+addCasillaColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -32,6 +34,24 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+async function generateCasilla(email) {
+  const localPart = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+  let base = localPart.slice(0, 4);
+  while (base.length < 4) {
+    base += Math.random().toString(36).substr(2, 1);
+  }
+  let casilla = base;
+  let attempts = 0;
+  while (attempts < 10) {
+    const existing = await db.get('SELECT 1 FROM users WHERE casilla = ?', casilla);
+    if (!existing) return casilla;
+    const suffix = Math.floor(100 + Math.random() * 900).toString();
+    casilla = base + suffix;
+    attempts++;
+  }
+  return casilla;
+}
+
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -41,15 +61,22 @@ app.post('/api/auth/register', async (req, res) => {
     if (existing) return res.status(409).json({ error: 'El email ya está registrado' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const id = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    let id;
+    let idExists = true;
+    while (idExists) {
+      id = `u-${Math.random().toString(36).substr(2, 8)}`;
+      const row = await db.get('SELECT 1 FROM users WHERE id = ?', id);
+      idExists = !!row;
+    }
+    const casilla = await generateCasilla(email);
     const row = await db.get('SELECT COUNT(*) as count FROM users');
     const role = row.count === 0 ? 'admin' : 'user';
 
-    await db.run('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
-      id, name, email, hashedPassword, role);
+    await db.run('INSERT INTO users (id, name, email, password, role, casilla) VALUES (?, ?, ?, ?, ?, ?)',
+      id, name, email, hashedPassword, role, casilla);
 
     const token = jwt.sign({ id, email, name, role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id, name, email, role } });
+    res.json({ token, user: { id, name, email, role, casilla } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al registrar usuario' });
@@ -78,9 +105,20 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/verify', authenticateToken, async (req, res) => {
-  const user = await db.get('SELECT id, name, email, role FROM users WHERE id = ?', req.user.id);
+  const user = await db.get('SELECT id, name, email, role, casilla FROM users WHERE id = ?', req.user.id);
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json({ user });
+});
+
+app.get('/api/user/mailbox', authenticateToken, async (req, res) => {
+  try {
+    const user = await db.get('SELECT casilla FROM users WHERE id = ?', req.user.id);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const casilla = user.casilla || req.user.id;
+    res.json({ email: `parse+${casilla}@adaptaweb.cl`, casilla });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener casilla' });
+  }
 });
 
 app.get('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
@@ -122,13 +160,20 @@ app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) =
     if (existing) return res.status(409).json({ error: 'El email ya está registrado' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const id = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    let id;
+    let idExists = true;
+    while (idExists) {
+      id = `u-${Math.random().toString(36).substr(2, 8)}`;
+      const row = await db.get('SELECT 1 FROM users WHERE id = ?', id);
+      idExists = !!row;
+    }
+    const casilla = await generateCasilla(email);
     const userRole = role || 'user';
 
-    await db.run('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
-      id, name, email, hashedPassword, userRole);
+    await db.run('INSERT INTO users (id, name, email, password, role, casilla) VALUES (?, ?, ?, ?, ?, ?)',
+      id, name, email, hashedPassword, userRole, casilla);
 
-    res.json({ success: true, user: { id, name, email, role: userRole, blocked: 0 } });
+    res.json({ success: true, user: { id, name, email, role: userRole, blocked: 0, casilla } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al crear usuario' });
@@ -696,6 +741,17 @@ app.post('/api/webhook/email', async (req, res) => {
       return res.status(400).json({ error: 'Missing userId or html' });
     }
 
+    // Resolve casilla → userId for new-format emails (parse+juan@...)
+    let actualUserId = userId;
+    const userById = await db.get('SELECT id FROM users WHERE id = ?', userId);
+    if (!userById) {
+      const userByCasilla = await db.get('SELECT id FROM users WHERE casilla = ?', userId);
+      if (!userByCasilla) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+      actualUserId = userByCasilla.id;
+    }
+
     const headers = {
       from: from || '',
       subject: subject || '',
@@ -704,7 +760,7 @@ app.post('/api/webhook/email', async (req, res) => {
       to: '',
     };
 
-    const parsed = await parseHTML(html, headers, userId);
+    const parsed = await parseHTML(html, headers, actualUserId);
     if (!parsed || !parsed.monto || !parsed.fecha) {
       return res.json({ success: false, reason: 'no_parsed_data' });
     }
@@ -723,12 +779,12 @@ app.post('/api/webhook/email', async (req, res) => {
          fecha_extraccion = NOW(),
          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
-      id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
+       id, actualUserId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
     );
 
-    cache.delByPattern(`tx:*:${userId}`);
-    cache.del(`tx:meses:${userId}`);
-    cache.delByPattern(`tx:pendientes:${userId}`);
+    cache.delByPattern(`tx:*:${actualUserId}`);
+    cache.del(`tx:meses:${actualUserId}`);
+    cache.delByPattern(`tx:pendientes:${actualUserId}`);
 
     res.json({ success: true, transaction: parsed });
   } catch (error) {

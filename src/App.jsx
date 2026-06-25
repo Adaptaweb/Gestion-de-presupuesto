@@ -117,6 +117,7 @@ import {
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
+import ReenvioCorreo from './ReenvioCorreo.jsx';
 import Transacciones from './Transacciones.jsx';
 import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
@@ -598,7 +599,7 @@ const getAhorroBankInfo = (bankName) => {
   return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
 };
 
-const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
+const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -2667,6 +2668,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin }) => {
             getCatIconBg={getCatIconBg}
             getCatIconColor={getCatIconColor}
             getCatText={getCatText}
+            onOpenTutorial={onOpenTutorial}
           />
         </div></>}
 
@@ -3530,12 +3532,21 @@ const App = () => {
     );
   }
 
+  if (currentView === 'tutorial') {
+    return (
+      <ReenvioCorreo
+        onBack={() => setCurrentView('dashboard')}
+      />
+    );
+  }
+
   return (
     <Dashboard
       user={user}
       token={token}
       onLogout={handleLogout}
       onOpenAdmin={() => setCurrentView('admin')}
+      onOpenTutorial={() => setCurrentView('tutorial')}
     />
   );
 };

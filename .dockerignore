@@ -9,3 +9,4 @@ AGENTS.md
 add_dark_mode.js
 .env
 .env.local
+supabase-fix-rls.sql

@@ -28,6 +28,7 @@ CREATE TABLE "users" (
   "id" TEXT PRIMARY KEY,
   "name" TEXT NOT NULL,
   "email" TEXT UNIQUE NOT NULL,
+  "casilla" TEXT UNIQUE,
   "password" TEXT NOT NULL,
   "role" TEXT DEFAULT 'user',
   "blocked" INTEGER DEFAULT 0,

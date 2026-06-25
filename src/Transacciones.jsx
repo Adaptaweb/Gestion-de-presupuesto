@@ -327,7 +327,7 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText }) => {
+const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -363,7 +363,6 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   const [bankTotals, setBankTotals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
-  const [checking, setChecking] = useState(false);
   const [error, setError] = useState(null);
   const [lastCheck, setLastCheck] = useState(null);
   const [authStatus, setAuthStatus] = useState(null);
@@ -615,80 +614,6 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
     const date = formatDate(d);
     const time = formatTime(d);
     return time ? `${date} · ${time}` : date;
-  };
-
-  const handleAuthGmail = async () => {
-    try {
-      const res = await fetch('/api/transacciones/auth-url', { headers: getHeaders() });
-      const data = await res.json();
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('Error al conectar con Gmail: ' + (data.error || 'Error desconocido'));
-      }
-    } catch (err) {
-      alert('Error al conectar con Gmail');
-    }
-  };
-
-  const handleCheckEmails = async () => {
-    setChecking(true);
-    try {
-      const res = await fetch('/api/transacciones/revisar', { method: 'POST', headers: getHeaders() });
-      const { jobId } = await res.json();
-      if (!jobId) {
-        setStatusMsg({ type: 'error', text: '✗ Error al iniciar revisión' });
-        setChecking(false);
-        return;
-      }
-      const poll = async (attempt = 0) => {
-        if (attempt > 150) {
-          setChecking(false);
-          setStatusMsg({ type: 'error', text: '✗ La revisión está tardando demasiado. Intenta de nuevo.' });
-          setTimeout(() => setStatusMsg(null), 5000);
-          return;
-        }
-        const statusRes = await fetch(`/api/transacciones/revisar/status/${jobId}`, { headers: getHeaders() });
-        if (!statusRes.ok) {
-          setChecking(false);
-          const err = await statusRes.json().catch(() => ({ error: 'Error al consultar estado' }));
-          setStatusMsg({ type: 'error', text: `✗ ${err.error || 'Error al revisar correos'}` });
-          setTimeout(() => setStatusMsg(null), 5000);
-          return;
-        }
-        const job = await statusRes.json();
-        if (job.status === 'done') {
-          setChecking(false);
-          const data = job.result;
-          if (data.needsReauth) {
-            setStatusMsg({ type: 'error', text: `✗ ${data.message || 'Vuelve a autorizar Gmail'}` });
-            fetchStatus();
-          } else if (!data.error) {
-            const msg = data.new > 0
-              ? `✓ ${data.new} nuevas transacciones encontradas`
-              : '✓ No hay transacciones nuevas';
-            setStatusMsg({ type: 'success', text: msg });
-            fetchTransactions();
-            fetchMonths();
-            fetchPendientesCount();
-          } else {
-            setStatusMsg({ type: 'error', text: `✗ ${data.error || 'Error al revisar'}` });
-          }
-          setTimeout(() => setStatusMsg(null), 5000);
-        } else if (job.status === 'error') {
-          setChecking(false);
-          setStatusMsg({ type: 'error', text: `✗ ${job.error || 'Error al revisar correos'}` });
-          setTimeout(() => setStatusMsg(null), 5000);
-        } else {
-          setTimeout(() => poll(attempt + 1), 2000);
-        }
-      };
-      poll();
-    } catch (err) {
-      setChecking(false);
-      setStatusMsg({ type: 'error', text: `✗ ${err.message}` });
-      setTimeout(() => setStatusMsg(null), 5000);
-    }
   };
 
   const handleDeleteTx = async (id) => {
@@ -996,12 +921,12 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
         <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter p-8 text-center">
           <div className="max-w-md mx-auto">
             <Mail size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Conecta tu Gmail</h3>
+            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Configura el reenvío de correos</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              Para extraer automáticamente tus gastos desde las notificaciones bancarias, necesitas autorizar el acceso de solo lectura a tu correo Gmail.
+              Para recibir tus transacciones automáticamente, configura el reenvío de notificaciones bancarias desde Gmail hacia tu casilla en Kuentas Klaras.
             </p>
-            <button onClick={handleAuthGmail} className="flex items-center justify-center gap-2 mx-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30 transition-all">
-              <ExternalLink size={16} /> Autorizar Gmail
+            <button onClick={onOpenTutorial} className="flex items-center justify-center gap-2 mx-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30 transition-all">
+              <ExternalLink size={16} /> Ver tutorial paso a paso
             </button>
           </div>
         </div>
@@ -1477,39 +1402,11 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
             <div className="mb-6 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
               <label className="text-[10px] font-black uppercase text-blue-500 dark:text-blue-400 mb-2 block">Reenvío automático</label>
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
-                Para procesar transacciones en tiempo real, configura un filtro en Gmail:
+                Configura un filtro en Gmail para reenviar las notificaciones bancarias automáticamente.
               </p>
-              <ol className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 list-decimal list-inside mb-3">
-                <li>Abre <b>Gmail → Configuración → Filtros y direcciones bloqueadas → Crear filtro</b></li>
-                <li>En <b>De</b>: <code className="bg-slate-200 dark:bg-dark-lighter px-1 rounded text-[11px]">{'from:(@bci.cl OR @bancochile.cl OR @santander.cl OR @bancoestado.cl)'}</code></li>
-                <li>Click <b>Crear filtro → Reenviar a</b>:</li>
-              </ol>
-              <div className="bg-white dark:bg-dark-normal rounded-xl p-3 border border-blue-200 dark:border-blue-700 mb-3">
-                <code className="text-sm font-bold text-blue-700 dark:text-blue-300 break-all select-all">{`parse+${(() => { try { return JSON.parse(atob(token.split('.')[1])).id; } catch { return 'TU_ID'; } })()}@adaptaweb.cl`}</code>
-              </div>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                Cada vez que llegue una notificación bancaria se analizará automáticamente.
-              </p>
-            </div>
-
-            <div className="p-3 sm:p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
-              <label className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 mb-2 block">Sincronizar historial</label>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
-                Importa correos bancarios anteriores a la primera vez que configuras la app.
-              </p>
-              <button onClick={handleCheckEmails} disabled={checking} className={`flex items-center justify-center gap-2 w-full ${theme.btnPrimary} text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all disabled:opacity-50`}>
-                {checking ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                {checking ? 'Revisando correos...' : 'Sincronizar correos anteriores'}
+              <button onClick={onOpenTutorial} className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all">
+                <ExternalLink size={16} /> Ver tutorial paso a paso
               </button>
-              {statusMsg && (
-                <span className={`inline-block text-xs px-3 py-1.5 rounded-lg font-medium mt-3 ${
-                  statusMsg.type === 'success' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
-                  statusMsg.type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
-                  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                }`}>
-                  {statusMsg.text}
-                </span>
-              )}
             </div>
           </div>
         </div>
