@@ -1,0 +1,318 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Kuentas Klaras - Tutorial de Configuración</title>
+<!-- Google Fonts: Inter for the professional corporate look -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols for icon literacy -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Design System Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "navy-deep": "#0a192f",
+                    "secondary": "#515f78",
+                    "on-primary": "#ffffff",
+                    "on-secondary-fixed": "#0d1c32",
+                    "mint-bright": "#6de0b3",
+                    "on-secondary-fixed-variant": "#39475f",
+                    "on-secondary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#004530",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "inverse-primary": "#58dda9",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface": "#f7f9fb",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary-container": "#004531",
+                    "surface-container-low": "#f2f4f6",
+                    "outline": "#6d7a72",
+                    "on-primary-fixed-variant": "#005139",
+                    "on-secondary-container": "#55637d",
+                    "on-tertiary": "#ffffff",
+                    "surface-container": "#eceef0",
+                    "primary-container": "#2dbc8b",
+                    "tertiary-fixed-dim": "#68dbae",
+                    "on-background": "#191c1e",
+                    "inverse-surface": "#2d3133",
+                    "secondary-container": "#d2e0fe",
+                    "outline-variant": "#bccac0",
+                    "tertiary-fixed": "#85f8c9",
+                    "on-tertiary-fixed-variant": "#00513a",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-tertiary-fixed": "#002115",
+                    "secondary-fixed": "#d6e3ff",
+                    "on-surface-variant": "#3d4a43",
+                    "surface-variant": "#e0e3e5",
+                    "on-primary-fixed": "#002115",
+                    "gray-soft": "#f1f5f9",
+                    "primary": "#006c4d",
+                    "surface-tint": "#006c4d",
+                    "error": "#ba1a1a",
+                    "mint-dark": "#2dbc8b",
+                    "tertiary": "#006c4e",
+                    "surface-dim": "#d8dadc",
+                    "background": "#f7f9fb",
+                    "primary-fixed": "#77fac4",
+                    "on-surface": "#191c1e",
+                    "tertiary-container": "#44ba90",
+                    "white": "#ffffff",
+                    "primary-fixed-dim": "#58dda9",
+                    "surface-bright": "#f7f9fb",
+                    "secondary-fixed-dim": "#b9c7e4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "2.5rem",
+                    "gutter": "1.5rem",
+                    "base": "4px",
+                    "unit-4": "1rem",
+                    "margin-mobile": "1rem",
+                    "unit-1": "0.25rem",
+                    "unit-2": "0.5rem",
+                    "unit-8": "2rem",
+                    "unit-6": "1.5rem",
+                    "unit-12": "3rem"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .scroll-smooth {
+            scroll-behavior: smooth;
+        }
+
+        /* Subtle floating animation for branding */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col items-center overflow-x-hidden selection:bg-mint-bright/30">
+<!-- Top AppBar (Mobile/Web Context) -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md px-margin-mobile md:px-margin-desktop h-16 flex justify-between items-center">
+<div class="flex items-center gap-unit-2">
+<span class="material-symbols-outlined text-navy-deep font-headline-md">arrow_back</span>
+</div>
+<div class="font-headline-lg-mobile text-navy-deep tracking-tight text-center">
+            Kuentas Klaras
+        </div>
+<div class="flex items-center gap-unit-2">
+<span class="material-symbols-outlined text-navy-deep font-headline-md">arrow_back</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-[1200px] mt-16 pb-32 px-margin-mobile md:px-margin-desktop flex flex-col items-center">
+<!-- Welcome Hero Section -->
+<section class="min-h-[707px] flex flex-col items-center justify-center text-center space-y-unit-8 w-full max-w-2xl pt-unit-12" id="welcome">
+<!-- Animated Background Placeholder Interaction -->
+<div class="relative w-full aspect-square max-w-[300px] mb-unit-6 animate-float flex items-center justify-center">
+<div class="absolute inset-0 bg-mint-bright/10 rounded-full blur-3xl"></div>
+<!-- Logic: Use the provided Logo placeholder -->
+<div class="z-10 w-48 h-48 flex items-center justify-center bg-white rounded-full shadow-lg">
+<span class="text-mint-dark font-display-lg">K</span>
+</div>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-navy-deep max-w-xl leading-tight">
+                Instructivo para crear una <span class="text-mint-dark">regla de reenvío</span> de Emails bancarios hacia <span class="text-mint-dark">Kuentas Klaras</span>
+</h1>
+<p class="font-body-lg text-secondary opacity-70">
+                Solo correos bancarios
+            </p>
+<div class="w-full pt-unit-8">
+
+</div>
+</section>
+<!-- How it Works Section (Bento-style visual flow) -->
+<section class="w-full py-unit-12 space-y-unit-12 scroll-mt-20 transition-all duration-700 opacity-100 translate-y-0" id="how-it-works">
+<div class="text-center space-y-unit-2">
+<h2 class="font-headline-md text-navy-deep">¿Cómo funciona?</h2>
+<div class="flex justify-center items-center gap-unit-2">
+<div class="w-12 h-1 bg-mint-dark rounded-full"></div>
+<div class="w-3 h-1 bg-mint-bright/30 rounded-full"></div>
+<div class="w-3 h-1 bg-mint-bright/30 rounded-full"></div>
+</div>
+</div>
+<!-- The Flow Visualization -->
+<div class="flex flex-col md:flex-row items-center justify-center gap-unit-8 md:gap-unit-12">
+<!-- Bank -->
+<div class="flex flex-col items-center text-center space-y-unit-4">
+<div class="w-24 h-24 rounded-full border-4 border-mint-bright/20 flex items-center justify-center bg-white shadow-md">
+<span class="material-symbols-outlined text-mint-dark text-4xl" style="font-variation-settings: &quot;wght&quot; 300;">account_balance</span>
+</div>
+<span class="font-label-md text-navy-deep">Banco</span>
+</div>
+<span class="material-symbols-outlined text-mint-bright/40 text-4xl hidden md:block">arrow_forward</span>
+<span class="material-symbols-outlined text-mint-bright/40 text-4xl md:hidden rotate-90">arrow_forward</span>
+<!-- Email -->
+<div class="flex flex-col items-center text-center space-y-unit-4">
+<div class="w-24 h-24 rounded-full border-4 border-mint-bright/20 flex items-center justify-center bg-white shadow-md">
+<span class="material-symbols-outlined text-mint-dark text-4xl" style="font-variation-settings: &quot;wght&quot; 300;">mail</span>
+</div>
+<span class="font-label-md text-navy-deep">Email</span>
+</div>
+<span class="material-symbols-outlined text-mint-bright/40 text-4xl hidden md:block">arrow_forward</span>
+<span class="material-symbols-outlined text-mint-bright/40 text-4xl md:hidden rotate-90">arrow_forward</span>
+<!-- Kuentas Klaras -->
+<div class="flex flex-col items-center text-center space-y-unit-4 relative">
+<div class="absolute -top-2 -right-2 bg-mint-bright text-on-primary-container text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">AI</div>
+<div class="w-24 h-24 rounded-full border-4 border-mint-dark flex items-center justify-center bg-mint-dark shadow-xl">
+<span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: &quot;FILL&quot; 1;">stars</span>
+</div>
+<span class="font-label-md text-navy-deep">Kuentas Klaras</span>
+</div>
+</div>
+<!-- Content Card: The "Rule" Logic -->
+<div class="bg-white rounded-2xl p-unit-8 shadow-sm border border-gray-soft max-w-3xl mx-auto space-y-unit-6">
+<p class="font-body-lg text-secondary leading-relaxed">
+                    Crearás una <strong class="text-mint-dark font-semibold">regla automática en tu correo</strong> para <strong class="text-mint-dark font-semibold">reenviar</strong> a Kuentas Klaras <span class="underline decoration-mint-bright underline-offset-4">sólo los correos bancarios</span> que te envían los bancos a tu email.
+                </p>
+<div class="h-px bg-gray-soft w-full"></div>
+<div class="space-y-unit-4">
+<div class="flex items-center gap-unit-3">
+<span class="material-symbols-outlined text-mint-dark">lock</span>
+<h3 class="font-headline-md text-navy-deep">Seguridad y privacidad primero</h3>
+</div>
+<ul class="space-y-unit-4 list-none">
+<li class="flex gap-unit-4 items-start transition-all duration-700 opacity-100 translate-y-0">
+<span class="text-mint-dark font-bold">1.</span>
+<span class="text-secondary font-body-md">Este método <strong class="text-navy-deep">no requiere entregar tus claves</strong> ni dar acceso a tu email o banco.</span>
+</li>
+<li class="flex gap-unit-4 items-start transition-all duration-700 opacity-100 translate-y-0">
+<span class="text-mint-dark font-bold">2.</span>
+<span class="text-secondary font-body-md"><strong class="text-navy-deep underline decoration-mint-bright/30">Solo procesamos</strong> los correos oficiales de tus transacciones; todo lo demás se excluye y elimina automáticamente.</span>
+</li>
+<li class="flex gap-unit-4 items-start transition-all duration-700 opacity-100 translate-y-0">
+<span class="text-mint-dark font-bold">3.</span>
+<span class="text-secondary font-body-md">Puedes <strong class="text-navy-deep">eliminar la regla</strong> de reenvío cuando quieras.</span>
+</li>
+</ul>
+</div>
+<p class="pt-unit-4 text-center font-label-md text-navy-deep/60 italic">
+                    Cuidar tu privacidad bancaria es sagrado para nosotros
+                </p>
+</div>
+<!-- Founder Endorsement (Social Proof) -->
+<div class="flex flex-col md:flex-row items-center justify-center gap-unit-6 max-w-xl mx-auto py-unit-4">
+<div class="flex -space-x-4">
+
+<img class="w-16 h-16 rounded-full border-4 border-white shadow-md object-cover" data-alt="Close-up professional headshot of a friendly male entrepreneur with a slight beard and warm eyes, wearing a crisp white polo shirt, outdoor daylight setting with soft natural bokeh, representing trust and approachability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5u9mIhXIUK-j763zrVFEEm7JRlmiNxn5Hggfd5ZvQE_90RGWkhu87mQTiHTdes5hetLz5srqzgnmZY5qGql-ZxSB0Ots_SxnVLxLiEnXpoaGAItSi1pCm5i2KPOdtRvKq7nloJEvrKuOMFcTXCJLcIqk6qde5AP8LzTkTbz05_YbEk4E7-_-ZR0g0M4MYwN335TuXKKys9pVzB4m-dVc2WX5j6vVGEo9UGPtFE76O5JrmygMVQiPErq4MKdwYbX3WVmUQrzeiwg">
+</div>
+<div class="text-center md:text-left">
+<p class="font-label-md text-navy-deep">Alejandro Tamayo</p>
+<p class="text-xs text-secondary uppercase tracking-widest font-bold">Co Fundadores de Kuentas Klaras</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell (Contextual FAB Replacement for Transactional Progress) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white shadow-[0_-8px_30px_rgb(0,0,0,0.04)] px-margin-mobile py-6 border-t border-gray-soft flex flex-col md:flex-row md:justify-center items-center gap-4">
+<!-- Progressive Interaction -->
+<button class="w-full md:max-w-md h-14 bg-mint-dark text-white font-headline-md rounded-xl shadow-lg shadow-mint-bright/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center">
+            Empezar
+        </button>
+<!-- Steps Indicator for Desktop Context -->
+<div class="hidden md:flex items-center gap-unit-8 absolute left-margin-desktop">
+<div class="flex items-center gap-unit-2">
+<div class="w-8 h-8 rounded-full bg-mint-dark text-white flex items-center justify-center text-xs font-bold">1</div>
+<span class="font-label-md text-navy-deep">Inicio</span>
+</div>
+<div class="w-12 h-0.5 bg-gray-soft"></div>
+<div class="flex items-center gap-unit-2">
+<div class="w-8 h-8 rounded-full bg-gray-soft text-secondary flex items-center justify-center text-xs font-bold">2</div>
+<span class="font-label-md text-secondary">Correo</span>
+</div>
+</div>
+</nav>
+<!-- Script for Micro-interactions -->
+<script>
+        // Subtle scroll revealing effect
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
+                    }
+                });
+            }, observerOptions);
+
+            // Apply to specific sections for a polished feel
+            const revealElements = document.querySelectorAll('#how-it-works, .glass-card, ul li');
+            revealElements.forEach(el => {
+                el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+                observer.observe(el);
+            });
+        });
+    </script>
+
+
+</body></html>

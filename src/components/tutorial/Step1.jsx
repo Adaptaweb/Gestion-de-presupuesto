@@ -1,134 +1,111 @@
-import { ArrowLeft, ArrowRight, CheckCircle, Eye, Settings, Shield, X } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Check, Copy, Eye, Settings, Shield, X } from 'lucide-react';
+import Stepper from './Stepper';
+import { FORWARD_EMAIL, TUTORIAL_CONFIG } from './tutorialConfig';
 
-const Step1 = ({ emailData, onNext, onOpcional, onClose }) => {
-  const reenvioEmail = emailData?.email || 'inbox@adaptaweb.cl';
+const Step1 = ({ emailData, onNext, onOpcional, onBack, onClose }) => {
+  const [copied, setCopied] = useState(false);
+  const reenvioEmail = emailData?.email || FORWARD_EMAIL;
+  const { MESSAGES } = TUTORIAL_CONFIG;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(reenvioEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="bg-[#f7f9fb] text-[#191c1e] h-full flex flex-col overflow-hidden">
-      <header className="sticky top-0 z-50 bg-[#f7f9fb] h-16 flex justify-between items-center px-4 md:px-10 flex-shrink-0">
+      <header className="flex-shrink-0 h-14 flex justify-between items-center px-4 border-b border-[#f1f5f9]">
         <div className="flex items-center gap-2">
-          <button onClick={onClose} className="p-2 hover:bg-[#f1f5f9] rounded-full transition-colors active:scale-95">
-            <ArrowLeft className="text-[#006c4d]" size={24} />
-          </button>
-          <h1 className="text-[28px] leading-9 font-bold text-[#0a192f] tracking-tight">Kuentas Klaras</h1>
+          {onBack && (
+            <button onClick={onBack} className="p-2 hover:bg-[#f1f5f9] rounded-full transition-colors active:scale-95">
+              <ArrowLeft className="text-[#006c4d]" size={24} />
+            </button>
+          )}
+          <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="w-6 h-6" />
+          <span className="font-bold text-[#0a192f]">Kuentas Klaras</span>
         </div>
         <button onClick={onClose} className="p-2 hover:bg-[#f1f5f9] rounded-full transition-colors active:scale-95">
           <X className="text-[#515f78]" size={24} />
         </button>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 md:px-10 max-w-[1200px] mx-auto w-full">
-        <section className="mb-8 flex flex-col items-center">
-          <div className="flex items-center w-full max-w-md gap-0 relative h-10">
-            <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#e0e3e5] -translate-y-1/2"></div>
-            <div className="absolute top-1/2 left-0 w-1/4 h-[2px] bg-[#2dbc8b] -translate-y-1/2"></div>
-            <div className="relative z-10 flex justify-between w-full">
-              <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-[#2dbc8b] flex items-center justify-center text-white ring-4 ring-white shadow-sm">
-                  <CheckCircle className="text-white" size={18} fill="white" />
-                </div>
-                <span className="text-[12px] leading-4 font-medium text-[#2dbc8b] mt-1">Inicio</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-[#6de0b3]/30 flex items-center justify-center text-[#2dbc8b] ring-4 ring-white">
-                  <span className="font-bold text-[14px]">1</span>
-                </div>
-                <span className="text-[12px] leading-4 font-medium text-[#515f78] mt-1">Vinculación</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-[#e0e3e5] flex items-center justify-center text-[#515f78] ring-4 ring-white">
-                  <span className="font-bold text-[14px]">2</span>
-                </div>
-                <span className="text-[12px] leading-4 font-medium text-[#515f78] mt-1">Verificación</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-[#e0e3e5] flex items-center justify-center text-[#515f78] ring-4 ring-white">
-                  <span className="font-bold text-[14px]">3</span>
-                </div>
-                <span className="text-[12px] leading-4 font-medium text-[#515f78] mt-1">Final</span>
-              </div>
-            </div>
-          </div>
-        </section>
+      <Stepper current={1} />
 
-        <div className="space-y-6 max-w-2xl mx-auto">
-          <div className="text-center space-y-2">
-            <p className="text-[14px] leading-5 font-semibold text-[#006c4d] uppercase tracking-widest">Parte 1</p>
-            <h2 className="text-[24px] leading-8 font-semibold text-[#0a192f]">
-              Agregar dirección <span className="text-[#2dbc8b]">{reenvioEmail}</span> a tu correo
-            </h2>
-            <div className="flex items-center justify-center gap-2 py-2 text-[#515f78]">
-              <Eye size={20} />
-              <p className="text-[16px] leading-6">Debes abrir tu E-mail en un computador 💻*</p>
+      <main className="flex-1 overflow-y-auto px-4 pb-4 max-w-2xl mx-auto w-full">
+        <div className="text-center space-y-4 mb-6">
+          <h2 className="text-lg font-semibold text-[#0a192f]">
+            {MESSAGES.step1.title}
+            <div className="inline-flex items-center gap-2 bg-[#f1f5f9] px-3 py-1 rounded-lg border border-[#bccac0]/30 mx-2">
+              <span className="text-[#2dbc8b] font-bold text-sm">{reenvioEmail}</span>
+              <button onClick={handleCopy} className="text-[#006c4d] hover:text-[#2dbc8b] transition-colors">
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+              </button>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-6 flex flex-col gap-4 hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
-              <div className="flex gap-4 items-start">
-                <div className="bg-[#2dbc8b] text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">1</div>
-                <p className="text-[16px] leading-6 text-[#191c1e]">Clic en el icono del menú <Settings className="inline text-[#515f78]" size={20} /></p>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="bg-[#2dbc8b] text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">2</div>
-                <p className="text-[16px] leading-6 text-[#191c1e]">Clic en "Ver toda la configuración/Ajustes"</p>
-              </div>
-              <div className="mt-auto border border-[#e0e3e5] rounded-xl overflow-hidden shadow-inner">
-                <img className="w-full h-auto object-cover" src="/tutorial/1/screen.png" alt="Configuración de Gmail" />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-6 flex flex-col gap-4 hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
-              <div className="flex gap-4 items-start">
-                <div className="bg-[#2dbc8b] text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">3</div>
-                <p className="text-[16px] leading-6 text-[#191c1e]">Clic en pestaña "Reenvío y correo POP/IMAP"</p>
-              </div>
-              <div className="flex gap-4 items-start">
-                <div className="bg-[#2dbc8b] text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">4</div>
-                <p className="text-[16px] leading-6 text-[#191c1e]">Clic en "Agregar una dirección de reenvío"</p>
-              </div>
-              <div className="mt-auto border border-[#e0e3e5] rounded-xl overflow-hidden shadow-inner">
-                <img className="w-full h-auto object-cover" src="/tutorial/1/screen2.png" alt="Reenvío Gmail" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-6 border-l-4 border-[#2dbc8b]">
-            <div className="flex gap-4 items-start">
-              <div className="bg-[#2dbc8b] text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">5</div>
-              <div className="space-y-2 flex-grow">
-                <p className="text-[24px] leading-8 font-semibold text-[#0a192f]">Escribe "<span className="text-[#2dbc8b] select-all">{reenvioEmail}</span>"</p>
-                <p className="text-[16px] leading-6 text-[#515f78]">Asegúrate de copiarla exactamente como aparece aquí para una integración transparente.</p>
-                <div className="mt-4 bg-[#f1f5f9] p-4 rounded-xl border border-[#bccac0]/30 overflow-hidden">
-                  <img className="w-full h-auto rounded-lg" src="/tutorial/1/screen3.png" alt="Ingresar dirección de reenvío" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-4">
-            <button
-              onClick={onOpcional}
-              className="w-full py-4 px-6 border-2 border-[#2dbc8b] text-[#2dbc8b] text-[14px] leading-5 font-semibold rounded-lg hover:bg-[#6de0b3]/10 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              <Shield size={20} />
-              <span>Si gmail te solicita autorización presiona aca</span>
-            </button>
+          </h2>
+          <div className="flex items-center justify-center gap-2 text-[#515f78]">
+            <Eye size={18} />
+            <p className="text-sm">{MESSAGES.step1.instruction}</p>
           </div>
         </div>
+
+        <div className="grid gap-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-[#2dbc8b]">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3 items-start">
+                <div className="bg-[#2dbc8b] text-white w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">1</div>
+                <p className="text-sm text-[#191c1e]">
+                  Clic en el icono de menú <Settings className="inline text-[#515f78]" size={18} />
+                </p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <div className="bg-[#2dbc8b] text-white w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">2</div>
+                <p className="text-sm text-[#191c1e]">Clic en "Ver toda la configuración"</p>
+              </div>
+              <img className="w-full rounded-lg border" src="/tutorial/1/screen1.png" alt="Configuración de Gmail" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 border-l-4 border-[#2dbc8b]">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3 items-start">
+                <div className="bg-[#2dbc8b] text-white w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">3</div>
+                <p className="text-sm text-[#191c1e]">Clic en pestaña "Reenvío y correo POP/IMAP"</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <div className="bg-[#2dbc8b] text-white w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">4</div>
+                <p className="text-sm text-[#191c1e]">Clic en "Agregar una dirección de reenvío"</p>
+              </div>
+              <img className="w-full rounded-lg border" src="/tutorial/1/screen2.png" alt="Reenvío Gmail" />
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={onOpcional}
+          className="w-full mt-4 p-3 bg-[#d2e0fe] border border-[#d2e0fe] rounded-xl flex items-center justify-center gap-3 text-[#55637d] hover:bg-[#d2e0fe]/50 transition-all"
+        >
+          <Shield size={18} />
+          <p className="font-semibold text-xs">{MESSAGES.step1.opcionalButton}</p>
+          <span className="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
       </main>
 
-      <footer className="flex justify-between items-center px-4 py-4 bg-[#f7f9fb] rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)] flex-shrink-0">
-        <div className="flex flex-col items-center justify-center text-[#515f78] px-6 py-2 rounded-xl opacity-50">
-          <ArrowLeft size={24} />
-          <span className="text-[14px] leading-5 font-semibold">Anterior</span>
-        </div>
+      <footer className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-t border-[#f1f5f9]">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition-all"
+        >
+          <ArrowLeft size={20} />
+          <span className="text-sm font-semibold">Anterior</span>
+        </button>
         <button
           onClick={onNext}
-          className="flex flex-col items-center justify-center bg-[#2dbc8b] text-white rounded-xl px-8 py-2 shadow-lg shadow-[#2dbc8b]/20 hover:bg-[#006c4d] transition-all active:scale-[0.98]"
+          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-6 py-2 rounded-xl shadow hover:brightness-110 transition-all"
         >
-          <ArrowRight size={24} />
-          <span className="text-[14px] leading-5 font-semibold">Siguiente</span>
+          <span className="text-sm font-semibold">Siguiente</span>
+          <ArrowLeft size={20} className="rotate-180" />
         </button>
       </footer>
     </div>
