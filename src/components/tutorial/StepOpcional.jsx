@@ -4,8 +4,8 @@ const StepOpcional = ({ emailData, onNext, onBack, onClose }) => {
   const reenvioEmail = emailData?.email || 'inbox@adaptaweb.cl';
 
   return (
-    <div className="bg-[#f7f9fb] text-[#191c1e] min-h-screen flex flex-col">
-      <header className="bg-[#f7f9fb] fixed top-0 w-full z-50 flex justify-between items-center px-4 h-16 shadow-none">
+    <div className="bg-[#f7f9fb] text-[#191c1e] h-full flex flex-col overflow-hidden">
+      <header className="bg-[#f7f9fb] sticky top-0 z-50 flex justify-between items-center px-4 h-16 shadow-none flex-shrink-0">
         <button onClick={onBack} className="text-[#006c4d] active:opacity-80 active:scale-95 transition-all">
           <ArrowLeft size={24} />
         </button>
@@ -15,7 +15,7 @@ const StepOpcional = ({ emailData, onNext, onBack, onClose }) => {
         </button>
       </header>
 
-      <main className="flex-grow pt-20 pb-32 px-4 max-w-[600px] mx-auto w-full">
+      <main className="flex-1 overflow-y-auto px-4 max-w-[600px] mx-auto w-full">
         <section className="mb-6 text-center">
           <div className="flex justify-center items-center gap-2 mb-2">
             <ShieldCheck className="text-[#2dbc8b]" size={24} fill="currentColor" />
@@ -114,7 +114,7 @@ const StepOpcional = ({ emailData, onNext, onBack, onClose }) => {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full flex justify-between items-center px-4 py-4 bg-[#f7f9fb] z-50 rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)]">
+      <nav className="flex justify-between items-center px-4 py-4 bg-[#f7f9fb] rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)] flex-shrink-0">
         <button onClick={onBack} className="flex flex-col items-center justify-center text-[#515f78] px-6 py-2 hover:bg-[#6de0b3]/10 active:scale-[0.98] transition-transform">
           <ArrowLeft size={24} className="mb-1" />
           <span className="text-[14px] leading-5 font-semibold">Volver</span>

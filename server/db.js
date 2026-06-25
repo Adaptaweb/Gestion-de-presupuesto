@@ -115,6 +115,34 @@ async function addCasillaColumn() {
   } catch (e) {
     // columna ya existe, ignorar
   }
+
+  // Backfill existing users with NULL casilla
+  try {
+    const users = await db.all('SELECT id, email FROM users WHERE casilla IS NULL');
+    for (const user of users) {
+      const localPart = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      let base = localPart.slice(0, 4);
+      while (base.length < 4) {
+        base += Math.random().toString(36).substr(2, 1);
+      }
+      let casilla = base;
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await db.get('SELECT 1 FROM users WHERE casilla = ?', casilla);
+        if (!existing) break;
+        const suffix = Math.floor(100 + Math.random() * 900).toString();
+        casilla = base + suffix;
+        attempts++;
+      }
+      await db.run('UPDATE users SET casilla = ? WHERE id = ?', casilla, user.id);
+      console.log(`[MIGRATION] Backfilled casilla for ${user.email}: ${casilla}`);
+    }
+    if (users.length > 0) {
+      console.log(`[MIGRATION] Backfilled ${users.length} user(s) with null casilla`);
+    }
+  } catch (e) {
+    console.error('[MIGRATION] Error backfilling casilla:', e.message);
+  }
 }
 
 async function ensureCategoriasTable() {

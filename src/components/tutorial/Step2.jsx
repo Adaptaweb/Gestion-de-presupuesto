@@ -15,8 +15,8 @@ const Step2 = ({ onNext, onBack, onClose }) => {
   }, []);
 
   return (
-    <div className="bg-[#f7f9fb] text-[#191c1e] pb-32">
-      <header className="flex justify-between items-center w-full px-4 h-16 fixed top-0 z-50 bg-[#f7f9fb]">
+    <div className="bg-[#f7f9fb] text-[#191c1e] h-full flex flex-col overflow-hidden">
+      <header className="flex justify-between items-center w-full px-4 h-16 sticky top-0 z-50 bg-[#f7f9fb] flex-shrink-0">
         <div className="flex items-center gap-2">
           <button onClick={onBack} className="p-2 rounded-full hover:bg-[#f1f5f9] transition-all active:scale-95">
             <ArrowLeft className="text-[#006c4d]" size={24} />
@@ -28,7 +28,7 @@ const Step2 = ({ onNext, onBack, onClose }) => {
         </button>
       </header>
 
-      <main className="max-w-[1200px] mx-auto px-4 md:px-10 pt-24 space-y-8">
+      <main className="flex-1 overflow-y-auto max-w-[1200px] mx-auto px-4 md:px-10 space-y-8">
         <section className="flex flex-col items-center justify-center space-y-4">
           <div className="flex items-center w-full max-w-md">
             <div className="flex-1 h-1.5 rounded-full bg-[#2dbc8b]"></div>
@@ -147,7 +147,7 @@ const Step2 = ({ onNext, onBack, onClose }) => {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full flex justify-between items-center px-4 py-4 bg-[#f7f9fb] z-50 rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)]">
+      <nav className="flex justify-between items-center px-4 py-4 bg-[#f7f9fb] rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)] flex-shrink-0">
         <button onClick={onBack} className="flex flex-col items-center justify-center text-[#515f78] px-6 py-2 hover:bg-[#6de0b3]/10 rounded-xl transition-all active:scale-[0.98]">
           <ArrowLeft size={24} />
           <span className="text-[14px] leading-5 font-semibold">Anterior</span>

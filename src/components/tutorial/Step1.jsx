@@ -4,8 +4,8 @@ const Step1 = ({ emailData, onNext, onOpcional, onClose }) => {
   const reenvioEmail = emailData?.email || 'inbox@adaptaweb.cl';
 
   return (
-    <div className="bg-[#f7f9fb] text-[#191c1e] min-h-screen flex flex-col">
-      <header className="fixed top-0 left-0 w-full z-50 bg-[#f7f9fb] h-16 flex justify-between items-center px-4 md:px-10">
+    <div className="bg-[#f7f9fb] text-[#191c1e] h-full flex flex-col overflow-hidden">
+      <header className="sticky top-0 z-50 bg-[#f7f9fb] h-16 flex justify-between items-center px-4 md:px-10 flex-shrink-0">
         <div className="flex items-center gap-2">
           <button onClick={onClose} className="p-2 hover:bg-[#f1f5f9] rounded-full transition-colors active:scale-95">
             <ArrowLeft className="text-[#006c4d]" size={24} />
@@ -17,7 +17,7 @@ const Step1 = ({ emailData, onNext, onOpcional, onClose }) => {
         </button>
       </header>
 
-      <main className="flex-grow pt-20 pb-32 px-4 md:px-10 max-w-[1200px] mx-auto w-full">
+      <main className="flex-1 overflow-y-auto px-4 md:px-10 max-w-[1200px] mx-auto w-full">
         <section className="mb-8 flex flex-col items-center">
           <div className="flex items-center w-full max-w-md gap-0 relative h-10">
             <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#e0e3e5] -translate-y-1/2"></div>
@@ -118,7 +118,7 @@ const Step1 = ({ emailData, onNext, onOpcional, onClose }) => {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 w-full flex justify-between items-center px-4 py-4 bg-[#f7f9fb] rounded-t-xl z-50 shadow-[0_-4px_12px_rgba(10,25,47,0.1)]">
+      <footer className="flex justify-between items-center px-4 py-4 bg-[#f7f9fb] rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)] flex-shrink-0">
         <div className="flex flex-col items-center justify-center text-[#515f78] px-6 py-2 rounded-xl opacity-50">
           <ArrowLeft size={24} />
           <span className="text-[14px] leading-5 font-semibold">Anterior</span>

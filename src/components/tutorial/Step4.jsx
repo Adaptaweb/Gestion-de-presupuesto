@@ -18,8 +18,8 @@ const Step4 = ({ onNext, onBack, onClose }) => {
   };
 
   return (
-    <div className="bg-[#f7f9fb] min-h-screen flex flex-col">
-      <header className="bg-[#f7f9fb] sticky top-0 z-40 flex justify-between items-center w-full px-4 h-16">
+    <div className="bg-[#f7f9fb] h-full flex flex-col overflow-hidden relative">
+      <header className="bg-[#f7f9fb] sticky top-0 z-40 flex justify-between items-center w-full px-4 h-16 flex-shrink-0">
         <button onClick={onBack} className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#f1f5f9] transition-all active:scale-95">
           <ArrowLeft className="text-[#006c4d]" size={24} />
         </button>
@@ -29,7 +29,7 @@ const Step4 = ({ onNext, onBack, onClose }) => {
         </button>
       </header>
 
-      <main className="flex-1 max-w-[1200px] mx-auto w-full px-4 md:px-10 py-6">
+      <main className="flex-1 overflow-y-auto max-w-[1200px] mx-auto w-full px-4 md:px-10 py-6">
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-[#2dbc8b] flex items-center justify-center text-white">
@@ -115,7 +115,7 @@ const Step4 = ({ onNext, onBack, onClose }) => {
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 w-full flex justify-between items-center px-4 py-4 bg-[#f7f9fb] shadow-[0_-4px_12px_rgba(10,25,47,0.1)] z-50 rounded-t-xl">
+      <nav className="flex justify-between items-center px-4 py-4 bg-[#f7f9fb] shadow-[0_-4px_12px_rgba(10,25,47,0.1)] rounded-t-xl flex-shrink-0">
         <button onClick={onBack} className="flex flex-col items-center justify-center text-[#515f78] px-6 py-2 hover:bg-[#6de0b3]/10 rounded-xl transition-all active:scale-95">
           <ArrowLeft size={24} className="mb-1" />
           <span className="text-[14px] leading-5 font-semibold">Anterior</span>
@@ -134,8 +134,8 @@ const Step4 = ({ onNext, onBack, onClose }) => {
         </button>
       </nav>
 
-      <div className="fixed top-20 right-[-5%] w-64 h-64 bg-[#6de0b3] opacity-5 blur-[120px] pointer-events-none rounded-full"></div>
-      <div className="fixed bottom-20 left-[-5%] w-80 h-80 bg-[#006c4d] opacity-5 blur-[140px] pointer-events-none rounded-full"></div>
+      <div className="absolute top-20 right-[-5%] w-64 h-64 bg-[#6de0b3] opacity-5 blur-[120px] pointer-events-none rounded-full"></div>
+      <div className="absolute bottom-20 left-[-5%] w-80 h-80 bg-[#006c4d] opacity-5 blur-[140px] pointer-events-none rounded-full"></div>
     </div>
   );
 };

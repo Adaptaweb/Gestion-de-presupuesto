@@ -3532,22 +3532,25 @@ const App = () => {
     );
   }
 
-  if (currentView === 'tutorial') {
-    return (
-      <TutorialFlow
-        onBack={() => setCurrentView('dashboard')}
-      />
-    );
-  }
+  const [showTutorial, setShowTutorial] = useState(false);
 
   return (
-    <Dashboard
-      user={user}
-      token={token}
-      onLogout={handleLogout}
-      onOpenAdmin={() => setCurrentView('admin')}
-      onOpenTutorial={() => setCurrentView('tutorial')}
-    />
+    <>
+      <Dashboard
+        user={user}
+        token={token}
+        onLogout={handleLogout}
+        onOpenAdmin={() => setCurrentView('admin')}
+        onOpenTutorial={() => setShowTutorial(true)}
+      />
+      {showTutorial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90vh] max-h-[900px] shadow-2xl overflow-hidden">
+            <TutorialFlow onClose={() => setShowTutorial(false)} />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
