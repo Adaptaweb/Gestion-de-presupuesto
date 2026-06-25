@@ -3455,6 +3455,7 @@ const App = () => {
   const [currentView, setCurrentView] = useState('loading');
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -3531,8 +3532,6 @@ const App = () => {
       />
     );
   }
-
-  const [showTutorial, setShowTutorial] = useState(false);
 
   return (
     <>
