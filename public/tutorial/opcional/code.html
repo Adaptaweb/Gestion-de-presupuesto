@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kuentas Klaras - Paso 1.5</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "mint-dark": "#2dbc8b",
+                        "surface": "#f7f9fb",
+                        "tertiary-fixed-dim": "#68dbae",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-low": "#f2f4f6",
+                        "mint-bright": "#6de0b3",
+                        "surface-container": "#eceef0",
+                        "on-tertiary-fixed-variant": "#00513a",
+                        "on-primary-fixed": "#002115",
+                        "on-secondary-fixed": "#0d1c32",
+                        "secondary": "#515f78",
+                        "primary-fixed-dim": "#58dda9",
+                        "on-primary-container": "#004530",
+                        "primary": "#006c4d",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "outline": "#6d7a72",
+                        "tertiary": "#006c4e",
+                        "on-surface-variant": "#3d4a43",
+                        "surface-tint": "#006c4d",
+                        "secondary-fixed": "#d6e3ff",
+                        "inverse-primary": "#58dda9",
+                        "on-surface": "#191c1e",
+                        "surface-variant": "#e0e3e5",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#bccac0",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#55637d",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#e0e3e5",
+                        "primary-fixed": "#77fac4",
+                        "navy-deep": "#0a192f",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-fixed-variant": "#005139",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#004531",
+                        "surface-bright": "#f7f9fb",
+                        "background": "#f7f9fb",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "secondary-fixed-dim": "#b9c7e4",
+                        "white": "#ffffff",
+                        "surface-dim": "#d8dadc",
+                        "secondary-container": "#d2e0fe",
+                        "gray-soft": "#f1f5f9",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "on-tertiary-fixed": "#002115",
+                        "tertiary-container": "#44ba90",
+                        "primary-container": "#2dbc8b",
+                        "tertiary-fixed": "#85f8c9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2.5rem",
+                        "unit-12": "3rem",
+                        "unit-8": "2rem",
+                        "margin-mobile": "1rem",
+                        "unit-1": "0.25rem",
+                        "base": "4px",
+                        "unit-6": "1.5rem",
+                        "unit-4": "1rem",
+                        "unit-2": "0.5rem",
+                        "gutter": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #2dbc8b;
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(10, 25, 47, 0.08);
+        }
+        body {
+            background-color: #f7f9fb;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar Mapping -->
+<header class="bg-surface dark:bg-navy-deep fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 shadow-none">
+<button class="text-primary dark:text-mint-bright active:opacity-80 active:scale-95 transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-lg-mobile text-navy-deep dark:text-on-primary tracking-tight">Kuentas Klaras</h1>
+<button class="text-secondary dark:text-secondary-fixed-dim active:opacity-80 active:scale-95 transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-20 pb-32 px-margin-mobile max-w-[600px] mx-auto w-full">
+<!-- Header Section -->
+<section class="mb-unit-6 text-center">
+<div class="flex justify-center items-center gap-2 mb-unit-2">
+<span class="material-symbols-outlined text-mint-dark" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-md text-label-md text-mint-dark uppercase tracking-wider">Tutorial Paso 1.5</span>
+</div>
+<h2 class="font-headline-md text-headline-md-mobile text-navy-deep mb-unit-2">Verificación de Seguridad (Opcional)</h2>
+<p class="font-body-md text-secondary">Realiza estos pasos solo si Gmail te solicita una confirmación adicional.</p>
+</section>
+<!-- Tutorial Steps -->
+<div class="space-y-unit-4">
+<!-- Step 1 Card -->
+<div class="bg-white rounded-xl p-unit-4 card-shadow border border-mint-bright/10">
+<div class="flex gap-unit-4">
+<div class="step-number">1</div>
+<div class="flex-grow">
+<p class="font-label-md text-navy-deep mb-unit-2">Clic en "Siguiente" en la ventana de verificación de Google.</p>
+<div class="rounded-lg overflow-hidden border border-gray-soft">
+<img class="w-full h-auto" data-alt="A clean, minimalist UI mockup of a Google verification pop-up window in light mode. The window displays text asking to verify identity and a prominent blue button labeled Siguiente. The design follows a corporate fintech aesthetic with soft shadows and high-key lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf4njPx_MC0t6TRaZXrhK8D3Eq4oRzs8DvADAp4OnY9VRGNAlIiij26k9ZshCKXjHzalux372TlWx7zSTEzzdWc-YlsrRlw4jrFdKIf0A7Ft4GynSFPVTCRWKGEb3dDpP17ZFVxoM8KfZ492WFgouC3z0Oum4XdIYgsoCbWj98kkz0nUfMIJmkzwJS_HjOg2tWHxe72VVM5XdQz4YT74yNRmvoIIAmpUGPR9zSrV0mNi1UjMf3Q0N-B5oZ5e3Kd4ivIB_-_7dOlg"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 2 & 3 Card - Mobile Interaction -->
+<div class="bg-white rounded-xl p-unit-4 card-shadow border border-mint-bright/10">
+<div class="flex flex-col gap-unit-4">
+<div class="flex gap-unit-4">
+<div class="step-number">2</div>
+<p class="font-label-md text-navy-deep">En tu celular, presiona "Sí, soy yo" en la notificación que recibas.</p>
+</div>
+<div class="flex gap-unit-4">
+<div class="step-number">3</div>
+<p class="font-label-md text-navy-deep">Selecciona el número que aparece en la pantalla de tu computador.</p>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-unit-2">
+<div class="bg-gray-soft rounded-lg p-2 flex flex-col items-center">
+<span class="material-symbols-outlined text-mint-dark mb-1">smartphone</span>
+<span class="text-[10px] font-bold text-secondary uppercase">Celular</span>
+</div>
+<div class="bg-gray-soft rounded-lg p-2 flex flex-col items-center">
+<span class="material-symbols-outlined text-mint-dark mb-1">laptop</span>
+<span class="text-[10px] font-bold text-secondary uppercase">Computador</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 4 Card - Confirm Address -->
+<div class="bg-white rounded-xl p-unit-4 card-shadow border border-mint-bright/10">
+<div class="flex gap-unit-4">
+<div class="step-number">4</div>
+<div class="flex-grow">
+<p class="font-label-md text-navy-deep mb-unit-2">Clic en "Continuar" y luego en "Aceptar" para confirmar el reenvío.</p>
+<div class="bg-mint-bright/5 border border-mint-bright/20 rounded-lg p-unit-2 text-center mb-unit-2">
+<code class="text-mint-dark font-bold">inbox@adaptaweb.cl</code>
+</div>
+<p class="text-[12px] text-secondary-fixed-variant leading-tight italic">
+                            Asegúrate de que la dirección sea exactamente la indicada arriba.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Step 5 & 6 Card - Verification -->
+<div class="bg-white rounded-xl p-unit-4 card-shadow border border-mint-bright/10">
+<div class="space-y-unit-4">
+<div class="flex gap-unit-4">
+<div class="step-number">5</div>
+<div class="flex-grow">
+<p class="font-label-md text-navy-deep">Vuelve a la sección "Reenvío y correo POP/IMAP" en los ajustes de Gmail.</p>
+<div class="flex items-center gap-1 mt-1 text-mint-dark">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span class="text-[12px] font-medium">Configuración</span>
+</div>
+</div>
+</div>
+<div class="flex gap-unit-4 border-t border-gray-soft pt-unit-4">
+<div class="step-number">6</div>
+<div class="flex-grow">
+<p class="font-label-md text-navy-deep">Verifica que la opción esté seleccionada y guarda los cambios.</p>
+<div class="mt-unit-2 rounded-lg border border-mint-dark/30 p-unit-2 bg-mint-bright/10">
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-full border-2 border-mint-dark flex items-center justify-center">
+<div class="w-2 h-2 rounded-full bg-mint-dark"></div>
+</div>
+<span class="text-[12px] text-navy-deep">Reenviar una copia a...</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Optional Tip -->
+<div class="mt-unit-8 bg-on-secondary-fixed/5 rounded-xl p-unit-4 flex gap-unit-2 border border-secondary/10">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">info</span>
+<p class="text-[13px] text-secondary">
+                Si no ves la ventana de Google, puedes saltar este paso y continuar directamente a la Parte 2.
+            </p>
+</div>
+</main>
+<!-- BottomNavBar Mapping -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-between items-center px-margin-mobile py-4 bg-surface dark:bg-on-secondary-fixed z-50 rounded-t-xl shadow-[0_-4px_12px_rgba(10,25,47,0.1)] dark:shadow-none">
+<!-- Secondary Action (Volver) -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim px-6 py-2 hover:bg-mint-bright/10 active:scale-98 transition-transform">
+<span class="material-symbols-outlined mb-1">arrow_back</span>
+<span class="font-label-md text-label-md">Volver</span>
+</button>
+<!-- Primary Action (Siguiente) -->
+<button class="flex flex-col items-center justify-center bg-mint-dark text-white rounded-xl px-8 py-2 shadow-lg active:scale-95 transition-transform">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md">Listo, continuar a la Parte 2</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</button>
+</nav>
+<script>
+        // Simple animation on scroll for cards
+        const cards = document.querySelectorAll('.card-shadow');
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        cards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(10px)';
+            card.style.transition = 'all 0.4s ease-out';
+            observer.observe(card);
+        });
+    </script>
+</body></html>

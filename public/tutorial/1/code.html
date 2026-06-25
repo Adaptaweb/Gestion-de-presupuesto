@@ -1,0 +1,280 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "navy-deep": "#0a192f",
+                        "secondary": "#515f78",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c32",
+                        "mint-bright": "#6de0b3",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#004530",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#58dda9",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-container": "#004531",
+                        "surface-container-low": "#f2f4f6",
+                        "outline": "#6d7a72",
+                        "on-primary-fixed-variant": "#005139",
+                        "on-secondary-container": "#55637d",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "primary-container": "#2dbc8b",
+                        "tertiary-fixed-dim": "#68dbae",
+                        "on-background": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d2e0fe",
+                        "outline-variant": "#bccac0",
+                        "tertiary-fixed": "#85f8c9",
+                        "on-tertiary-fixed-variant": "#00513a",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed": "#002115",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-surface-variant": "#3d4a43",
+                        "surface-variant": "#e0e3e5",
+                        "on-primary-fixed": "#002115",
+                        "gray-soft": "#f1f5f9",
+                        "primary": "#006c4d",
+                        "surface-tint": "#006c4d",
+                        "error": "#ba1a1a",
+                        "mint-dark": "#2dbc8b",
+                        "tertiary": "#006c4e",
+                        "surface-dim": "#d8dadc",
+                        "background": "#f7f9fb",
+                        "primary-fixed": "#77fac4",
+                        "on-surface": "#191c1e",
+                        "tertiary-container": "#44ba90",
+                        "white": "#ffffff",
+                        "primary-fixed-dim": "#58dda9",
+                        "surface-bright": "#f7f9fb",
+                        "secondary-fixed-dim": "#b9c7e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2.5rem",
+                        "gutter": "1.5rem",
+                        "base": "4px",
+                        "unit-4": "1rem",
+                        "margin-mobile": "1rem",
+                        "unit-1": "0.25rem",
+                        "unit-2": "0.5rem",
+                        "unit-8": "2rem",
+                        "unit-6": "1.5rem",
+                        "unit-12": "3rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .step-active { font-variation-settings: 'FILL' 1; }
+        
+        .bento-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(10, 25, 47, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .bento-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(10, 25, 47, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface h-16 flex justify-between items-center px-margin-mobile md:px-margin-desktop">
+<div class="flex items-center gap-unit-2">
+<button class="p-2 hover:bg-gray-soft rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep tracking-tight">Kuentas Klaras</h1>
+</div>
+<button class="p-2 hover:bg-gray-soft rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-secondary">close</span>
+</button>
+</header>
+<main class="flex-grow pt-20 pb-32 px-margin-mobile md:px-margin-desktop max-w-[1200px] mx-auto w-full">
+<!-- Progress Stepper -->
+<section class="mb-unit-8 flex flex-col items-center">
+<div class="flex items-center w-full max-w-md gap-0 relative h-10">
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-surface-container-highest -translate-y-1/2"></div>
+<div class="absolute top-1/2 left-0 w-1/4 h-[2px] bg-mint-dark -translate-y-1/2"></div>
+<div class="relative z-10 flex justify-between w-full">
+<!-- Step 1: Active -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-mint-dark flex items-center justify-center text-white ring-4 ring-white shadow-sm">
+<span class="material-symbols-outlined text-[18px] step-active">check_circle</span>
+</div>
+<span class="text-label-sm font-label-sm text-mint-dark mt-1">Inicio</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-mint-bright/30 flex items-center justify-center text-mint-dark ring-4 ring-white">
+<span class="font-bold text-[14px]">1</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary mt-1">Vinculación</span>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary ring-4 ring-white">
+<span class="font-bold text-[14px]">2</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary mt-1">Verificación</span>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary ring-4 ring-white">
+<span class="font-bold text-[14px]">3</span>
+</div>
+<span class="text-label-sm font-label-sm text-secondary mt-1">Final</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Content Canvas -->
+<div class="space-y-unit-6 max-w-2xl mx-auto">
+<div class="text-center space-y-unit-2">
+<p class="font-label-md text-label-md text-primary uppercase tracking-widest">Parte 1</p>
+<h2 class="font-headline-md text-headline-md text-navy-deep">
+                    Agregar dirección <span class="text-mint-dark">inbox@kuanto.app</span> a tu correo
+                </h2>
+<div class="flex items-center justify-center gap-unit-2 py-unit-2 text-secondary">
+<span class="material-symbols-outlined">visibility</span>
+<p class="font-body-md text-body-md">Debes abrir tu E-mail en un computador 💻*</p>
+</div>
+</div>
+<!-- Bento Instructions Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-unit-4">
+<!-- Step Card 1 & 2 -->
+<div class="bento-card p-unit-6 flex flex-col gap-unit-4">
+<div class="flex gap-unit-4 items-start">
+<div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">1</div>
+<p class="font-body-md text-on-surface">Clic en el icono del menú <span class="material-symbols-outlined text-[20px] text-secondary">settings</span></p>
+</div>
+<div class="flex gap-unit-4 items-start">
+<div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">2</div>
+<p class="font-body-md text-on-surface">Clic en "Ver toda la configuración/Ajustes"</p>
+</div>
+<div class="mt-auto border border-surface-container-highest rounded-xl overflow-hidden shadow-inner">
+<img class="w-full h-auto object-cover" data-alt="A detailed digital interface mockup of a Gmail settings panel. The focus is on the top right gear icon highlighted with a bright red circle and a numbered step label. The interface uses a clean, professional white background with subtle blue accents, following a modern flat design aesthetic typical of enterprise software." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRqGty-l37u_VPOVrrxviHELXXtmkjS7zkoR6vv81Pp4idiTNV-Wmw_N0AQHRSkiKRH9BFy2rF4-Xd2yPTKKVdyQb1iLv9VjdN9SNd0GbujtG6KpD-6x_z-CP4MCUSKzFrjUTmSZtzx1bruuSQqX66Bg6wvflwy9fYBGw1D__3UtEfxYsZ1KvJtJradLRQ3oAm0C9WEhl2A99qh_GRzIw-y99k-_yAlG6Kf71Twcg6E9SRcMo4fZPRYlYx9gtw9Lq72xnDLVKq4w">
+</div>
+</div>
+<!-- Step Card 3 & 4 -->
+<div class="bento-card p-unit-6 flex flex-col gap-unit-4">
+<div class="flex gap-unit-4 items-start">
+<div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">3</div>
+<p class="font-body-md text-on-surface">Clic en pestaña "Reenvío y correo POP/IMAP"</p>
+</div>
+<div class="flex gap-unit-4 items-start">
+<div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">4</div>
+<p class="font-body-md text-on-surface">Clic en "Agregar una dirección de reenvío"</p>
+</div>
+<div class="mt-auto border border-surface-container-highest rounded-xl overflow-hidden shadow-inner">
+<img class="w-full h-auto object-cover" data-alt="A clean, high-resolution screenshot of a web email settings page focusing on the forwarding section. A specific tab labeled Reenvío y correo POP/IMAP is highlighted with a soft mint green border. A large primary button labeled Agregar una dirección de reenvío is clearly visible in the center, emphasizing the call to action in a structured layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE2Ss38bWodJiWQZdKCq5dYjh-lAg6sCH8hXtYFbUifEN8ZFrd8JbMx6ETf2Md4XIoMWOGp2IHNHzhzq5PiS5Dgo0teMfZgVmjtgxntMtK6uUqAamEagQA7T2TTU0ntd5UOB1JD_X8T6AqW3nnOHEJY3LhGLK7F3-UITQgsh5iNBjWJF26-keNDKDufGlr7BtWLZU4XmMC3oJJD7lNcBAJZ-TZfZB9zx8Mh9mqZYzMhvhYDsPeDz2ztMbjauMId8qZNGbCELYaEg">
+</div>
+</div>
+</div>
+<!-- Focus Action Card -->
+<div class="bento-card p-unit-6 border-l-4 border-mint-dark">
+<div class="flex gap-unit-4 items-start">
+<div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">5</div>
+<div class="space-y-unit-2 flex-grow">
+<p class="font-headline-md text-headline-md text-navy-deep">Escribe "<span class="text-mint-dark select-all">inbox@kuanto.app</span>"</p>
+<p class="font-body-md text-secondary">Asegúrate de copiarla exactamente como aparece aquí para una integración transparente.</p>
+<div class="mt-unit-4 bg-gray-soft p-unit-4 rounded-xl border border-outline-variant/30 overflow-hidden">
+<img class="w-full h-auto rounded-lg" data-alt="A focused close-up of a digital input field on a professional dashboard. The email address inbox@kuanto.app is being typed into a clear text field. The surrounding UI is minimalist with high whitespace and soft shadows, reflecting a secure and modern fintech application environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiaUvQkoiuW-7GoAnBfQbrqwWOAGwDmjXrteog3B6U1C0Z9-c5ngESS1ZcSQAaddBWk1MsB3rpedkpLwKgb8A9UAGwTyQtJ1tI2qd-nty7Ref_IQlyY9rPUVrMiCYyGTqjPHbmmtaPp91dJH2T1x-PpvXcDUNQW4wU98tgyeOUSrUB0FEjuygiYivU21uz3af6JsggoXsd_JmkJ0HMbfV2omSZDdx1xwES_kYoYPr1sPp2m_A4wzoPeNOkTKFjTQZTR3mq1PRoXw">
+</div>
+</div>
+</div>
+</div>
+<!-- Selection Options -->
+<div class="space-y-unit-3 pt-unit-4">
+
+
+<button class="w-full py-unit-4 px-6 border-2 border-mint-dark text-mint-dark font-label-md rounded-lg hover:bg-mint-bright/10 transition-all active:scale-98 flex items-center justify-center gap-unit-2">
+  <span class="material-symbols-outlined">security</span>
+  <span class="">Si gmail te solicita autorización presiona aca</span>
+</button></div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<footer class="fixed bottom-0 left-0 w-full flex justify-between items-center px-margin-mobile py-4 bg-surface dark:bg-on-secondary-fixed rounded-t-xl z-50 shadow-[0_-4px_12px_rgba(10,25,47,0.1)]">
+<button class="flex flex-col items-center justify-center text-secondary px-6 py-2 hover:bg-mint-bright/10 rounded-xl transition-all active:scale-98">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-label-md text-label-md">Anterior</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-mint-dark text-white rounded-xl px-8 py-2 shadow-lg shadow-mint-dark/20 hover:bg-primary transition-all active:scale-98">
+<span class="material-symbols-outlined">arrow_forward</span>
+<span class="font-label-md text-label-md">Siguiente</span>
+</button>
+</footer>
+<script>
+        // Simple micro-interaction for the radio-button-like selection
+        document.querySelectorAll('button.bento-card').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Clear others
+                document.querySelectorAll('button.bento-card div div').forEach(dot => dot.classList.add('scale-0'));
+                // Activate this one
+                const dot = this.querySelector('div div');
+                if (dot) dot.classList.remove('scale-0');
+                
+                // Add feedback
+                this.classList.add('scale-95');
+                setTimeout(() => this.classList.remove('scale-95'), 150);
+            });
+        });
+    </script>
+
+
+</body></html>

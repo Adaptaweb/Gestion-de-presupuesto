@@ -1,0 +1,329 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Kuentas Klaras - Paso 4: Selección de Banco</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "navy-deep": "#0a192f",
+                        "secondary": "#515f78",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c32",
+                        "mint-bright": "#6de0b3",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#004530",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#58dda9",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-container": "#004531",
+                        "surface-container-low": "#f2f4f6",
+                        "outline": "#6d7a72",
+                        "on-primary-fixed-variant": "#005139",
+                        "on-secondary-container": "#55637d",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "primary-container": "#2dbc8b",
+                        "tertiary-fixed-dim": "#68dbae",
+                        "on-background": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d2e0fe",
+                        "outline-variant": "#bccac0",
+                        "tertiary-fixed": "#85f8c9",
+                        "on-tertiary-fixed-variant": "#00513a",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed": "#002115",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-surface-variant": "#3d4a43",
+                        "surface-variant": "#e0e3e5",
+                        "on-primary-fixed": "#002115",
+                        "gray-soft": "#f1f5f9",
+                        "primary": "#006c4d",
+                        "surface-tint": "#006c4d",
+                        "error": "#ba1a1a",
+                        "mint-dark": "#2dbc8b",
+                        "tertiary": "#006c4e",
+                        "surface-dim": "#d8dadc",
+                        "background": "#f7f9fb",
+                        "primary-fixed": "#77fac4",
+                        "on-surface": "#191c1e",
+                        "tertiary-container": "#44ba90",
+                        "white": "#ffffff",
+                        "primary-fixed-dim": "#58dda9",
+                        "surface-bright": "#f7f9fb",
+                        "secondary-fixed-dim": "#b9c7e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2.5rem",
+                        "gutter": "1.5rem",
+                        "base": "4px",
+                        "unit-4": "1rem",
+                        "margin-mobile": "1rem",
+                        "unit-1": "0.25rem",
+                        "unit-2": "0.5rem",
+                        "unit-8": "2rem",
+                        "unit-6": "1.5rem",
+                        "unit-12": "3rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bank-card-active {
+            border-color: #2dbc8b !important;
+            box-shadow: 0 4px 12px rgba(45, 188, 139, 0.2);
+            transform: translateY(-2px);
+        }
+        .step-completed {
+            background-color: #2dbc8b;
+            color: white;
+        }
+        .step-active {
+            border: 2px solid #2dbc8b;
+            color: #2dbc8b;
+        }
+        .step-pending {
+            background-color: #e0e3e5;
+            color: #515f78;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen flex flex-col font-body-md text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="bg-surface sticky top-0 z-40 flex justify-between items-center w-full px-margin-mobile h-16">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-soft transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<span class="font-headline-lg-mobile text-navy-deep tracking-tight">Kuentas Klaras</span>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-soft transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">close</span>
+</button>
+</header>
+<main class="flex-1 max-w-[1200px] mx-auto w-full px-margin-mobile md:px-margin-desktop py-unit-6">
+<!-- Progress Stepper -->
+<div class="flex items-center justify-center mb-unit-8 space-x-unit-2">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-completed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="w-12 h-[2px] bg-mint-dark"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-completed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="w-12 h-[2px] bg-mint-dark"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-completed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="w-12 h-[2px] bg-mint-dark"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-active flex items-center justify-center font-bold text-label-md">
+                    4
+                </div>
+</div>
+</div>
+<!-- Success Toast (Instruction: ¡LISTA LA REGLA DE REENVÍO!) -->
+<div class="mb-unit-6 bg-mint-bright/10 border border-mint-dark/20 rounded-xl p-unit-4 flex items-center gap-unit-3 animate-pulse">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-md text-primary">¡LISTA LA REGLA DE REENVÍO!</span>
+</div>
+<!-- Header Content -->
+<div class="text-center mb-unit-8">
+<p class="text-primary font-bold tracking-wider uppercase text-label-sm mb-unit-1">PARTE 3</p>
+<h1 class="font-headline-md text-navy-deep mb-unit-4">Revisar configuración de notificaciones por email en tu banco</h1>
+<p class="text-secondary font-label-md">Elige Banco a configurar</p>
+</div>
+<!-- Bento-style Grid for Banks -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-unit-4 mb-unit-12">
+<!-- Banco 1 -->
+<label class="group relative cursor-pointer">
+<input class="hidden" name="bank" onchange="updateSelection(this)" type="radio">
+<div class="bank-card bg-white border border-outline-variant rounded-xl p-unit-4 flex flex-col items-center justify-between h-48 transition-all hover:border-mint-dark">
+<div class="flex-1 flex items-center justify-center w-full">
+<img class="max-h-20 w-auto object-contain" data-alt="A minimalist logo for Banco de Chile featuring the stylized dark blue letter B in a classic, professional serif font, set against a clean white studio background. The style is sharp, corporate, and trustworthy, with soft ambient lighting characteristic of a modern fintech interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyQhJ5-gN0Qbkp0YVNVAZAmP4zuVcO-_SWEuGH9sfQtBYQQQ1FSP5FqBoU1rBh4Ck80NXBJf2yjzWWByUMf5tOU9iR3qAJRxeOsOJkC-OiL3R9t5_UMWtY6uiQUdrRLHP_SJeZY1NB-r7kMJPQ-dOoAmTP_jthf1oDcJfKswt5xEcKAWCcgOF9orxCosxO7esYVe9BlJ8bSAG_I4zBYNzGixdoTODI3imP5SXNLtkIDGwM6ENoNi3PugtAqDHdkm__wM2ll0hgkg">
+</div>
+<div class="w-full flex items-center gap-unit-2 mt-unit-2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant group-hover:border-mint-dark flex items-center justify-center radio-circle">
+<div class="w-2.5 h-2.5 rounded-full bg-mint-dark hidden"></div>
+</div>
+<span class="font-label-md text-secondary group-hover:text-primary">Banco Chile</span>
+</div>
+</div>
+</label>
+<!-- Banco 2 -->
+<label class="group relative cursor-pointer">
+<input class="hidden" name="bank" onchange="updateSelection(this)" type="radio">
+<div class="bank-card bg-white border border-outline-variant rounded-xl p-unit-4 flex flex-col items-center justify-between h-48 transition-all hover:border-mint-dark">
+<div class="flex-1 flex items-center justify-center w-full">
+<img class="max-h-20 w-auto object-contain" data-alt="A modern abstract logo for BCI Bank showing fluid organic shapes in blue, red, and yellow, interlocking in a dynamic corporate identity. The background is a crisp, bright white. High-quality render with soft drop shadows and vibrant colors that fit a professional financial app's tactile aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjkhV5ihT-uyRY09JJWO3npdraiopHUoZ--xil3PrmGp6oHTpkEhZMooNp8BI-GuhJ8rgWMTPmfUN2oCGQneiMSRdkosHetHHV44s80bzMD5qLVd_GXPSxoDHj3YkjlBEUUNhWsdX-fQ5VEo7q73gFynrDJP7EGXPr_92TCm7CzTM0I4o13kCwkYJcD8h7PSLcd9EdmbgQWTgKO2g0D0kiQ1UJZhvwHqd4dfIeeWwaE-Rdqyvys4F7bE4N6McCRGfSVfTEI337dg">
+</div>
+<div class="w-full flex items-center gap-unit-2 mt-unit-2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant group-hover:border-mint-dark flex items-center justify-center radio-circle">
+<div class="w-2.5 h-2.5 rounded-full bg-mint-dark hidden"></div>
+</div>
+<span class="font-label-md text-secondary group-hover:text-primary">BCI</span>
+</div>
+</div>
+</label>
+<!-- Banco 3 -->
+<label class="group relative cursor-pointer">
+<input class="hidden" name="bank" onchange="updateSelection(this)" type="radio">
+<div class="bank-card bg-white border border-outline-variant rounded-xl p-unit-4 flex flex-col items-center justify-between h-48 transition-all hover:border-mint-dark">
+<div class="flex-1 flex items-center justify-center w-full">
+<img class="max-h-20 w-auto object-contain" data-alt="The recognizable red flame-like logo of Santander bank centered on a white background. The image is clean and high-resolution, conveying a sense of established banking and financial security. Soft lighting emphasizes the smooth curves of the logo icon, perfectly matching a premium corporate UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC44Q3rOVPDsH4HFs4-V0P9jQlAuLp6HdVE4U1GMoI4Ce54XD23N6266vCF2gY2tfePxWJZd3jFlL_CYmb97oZJ2CaQTYUR72KrD4pf3JP1uPYPv_8cqPJuuCOTCkaQMvAg7872ZE-0pu6_ABjaR2RMO54oPdofj3UCARwaLWpEUkTx_4nv7vGeXLs8GJOZQ7LG8SaSz0B3Qa3XdMHqjNg51jT08BEb8tL98gNENkY9z7fSnC8hxFhQ4LexeqiR9f8xZYEQJaEb2Q">
+</div>
+<div class="w-full flex items-center gap-unit-2 mt-unit-2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant group-hover:border-mint-dark flex items-center justify-center radio-circle">
+<div class="w-2.5 h-2.5 rounded-full bg-mint-dark hidden"></div>
+</div>
+<span class="font-label-md text-secondary group-hover:text-primary">Santander</span>
+</div>
+</div>
+</label>
+<!-- Banco 4 -->
+<label class="group relative cursor-pointer">
+<input class="hidden" name="bank" onchange="updateSelection(this)" type="radio">
+<div class="bank-card bg-white border border-outline-variant rounded-xl p-unit-4 flex flex-col items-center justify-between h-48 transition-all hover:border-mint-dark">
+<div class="flex-1 flex items-center justify-center w-full">
+<img class="max-h-20 w-auto object-contain" data-alt="The Scotiabank logo featuring a white stylized S inside a bold red square. The design is modern, balanced, and high-contrast, set against a pristine white background. It represents stability and professional financial services within a sleek mobile application context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFTCgcNItzMB80NrcP35pfEdHA9AmvPv_sG7tkXoNHWEcO671xjbCZ9xPTsWq1kwROd5OOVGMx8R8a9C2hUgqDP9IUY3KNM6wHDioPYvQ_iMMCIkHcWiCsB2o7EAvhLmwNeNMemO40chQzyQWM2j2S-e5da8wRvtdjaw4gXTN2LLklZ5fxwoNmOmVtv-D4xUZW_xEocNKIRQ9hj6BePmk9OcLRkJtCXKVm4jUcBAin_TkZLZhqUw6QI4AL9jG9LBtUu-UPAybcCA">
+</div>
+<div class="w-full flex items-center gap-unit-2 mt-unit-2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant group-hover:border-mint-dark flex items-center justify-center radio-circle">
+<div class="w-2.5 h-2.5 rounded-full bg-mint-dark hidden"></div>
+</div>
+<span class="font-label-md text-secondary group-hover:text-primary">Scotia</span>
+</div>
+</div>
+</label>
+<!-- Banco 5 -->
+<label class="group relative cursor-pointer">
+<input class="hidden" name="bank" onchange="updateSelection(this)" type="radio">
+<div class="bank-card bg-white border border-outline-variant rounded-xl p-unit-4 flex flex-col items-center justify-between h-48 transition-all hover:border-mint-dark">
+<div class="flex-1 flex items-center justify-center w-full">
+<img class="max-h-20 w-auto object-contain" data-alt="The Itaú bank logo with its signature bold orange square and distinctive dark blue typography. Minimalist and corporate style, brightly lit on a white canvas. The branding is approachable yet professional, fitting seamlessly into a step-by-step financial tutorial journey." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPUkzv7gs8CrIoMNfFvaqEz6cZ9L_TDHOGNoxsh8VUIx1nAr2d_lW1RwC8FcLP_heryU9crcJm5Jkt7RwoMrhlzAaGiStrHsCUQ1sqP69GLxQuAPC1f7oxM_nkPOul2nwxUWda2Sg2TRh1ah1uUZimGZbG7NKj4LAPpzohczyx6t5kXRUlIparOsgjyMYNGcpkkLqZ0EwFyblSgl9WJCmk5tVib9Zj44jwixDuhkl4M7E1jTYsEgCz7KrDJIisKVnlt-4ChTz7PQ">
+</div>
+<div class="w-full flex items-center gap-unit-2 mt-unit-2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant group-hover:border-mint-dark flex items-center justify-center radio-circle">
+<div class="w-2.5 h-2.5 rounded-full bg-mint-dark hidden"></div>
+</div>
+<span class="font-label-md text-secondary group-hover:text-primary">Itaú</span>
+</div>
+</div>
+</label>
+<!-- Banco 6 -->
+<label class="group relative cursor-pointer">
+<input class="hidden" name="bank" onchange="updateSelection(this)" type="radio">
+<div class="bank-card bg-white border border-outline-variant rounded-xl p-unit-4 flex flex-col items-center justify-between h-48 transition-all hover:border-mint-dark">
+<div class="flex-1 flex items-center justify-center w-full">
+<img class="max-h-20 w-auto object-contain" data-alt="The MACH bank logo featuring a vibrant purple background with bold white futuristic text. This image captures a digital-first, neon-inspired fintech aesthetic, standing out with high energy and clarity against the surrounding white space of the tutorial interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAc3zdtY27y55c3EmfuKrwafeMZ9Ekammr5hiVutbjJgOsj0UVf7Lo_njjfRZEUjtOrFO-YSIvxuF5grJ6L2ktd1OnIlRjG7bTsCLEwp_Miy5xvjAXKJ7wo2WocJ2sKvTYzb660zSa9yOY8_Yo3NxuBppGIgf4Mmtyh7UL68WrgvjBCaiT9Y2y9H853MxLTYdMo6r4OzVJCGjrlrclOix6ADhQG4j-yZO5eim2k4Acxp2xk8Hy0GWPr6WrDZAIIq5N4LbWn_DYJ0w">
+</div>
+<div class="w-full flex items-center gap-unit-2 mt-unit-2">
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant group-hover:border-mint-dark flex items-center justify-center radio-circle">
+<div class="w-2.5 h-2.5 rounded-full bg-mint-dark hidden"></div>
+</div>
+<span class="font-label-md text-secondary group-hover:text-primary">Mach</span>
+</div>
+</div>
+</label>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-between items-center px-margin-mobile py-4 bg-surface dark:bg-on-secondary-fixed shadow-[0_-4px_12px_rgba(10,25,47,0.1)] z-50 rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-secondary px-6 py-2 hover:bg-mint-bright/10 rounded-xl transition-all active:scale-95">
+<span class="material-symbols-outlined mb-1">arrow_back</span>
+<span class="font-label-md text-label-md">Anterior</span>
+</button>
+<button class="flex items-center justify-center bg-mint-dark text-white rounded-xl px-12 py-3 shadow-lg hover:shadow-mint-dark/20 active:scale-95 transition-all opacity-50 cursor-not-allowed" disabled="" id="nextBtn">
+<span class="font-label-md mr-2">Siguiente</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</nav>
+<!-- Floating Atmosphere Elements -->
+<div class="fixed top-20 right-[-5%] w-64 h-64 bg-mint-bright opacity-5 blur-[120px] pointer-events-none rounded-full"></div>
+<div class="fixed bottom-20 left-[-5%] w-80 h-80 bg-primary opacity-5 blur-[140px] pointer-events-none rounded-full"></div>
+<script>
+        function updateSelection(input) {
+            // Reset all cards
+            document.querySelectorAll('.bank-card').forEach(card => {
+                card.classList.remove('bank-card-active');
+            });
+            document.querySelectorAll('.radio-circle div').forEach(dot => {
+                dot.classList.add('hidden');
+            });
+            document.querySelectorAll('.radio-circle').forEach(circle => {
+                circle.classList.remove('border-mint-dark');
+                circle.classList.add('border-outline-variant');
+            });
+
+            // Set active card
+            const card = input.closest('label').querySelector('.bank-card');
+            const dot = input.closest('label').querySelector('.radio-circle div');
+            const circle = input.closest('label').querySelector('.radio-circle');
+            
+            card.classList.add('bank-card-active');
+            dot.classList.remove('hidden');
+            circle.classList.remove('border-outline-variant');
+            circle.classList.add('border-mint-dark');
+
+            // Enable next button
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            nextBtn.disabled = false;
+            
+            // Add extra styling to indicate focus
+            nextBtn.classList.add('ring-4', 'ring-mint-dark/10');
+            setTimeout(() => nextBtn.classList.remove('ring-4'), 400);
+        }
+    </script>
+</body></html>

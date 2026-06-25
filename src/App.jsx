@@ -117,7 +117,7 @@ import {
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
-import ReenvioCorreo from './ReenvioCorreo.jsx';
+import TutorialFlow from './components/TutorialFlow.jsx';
 import Transacciones from './Transacciones.jsx';
 import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
@@ -3534,7 +3534,7 @@ const App = () => {
 
   if (currentView === 'tutorial') {
     return (
-      <ReenvioCorreo
+      <TutorialFlow
         onBack={() => setCurrentView('dashboard')}
       />
     );

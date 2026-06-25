@@ -1,0 +1,238 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Kuentas Klaras - Verificación de Seguridad</title>
+<!-- Google Fonts: Inter for the professional tactile feel -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols for icon consistency -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "navy-deep": "#0a192f",
+                        "secondary": "#515f78",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c32",
+                        "mint-bright": "#6de0b3",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#004530",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#58dda9",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-container": "#004531",
+                        "surface-container-low": "#f2f4f6",
+                        "outline": "#6d7a72",
+                        "on-primary-fixed-variant": "#005139",
+                        "on-secondary-container": "#55637d",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "primary-container": "#2dbc8b",
+                        "tertiary-fixed-dim": "#68dbae",
+                        "on-background": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d2e0fe",
+                        "outline-variant": "#bccac0",
+                        "tertiary-fixed": "#85f8c9",
+                        "on-tertiary-fixed-variant": "#00513a",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed": "#002115",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-surface-variant": "#3d4a43",
+                        "surface-variant": "#e0e3e5",
+                        "on-primary-fixed": "#002115",
+                        "gray-soft": "#f1f5f9",
+                        "primary": "#006c4d",
+                        "surface-tint": "#006c4d",
+                        "error": "#ba1a1a",
+                        "mint-dark": "#2dbc8b",
+                        "tertiary": "#006c4e",
+                        "surface-dim": "#d8dadc",
+                        "background": "#f7f9fb",
+                        "primary-fixed": "#77fac4",
+                        "on-surface": "#191c1e",
+                        "tertiary-container": "#44ba90",
+                        "white": "#ffffff",
+                        "primary-fixed-dim": "#58dda9",
+                        "surface-bright": "#f7f9fb",
+                        "secondary-fixed-dim": "#b9c7e4"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2.5rem",
+                        "gutter": "1.5rem",
+                        "base": "4px",
+                        "unit-4": "1rem",
+                        "margin-mobile": "1rem",
+                        "unit-1": "0.25rem",
+                        "unit-2": "0.5rem",
+                        "unit-8": "2rem",
+                        "unit-6": "1.5rem",
+                        "unit-12": "3rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .step-dot { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glow-soft { box-shadow: 0 12px 32px -4px rgba(10, 25, 47, 0.08); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-navy-deep fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16">
+<button class="text-primary dark:text-mint-bright hover:bg-gray-soft dark:hover:bg-on-secondary-fixed-variant p-2 rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep dark:text-on-primary tracking-tight">Kuentas Klaras</h1>
+<button class="text-secondary dark:text-secondary-fixed-dim hover:bg-gray-soft dark:hover:bg-on-secondary-fixed-variant p-2 rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined">close</span>
+</button>
+</header>
+<main class="mt-20 w-full max-w-[600px] px-margin-mobile flex flex-col gap-unit-6 pb-32">
+<!-- Progress Stepper Component -->
+<div class="flex items-center justify-between px-unit-4 py-unit-2 mb-unit-4">
+<div class="flex items-center gap-unit-2 w-full">
+<div class="flex items-center gap-1 group">
+<div class="w-8 h-8 rounded-full bg-mint-dark flex items-center justify-center text-white font-bold">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="h-[2px] w-8 bg-mint-dark"></div>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-8 h-8 rounded-full bg-mint-dark flex items-center justify-center text-white font-bold">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="h-[2px] w-8 bg-mint-dark"></div>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-10 h-10 rounded-full border-2 border-mint-dark flex items-center justify-center bg-white shadow-md">
+<span class="text-mint-dark font-bold text-lg">3</span>
+</div>
+<div class="h-[2px] w-8 bg-mint-bright/30"></div>
+</div>
+<div class="w-8 h-8 rounded-full bg-mint-bright/30 flex items-center justify-center text-secondary-fixed-dim font-bold">
+<span class="text-sm">4</span>
+</div>
+</div>
+</div>
+<!-- Header Section -->
+<section class="space-y-unit-2">
+<div class="flex items-center gap-unit-2 text-mint-dark">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-md text-label-md uppercase tracking-wider">Paso 3 de 4</span>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep">Verifica que eres tú con Google</h2>
+<p class="font-body-md text-body-md text-secondary leading-relaxed">
+                Necesitarás tener tu celular a mano para confirmar que estás realizando esta configuración de forma segura.
+            </p>
+</section>
+<!-- Instruction Card -->
+<div class="bg-white rounded-xl glow-soft p-unit-6 border border-surface-container-highest flex flex-col gap-unit-4">
+<div class="flex gap-unit-4 items-start">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-mint-bright/20 flex items-center justify-center text-mint-dark font-bold">1</div>
+<p class="font-body-lg text-body-lg text-on-surface">Clic en <span class="font-bold text-mint-dark">"Sí, soy yo"</span> en la notificación que recibas.</p>
+</div>
+<div class="flex gap-unit-4 items-start border-t border-surface-container pt-unit-4">
+<div class="flex-shrink-0 w-8 h-8 rounded-full bg-mint-bright/20 flex items-center justify-center text-mint-dark font-bold">2</div>
+<p class="font-body-lg text-body-lg text-on-surface">Selecciona el <span class="font-bold text-mint-dark">número indicado</span> en la pantalla de tu celular.</p>
+</div>
+</div>
+<!-- Visual Guides Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-unit-4">
+<!-- First Image: Selection process -->
+<div class="group relative overflow-hidden rounded-xl aspect-[4/5] bg-surface-container-high glow-soft transition-transform hover:scale-[1.02]">
+<img alt="Guía visual de verificación de Google" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArqLVrzE9SiD-7YiXq3pwcYJyiDj40zPJZwAZ4uNRpWPJv9O4ZeMBhI7JUV3ZVW6LVEbEdqCkegKGq74vK1vK0vr95wUG1MubVkGrOYLxc_h2kyPmWodHqsoKTxlR7Ao7ULV54z_romhIfYUFfqii3SiL8wBaAdD4fwXBZmTYnF3TOJHnzEJu_jJvoOJF-dQM_c9hkvx4mlcdY7-gCSiN3RKPUVJzPh1uuKPCtDYvBTSSHeeoMEAMGxXgEENg8xQrhCDHWij8ECA">
+<div class="absolute bottom-0 left-0 right-0 p-unit-4 bg-gradient-to-t from-navy-deep/80 to-transparent text-white">
+<p class="font-label-sm text-label-sm opacity-90">Confirma en tu dispositivo principal</p>
+</div>
+</div>
+<!-- Second Image: Number matching -->
+<div class="group relative overflow-hidden rounded-xl aspect-[4/5] bg-surface-container-high glow-soft transition-transform hover:scale-[1.02]">
+<img alt="Pasos finales de seguridad en móvil" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu4WkhBciJ2P-Hz727ivEtnw6-tve3JfvgJGHUhRKIQaSzG1Ynyi-7ewopWWLCa8wG0HDMyF-LeCadOb8F-2xGde1cK43okxL2oT6XcI_DPrhPOWWvPvCDcaT3O1dLb55jB5V6IfVl_HZhioaFyVyFt-nmHObmQ9gLpXNfemUeoJri9jMwdcBbVYPSsUAltSpGYhYapaC6PEovSK4VzuWK_xzXJejUn-6AOHR0YDpC7BbGi2V8sBVKD5wVGrxaR0w1cIq3UwuTQg">
+<div class="absolute bottom-0 left-0 right-0 p-unit-4 bg-gradient-to-t from-navy-deep/80 to-transparent text-white">
+<p class="font-label-sm text-label-sm opacity-90">Selecciona el código correspondiente</p>
+</div>
+</div>
+</section>
+<!-- Alert/Warning Component -->
+<div class="bg-secondary-container/30 border-l-4 border-primary p-unit-6 rounded-r-xl flex items-start gap-unit-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">error</span>
+<div class="space-y-1">
+<p class="font-label-md text-label-md text-on-secondary-container">A veces la verificación falla en Safari.</p>
+<a class="inline-flex items-center gap-1 font-label-md text-primary hover:underline group" href="#">
+                    Prueba en Chrome
+                    <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
+</a>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Custom Tutorial Version) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-between items-center px-margin-mobile py-4 bg-surface dark:bg-on-secondary-fixed shadow-[0_-4px_12px_rgba(10,25,47,0.1)] rounded-t-xl z-50">
+<!-- Anterior -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim px-6 py-2 hover:bg-mint-bright/10 rounded-xl transition-all active:scale-98 group">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="font-label-md text-label-md mt-1">Anterior</span>
+</button>
+<!-- Siguiente (Active CTA) -->
+<button class="flex flex-col items-center justify-center bg-mint-dark text-white rounded-xl px-8 py-3 shadow-lg shadow-mint-dark/20 transition-all active:scale-98 group hover:brightness-110">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md">Siguiente</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</button>
+</nav>
+<!-- Interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Subtle scroll reveals
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-8');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('section, .bg-white, .grid').forEach(el => {
+                el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-8');
+                observer.observe(el);
+            });
+        });
+    </script>
+</body></html>
