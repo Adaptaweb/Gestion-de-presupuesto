@@ -1,7 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2,
-  Settings2, Filter, Tags,
+  Settings2, Filter, Tags, Bell, BellOff,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -33,6 +33,8 @@ export function UserMenu({
   isDarkMode, setIsDarkMode,
   onOpenAdmin, onOpenCategorias, onLogout,
   generateFinancialAdvice, isAiLoading,
+  isPushSupported, isPushSubscribed, isPushLoading,
+  onToggleNotifications,
 }) {
   return (
     <DropdownMenu>
@@ -127,6 +129,22 @@ export function UserMenu({
             <span>Consultar IA ✨</span>
           </DropdownMenuItem>
 
+          {isPushSupported && (
+            <DropdownMenuItem
+              onClick={onToggleNotifications}
+              disabled={isPushLoading}
+              className="p-2 rounded-lg cursor-pointer"
+            >
+              {isPushLoading ? (
+                <Loader2 size={16} className="mr-2 text-slate-500 animate-spin" />
+              ) : isPushSubscribed ? (
+                <BellOff size={16} className="mr-2 text-slate-500" />
+              ) : (
+                <Bell size={16} className="mr-2 text-slate-500" />
+              )}
+              <span>{isPushSubscribed ? 'Desactivar notificaciones' : 'Activar notificaciones'}</span>
+            </DropdownMenuItem>
+          )}
 
         </DropdownMenuGroup>
 

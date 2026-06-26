@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { getAuthenticatedClient, hasValidTokens, clearTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
 import db from './db.js';
+import { sendPushToUser } from './push.js';
 
 async function fetchLatestTransactions(userId) {
   if (!(await hasValidTokens(userId))) {
@@ -102,6 +103,11 @@ async function processEmail(msgId, gmail, userId, results) {
 
     results.new++;
     results.transactions.push(parsed);
+
+    sendPushToUser(userId, 'Nueva transacción detectada',
+      `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
+      '/'
+    ).catch(() => {});
   } catch (msgErr) {
     results.errors++;
     console.error('[GmailService] Error processing message:', msgErr.message);

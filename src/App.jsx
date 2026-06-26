@@ -123,6 +123,7 @@ import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
+import { usePushNotifications } from './hooks/usePushNotifications.js';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -1519,6 +1520,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial }) => {
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
               isAiLoading={isAiLoading}
+              isPushSupported={push.isSupported}
+              isPushSubscribed={push.isSubscribed}
+              isPushLoading={push.loading}
+              onToggleNotifications={() => {
+                if (push.isSubscribed) {
+                  push.unsubscribe();
+                } else {
+                  push.subscribe();
+                }
+              }}
             />
           </div>
         </header>
@@ -3455,6 +3466,7 @@ const App = () => {
   const [currentView, setCurrentView] = useState('loading');
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const push = usePushNotifications(token);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
 

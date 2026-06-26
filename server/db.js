@@ -234,5 +234,23 @@ async function addGmailForwardingAuthorizedColumn() {
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn };
+async function addPushSubscriptionsTable() {
+  try {
+    await db.run(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id SERIAL PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      endpoint TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE(endpoint)
+    )`);
+    console.log('[MIGRATION] push_subscriptions table created');
+  } catch (e) {
+    console.error('[MIGRATION] push_subscriptions error:', e.message);
+  }
+}
+
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable };
 export default db;

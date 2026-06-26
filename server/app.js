@@ -2,13 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
 import cache from './cache.js';
 import { createJob, getJob } from './jobQueue.js';
 import { Resend } from 'resend';
+import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -20,6 +21,7 @@ app.use(express.json());
 
 addCasillaColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 addGmailForwardingAuthorizedColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
+addPushSubscriptionsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -824,6 +826,11 @@ app.post('/api/webhook/email', async (req, res) => {
     cache.del(`tx:meses:${actualUserId}`);
     cache.delByPattern(`tx:pendientes:${actualUserId}`);
 
+    sendPushToUser(actualUserId, 'Nueva transacción detectada',
+      `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
+      '/'
+    ).catch(() => {});
+
     res.json({ success: true, transaction: parsed });
   } catch (error) {
     console.error('[Webhook] Error:', error.message);
@@ -1129,7 +1136,36 @@ app.post('/api/restore/:table/:id', authenticateToken, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: 'Error al restaurar' });
+      res.status(500).json({ error: 'Error al restaurar' });
+  }
+});
+
+// Push notification subscriptions
+app.post('/api/push/subscribe', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { endpoint, keys } = req.body;
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: 'Datos de suscripción incompletos' });
+    }
+    await saveSubscription(userId, { endpoint, keys });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Push] Subscribe error:', e.message);
+    res.status(500).json({ error: 'Error al guardar suscripción' });
+  }
+});
+
+app.delete('/api/push/subscribe', authenticateToken, async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (endpoint) {
+      await removeSubscription(endpoint);
+    }
+    res.json({ success: true });
+  } catch (e) {
+    console.error('[Push] Unsubscribe error:', e.message);
+    res.status(500).json({ error: 'Error al eliminar suscripción' });
   }
 });
 
