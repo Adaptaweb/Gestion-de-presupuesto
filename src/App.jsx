@@ -601,7 +601,7 @@ const getAhorroBankInfo = (bankName) => {
   return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
 };
 
-const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial }) => {
+const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -1521,23 +1521,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial }) => {
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
               isAiLoading={isAiLoading}
-              isPushSubscribed={push.isSubscribed}
-              isPushLoading={push.loading}
-              onToggleNotifications={() => {
-                if (push.isSubscribed) {
-                  push.unsubscribe();
-                } else {
-                  push.subscribe();
-                }
-              }}
+              isPushSubscribed={isPushSubscribed}
+              isPushLoading={isPushLoading}
+              onToggleNotifications={onToggleNotifications}
             />
           </div>
         </header>
 
-        {install.isInstallable && (
+        {isInstallable && (
           <div className="mb-4 md:mb-6">
             <button
-              onClick={install.install}
+              onClick={onInstall}
               className="flex items-center gap-2 px-4 py-2.5 bg-kk text-white rounded-xl text-xs font-bold shadow-sm hover:bg-kk-dark transition-all"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
@@ -3567,6 +3561,17 @@ const App = () => {
         onLogout={handleLogout}
         onOpenAdmin={() => setCurrentView('admin')}
         onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
+        isPushSubscribed={push.isSubscribed}
+        isPushLoading={push.loading}
+        onToggleNotifications={() => {
+          if (push.isSubscribed) {
+            push.unsubscribe();
+          } else {
+            push.subscribe();
+          }
+        }}
+        isInstallable={install.isInstallable}
+        onInstall={install.install}
       />
       {showTutorial && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
