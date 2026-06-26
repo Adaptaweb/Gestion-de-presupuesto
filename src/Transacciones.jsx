@@ -925,7 +925,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
               Para recibir tus transacciones automáticamente, configura el reenvío de notificaciones bancarias desde Gmail hacia tu casilla en Kuentas Klaras.
             </p>
-            <button onClick={onOpenTutorial} className="flex items-center justify-center gap-2 mx-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30 transition-all">
+            <button onClick={() => onOpenTutorial(authStatus)} className={`flex items-center justify-center gap-2 mx-auto ${theme.btnPrimary} text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-all`}>
               <ExternalLink size={16} /> Ver tutorial paso a paso
             </button>
           </div>
@@ -1404,7 +1404,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
                 Configura un filtro en Gmail para reenviar las notificaciones bancarias automáticamente.
               </p>
-              <button onClick={onOpenTutorial} className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all">
+              <button onClick={() => onOpenTutorial(authStatus)} className={`flex items-center justify-center gap-2 w-full ${theme.btnPrimary} text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all`}>
                 <ExternalLink size={16} /> Ver tutorial paso a paso
               </button>
             </div>

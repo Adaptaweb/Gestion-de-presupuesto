@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
-import StepInicio from './tutorial/StepInicio';
+import Welcome from './tutorial/Welcome';
 import Step1 from './tutorial/Step1';
 import StepOpcional from './tutorial/StepOpcional';
 import Step2 from './tutorial/Step2';
 import Step3 from './tutorial/Step3';
 
-const TutorialFlow = ({ onClose }) => {
+const TutorialFlow = ({ onClose, hasMailboxConfigured = false }) => {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState('forward');
-  const [animClass, setAnimClass] = useState('');
+  const [animKey, setAnimKey] = useState(0);
   const [emailData, setEmailData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!hasMailboxConfigured) {
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     fetch('/api/user/mailbox', { headers })
@@ -22,18 +27,27 @@ const TutorialFlow = ({ onClose }) => {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [hasMailboxConfigured]);
+
+  const getAnimClass = () => {
+    if (direction === 'opcional') {
+      return 'animate-slide-in-from-bottom';
+    }
+    return direction === 'forward'
+      ? 'animate-slide-in-from-right'
+      : 'animate-slide-in-from-left';
+  };
 
   const goNext = () => {
     setDirection('forward');
-    setAnimClass('animate-in fade-in slide-in-from-right-4 duration-300');
+    setAnimKey(k => k + 1);
     setStep(s => Math.min(s + 1, 3));
   };
 
   const goBack = () => {
     if (step > 0) {
       setDirection('back');
-      setAnimClass('animate-in fade-in slide-in-from-left-4 duration-300');
+      setAnimKey(k => k + 1);
       setStep(s => s - 1);
     } else {
       onClose();
@@ -41,15 +55,21 @@ const TutorialFlow = ({ onClose }) => {
   };
 
   const goToOpcional = () => {
-    setDirection('forward');
-    setAnimClass('animate-in fade-in slide-in-from-right-4 duration-300');
+    setDirection('opcional');
+    setAnimKey(k => k + 1);
     setStep(1.5);
   };
 
   const goFromOpcionalToStep2 = () => {
     setDirection('forward');
-    setAnimClass('animate-in fade-in slide-in-from-right-4 duration-300');
+    setAnimKey(k => k + 1);
     setStep(2);
+  };
+
+  const handleOpcionalBack = () => {
+    setDirection('back');
+    setAnimKey(k => k + 1);
+    setStep(1);
   };
 
   if (loading) {
@@ -63,16 +83,16 @@ const TutorialFlow = ({ onClose }) => {
   const sharedProps = { emailData, onClose };
 
   const renderStep = () => {
-    if (step === 0) return <StepInicio onNext={goNext} onClose={onClose} />;
+    if (step === 0) return <Welcome onNext={goNext} onClose={onClose} />;
     if (step === 1) return <Step1 {...sharedProps} onNext={goNext} onOpcional={goToOpcional} onBack={goBack} />;
-    if (step === 1.5) return <StepOpcional {...sharedProps} onNext={goFromOpcionalToStep2} onBack={() => { setDirection('back'); setAnimClass('animate-in fade-in slide-in-from-left-4 duration-300'); setStep(1); }} />;
+    if (step === 1.5) return <StepOpcional {...sharedProps} onNext={goFromOpcionalToStep2} onBack={handleOpcionalBack} />;
     if (step === 2) return <Step2 {...sharedProps} onNext={goNext} onBack={goBack} />;
     if (step === 3) return <Step3 {...sharedProps} onNext={onClose} onBack={goBack} />;
     return null;
   };
 
   return (
-    <div key={step} className={`h-full ${animClass}`}>
+    <div key={animKey} className={`h-full ${getAnimClass()}`}>
       {renderStep()}
     </div>
   );

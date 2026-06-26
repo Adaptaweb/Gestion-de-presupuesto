@@ -138,7 +138,7 @@
 <button class="p-2 hover:bg-gray-soft rounded-full transition-colors active:scale-95">
 <span class="material-symbols-outlined text-primary">arrow_back</span>
 </button>
-<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep tracking-tight">Kuentas Klaras</h1>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-navy-deep tracking-tight absolute left-1/2 -translate-x-1/2">Kuentas Klaras</h1>
 </div>
 <button class="p-2 hover:bg-gray-soft rounded-full transition-colors active:scale-95">
 <span class="material-symbols-outlined text-secondary">close</span>
@@ -146,58 +146,34 @@
 </header>
 <main class="flex-grow pt-20 pb-32 px-margin-mobile md:px-margin-desktop max-w-[1200px] mx-auto w-full">
 <!-- Progress Stepper -->
-<section class="mb-unit-8 flex flex-col items-center">
-<div class="flex items-center w-full max-w-md gap-0 relative h-10">
-<div class="absolute top-1/2 left-0 w-full h-[2px] bg-surface-container-highest -translate-y-1/2"></div>
-<div class="absolute top-1/2 left-0 w-1/4 h-[2px] bg-mint-dark -translate-y-1/2"></div>
-<div class="relative z-10 flex justify-between w-full">
-<!-- Step 1: Active -->
-<div class="flex flex-col items-center">
-<div class="w-8 h-8 rounded-full bg-mint-dark flex items-center justify-center text-white ring-4 ring-white shadow-sm">
-<span class="material-symbols-outlined text-[18px] step-active">check_circle</span>
+<section class="flex flex-col items-center justify-center space-y-unit-4 mb-unit-8">
+<div class="flex items-center w-full max-w-md">
+<div class="flex-1 h-1.5 rounded-full bg-mint-dark"></div>
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-mint-dark text-white font-label-md text-label-md mx-2">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: &quot;FILL&quot; 1;">check</span>
 </div>
-<span class="text-label-sm font-label-sm text-mint-dark mt-1">Inicio</span>
+<div class="flex-1 h-1.5 rounded-full bg-mint-bright/30"></div>
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-surface-container-high text-secondary font-label-md text-label-md mx-2">2</div>
+<div class="flex-1 h-1.5 rounded-full bg-mint-bright/30"></div>
+<div class="flex items-center justify-center w-8 h-8 rounded-full bg-surface-container-high text-secondary font-label-md text-label-md mx-2">3</div>
+<div class="flex-1 h-1.5 rounded-full bg-mint-bright/30"></div>
 </div>
-<!-- Step 2 -->
-<div class="flex flex-col items-center">
-<div class="w-8 h-8 rounded-full bg-mint-bright/30 flex items-center justify-center text-mint-dark ring-4 ring-white">
-<span class="font-bold text-[14px]">1</span>
-</div>
-<span class="text-label-sm font-label-sm text-secondary mt-1">Vinculación</span>
-</div>
-<!-- Step 3 -->
-<div class="flex flex-col items-center">
-<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary ring-4 ring-white">
-<span class="font-bold text-[14px]">2</span>
-</div>
-<span class="text-label-sm font-label-sm text-secondary mt-1">Verificación</span>
-</div>
-<!-- Step 4 -->
-<div class="flex flex-col items-center">
-<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary ring-4 ring-white">
-<span class="font-bold text-[14px]">3</span>
-</div>
-<span class="text-label-sm font-label-sm text-secondary mt-1">Final</span>
-</div>
-</div>
-</div>
+<p class="text-mint-dark font-label-md text-label-md tracking-wider uppercase">PASO 1 DE 4</p>
 </section>
 <!-- Main Content Canvas -->
 <div class="space-y-unit-6 max-w-2xl mx-auto">
 <div class="text-center space-y-unit-2">
-<p class="font-label-md text-label-md text-primary uppercase tracking-widest">Parte 1</p>
-<h2 class="font-headline-md text-headline-md text-navy-deep">
-                    Agregar dirección <span class="text-mint-dark">inbox@kuanto.app</span> a tu correo
-                </h2>
+
+<h2 class="font-headline-md text-headline-md text-navy-deep">Agregar dirección <div class="inline-flex items-center gap-unit-2 bg-gray-soft px-unit-2 py-unit-1 rounded-lg border border-outline-variant/30 mx-1"><span class="text-mint-dark font-bold select-all">parse+ideusuario@adaptaweb.cl</span><button class="material-symbols-outlined text-sm text-primary hover:scale-110 transition-transform" onclick="navigator.clipboard.writeText('inbox@adaptaweb.cl'); alert('¡Copiado!')">content_copy</button></div> a tu correo</h2>
 <div class="flex items-center justify-center gap-unit-2 py-unit-2 text-secondary">
 <span class="material-symbols-outlined">visibility</span>
-<p class="font-body-md text-body-md">Debes abrir tu E-mail en un computador 💻*</p>
+<p class="font-body-md text-body-md">Debes abrir tu E-mail en un computador 💻</p>
 </div>
 </div>
 <!-- Bento Instructions Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-unit-4">
 <!-- Step Card 1 & 2 -->
-<div class="bento-card p-unit-6 flex flex-col gap-unit-4">
+<div class="bento-card p-unit-6 flex flex-col gap-unit-4 border-l-4 border-mint-dark">
 <div class="flex gap-unit-4 items-start">
 <div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">1</div>
 <p class="font-body-md text-on-surface">Clic en el icono del menú <span class="material-symbols-outlined text-[20px] text-secondary">settings</span></p>
@@ -206,12 +182,12 @@
 <div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">2</div>
 <p class="font-body-md text-on-surface">Clic en "Ver toda la configuración/Ajustes"</p>
 </div>
-<div class="mt-auto border border-surface-container-highest rounded-xl overflow-hidden shadow-inner">
-<img class="w-full h-auto object-cover" data-alt="A detailed digital interface mockup of a Gmail settings panel. The focus is on the top right gear icon highlighted with a bright red circle and a numbered step label. The interface uses a clean, professional white background with subtle blue accents, following a modern flat design aesthetic typical of enterprise software." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRqGty-l37u_VPOVrrxviHELXXtmkjS7zkoR6vv81Pp4idiTNV-Wmw_N0AQHRSkiKRH9BFy2rF4-Xd2yPTKKVdyQb1iLv9VjdN9SNd0GbujtG6KpD-6x_z-CP4MCUSKzFrjUTmSZtzx1bruuSQqX66Bg6wvflwy9fYBGw1D__3UtEfxYsZ1KvJtJradLRQ3oAm0C9WEhl2A99qh_GRzIw-y99k-_yAlG6Kf71Twcg6E9SRcMo4fZPRYlYx9gtw9Lq72xnDLVKq4w">
+<div class="border border-surface-container-highest rounded-xl overflow-hidden shadow-inner mt-unit-2">
+<img class="w-full h-auto object-cover" data-alt="A detailed digital interface mockup of a Gmail settings panel. The focus is on the top right gear icon highlighted with a bright red circle and a numbered step label. The interface uses a clean, professional white background with subtle blue accents, following a modern flat design aesthetic typical of enterprise software." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqovU_416JVxIr1P6ovSTq7JoGoLQdQLreNqwNIOs1bmXYHY3WkDmZf2GNiRUshdIBVFa_s7B_0N9zzVRb-PgSZ3K2fXWJX3xlFLU9bxSECUVglml84FyPEK2l1QyvyTPGA4bspjk7I9PtxMVeKFLDtr38lUwxdJhw6ZjXsAw6QWqN3Z0B4mSZjXL8ZU4WBKwZzA88Y-UsITc3w0QdXvN8ly2br8EYasDCk-C1mVa9xh4IIDDiRvk1WGeF0BovHZTAir4IMcqQlrCl">
 </div>
 </div>
 <!-- Step Card 3 & 4 -->
-<div class="bento-card p-unit-6 flex flex-col gap-unit-4">
+<div class="bento-card p-unit-6 flex flex-col gap-unit-4 border-l-4 border-mint-dark">
 <div class="flex gap-unit-4 items-start">
 <div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">3</div>
 <p class="font-body-md text-on-surface">Clic en pestaña "Reenvío y correo POP/IMAP"</p>
@@ -221,7 +197,7 @@
 <p class="font-body-md text-on-surface">Clic en "Agregar una dirección de reenvío"</p>
 </div>
 <div class="mt-auto border border-surface-container-highest rounded-xl overflow-hidden shadow-inner">
-<img class="w-full h-auto object-cover" data-alt="A clean, high-resolution screenshot of a web email settings page focusing on the forwarding section. A specific tab labeled Reenvío y correo POP/IMAP is highlighted with a soft mint green border. A large primary button labeled Agregar una dirección de reenvío is clearly visible in the center, emphasizing the call to action in a structured layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE2Ss38bWodJiWQZdKCq5dYjh-lAg6sCH8hXtYFbUifEN8ZFrd8JbMx6ETf2Md4XIoMWOGp2IHNHzhzq5PiS5Dgo0teMfZgVmjtgxntMtK6uUqAamEagQA7T2TTU0ntd5UOB1JD_X8T6AqW3nnOHEJY3LhGLK7F3-UITQgsh5iNBjWJF26-keNDKDufGlr7BtWLZU4XmMC3oJJD7lNcBAJZ-TZfZB9zx8Mh9mqZYzMhvhYDsPeDz2ztMbjauMId8qZNGbCELYaEg">
+<img class="w-full h-auto object-cover" data-alt="A clean, high-resolution screenshot of a web email settings page focusing on the forwarding section. A specific tab labeled Reenvío y correo POP/IMAP is highlighted with a soft mint green border. A large primary button labeled Agregar una dirección de reenvío is clearly visible in the center, emphasizing the call to action in a structured layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0rHccUeUelFWahy1hWp2Gxy3g3xGfgMlxt7svF4NFKdpeAPw1vf7mAU-ektp4kieXTD6C71WgplFR0uE9Ga7XUf8431neDlRtt1Bd1Xrqz36CK59BL5WlNJqueTsdrGo73M9pxucMF8j2nHxteeia-BmuTO3okDODYTrdG4RlTZIfrOiaekKdcG4qh4Z8RtDi0t9hZIVAa7jHsRdjR7oJF5NuEedXby7sGA6CvpTtJ95XoXnUx5CGofcfOZQuH9CBcE-wXbvbxreO">
 </div>
 </div>
 </div>
@@ -230,11 +206,9 @@
 <div class="flex gap-unit-4 items-start">
 <div class="bg-mint-dark text-white w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold">5</div>
 <div class="space-y-unit-2 flex-grow">
-<p class="font-headline-md text-headline-md text-navy-deep">Escribe "<span class="text-mint-dark select-all">inbox@kuanto.app</span>"</p>
+<p class="font-headline-md text-headline-md text-navy-deep">Escribe "<span style="color: rgb(45, 188, 139); text-align: center; background-color: rgb(241, 245, 249);" class="">parse+ideusuario@adaptaweb.cl</span>"</p>
 <p class="font-body-md text-secondary">Asegúrate de copiarla exactamente como aparece aquí para una integración transparente.</p>
-<div class="mt-unit-4 bg-gray-soft p-unit-4 rounded-xl border border-outline-variant/30 overflow-hidden">
-<img class="w-full h-auto rounded-lg" data-alt="A focused close-up of a digital input field on a professional dashboard. The email address inbox@kuanto.app is being typed into a clear text field. The surrounding UI is minimalist with high whitespace and soft shadows, reflecting a secure and modern fintech application environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiaUvQkoiuW-7GoAnBfQbrqwWOAGwDmjXrteog3B6U1C0Z9-c5ngESS1ZcSQAaddBWk1MsB3rpedkpLwKgb8A9UAGwTyQtJ1tI2qd-nty7Ref_IQlyY9rPUVrMiCYyGTqjPHbmmtaPp91dJH2T1x-PpvXcDUNQW4wU98tgyeOUSrUB0FEjuygiYivU21uz3af6JsggoXsd_JmkJ0HMbfV2omSZDdx1xwES_kYoYPr1sPp2m_A4wzoPeNOkTKFjTQZTR3mq1PRoXw">
-</div>
+<div class="mt-unit-4 bg-gray-soft p-unit-4 rounded-xl border border-outline-variant/30 overflow-hidden"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuACAot8l5btm2U8f7Yc-UiURPXjX7vWSRIeymfacGCpThgbefgAN6LKk04kC2PnfBEB0YDw9nWv_IZDH-erhZrg-QBZKEtCt1MMG3DtnmkDwk7-Okg1bP_FBokQU5qM6sCzUG0LKjwz3EAy9opsobt1SqriwXqw1iuO98jfNZ4IJMI6CxWJ7e8lsKPj7wmxN5AwzxykkKC9FNyGXENCjaTfrD0-wKbO09-xqhxSv64MJGpk8lTysWbrRihB37feryEtqa5axWl1KA" class="w-full h-auto rounded-lg" alt="Instrucciones para agregar dirección de reenvío"></div>
 </div>
 </div>
 </div>
@@ -242,9 +216,10 @@
 <div class="space-y-unit-3 pt-unit-4">
 
 
-<button class="w-full py-unit-4 px-6 border-2 border-mint-dark text-mint-dark font-label-md rounded-lg hover:bg-mint-bright/10 transition-all active:scale-98 flex items-center justify-center gap-unit-2">
-  <span class="material-symbols-outlined">security</span>
-  <span class="">Si gmail te solicita autorización presiona aca</span>
+<button class="w-full p-unit-4 bg-secondary-container border border-secondary rounded-xl flex items-center justify-center gap-unit-4 text-on-secondary-container hover:bg-secondary-fixed-dim transition-all active:scale-98 group">
+  <span class="material-symbols-outlined group-hover:scale-110 transition-transform">info</span>
+  <p class="font-body-md font-bold">(Paso Opcional) Presiona aquí si Gmail solicita autorización</p>
+  <span class="material-symbols-outlined">chevron_right</span>
 </button></div>
 </div>
 </main>
@@ -275,6 +250,18 @@
             });
         });
     </script>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 </body></html>

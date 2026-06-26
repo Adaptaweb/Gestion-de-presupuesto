@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kuentas Klaras - Paso 4: Selección de Banco</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "navy-deep": "#0a192f",
+                        "secondary": "#515f78",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#0d1c32",
+                        "mint-bright": "#6de0b3",
+                        "on-secondary-fixed-variant": "#39475f",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#004530",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#58dda9",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface": "#f7f9fb",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary-container": "#004531",
+                        "surface-container-low": "#f2f4f6",
+                        "outline": "#6d7a72",
+                        "on-primary-fixed-variant": "#005139",
+                        "on-secondary-container": "#55637d",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "primary-container": "#2dbc8b",
+                        "tertiary-fixed-dim": "#68dbae",
+                        "on-background": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "secondary-container": "#d2e0fe",
+                        "outline-variant": "#bccac0",
+                        "tertiary-fixed": "#85f8c9",
+                        "on-tertiary-fixed-variant": "#00513a",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-tertiary-fixed": "#002115",
+                        "secondary-fixed": "#d6e3ff",
+                        "on-surface-variant": "#3d4a43",
+                        "surface-variant": "#e0e3e5",
+                        "on-primary-fixed": "#002115",
+                        "gray-soft": "#f1f5f9",
+                        "primary": "#006c4d",
+                        "surface-tint": "#006c4d",
+                        "error": "#ba1a1a",
+                        "mint-dark": "#2dbc8b",
+                        "tertiary": "#006c4e",
+                        "surface-dim": "#d8dadc",
+                        "background": "#f7f9fb",
+                        "primary-fixed": "#77fac4",
+                        "on-surface": "#191c1e",
+                        "tertiary-container": "#44ba90",
+                        "white": "#ffffff",
+                        "primary-fixed-dim": "#58dda9",
+                        "surface-bright": "#f7f9fb",
+                        "secondary-fixed-dim": "#b9c7e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "2.5rem",
+                        "gutter": "1.5rem",
+                        "base": "4px",
+                        "unit-4": "1rem",
+                        "margin-mobile": "1rem",
+                        "unit-1": "0.25rem",
+                        "unit-2": "0.5rem",
+                        "unit-8": "2rem",
+                        "unit-6": "1.5rem",
+                        "unit-12": "3rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-completed {
+            background-color: #2dbc8b;
+            color: white;
+        }
+        .step-active {
+            border: 2px solid #2dbc8b;
+            color: #2dbc8b;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex flex-col font-body-md text-on-surface">
+<!-- Top Navigation Bar -->
+<header class="bg-surface sticky top-0 z-40 flex justify-between items-center w-full px-margin-mobile h-16">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-soft transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<span class="font-headline-lg-mobile text-navy-deep tracking-tight">Kuentas Klaras</span>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-soft transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">close</span>
+</button>
+</header>
+<main class="flex-1 max-w-[640px] mx-auto w-full px-margin-mobile py-unit-6 flex flex-col items-center">
+<!-- Progress Stepper -->
+<div class="flex items-center justify-center mb-unit-8 space-x-unit-2">
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-completed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="w-12 h-[2px] bg-mint-dark"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-completed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="w-12 h-[2px] bg-mint-dark"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-completed flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="w-12 h-[2px] bg-mint-dark"></div>
+</div>
+<div class="flex items-center">
+<div class="w-8 h-8 rounded-full step-active flex items-center justify-center font-bold text-label-md">
+                    4
+                </div>
+</div>
+</div>
+<!-- Success Toast -->
+<div class="w-full mb-unit-6 bg-mint-bright/10 border border-mint-dark/20 rounded-xl p-unit-4 flex items-center justify-center gap-unit-3 animate-pulse" style="border-left: 4px solid rgb(45, 188, 139);">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-md text-primary text-center">¡LISTA LA REGLA DE REENVÍO!</span>
+</div>
+<!-- Centered Vertical Stack of Cards -->
+<div class="flex flex-col gap-unit-6 w-full text-center items-center">
+<!-- Important Message Card -->
+<div class="w-full bg-secondary-container text-on-secondary-container p-unit-8 rounded-2xl flex flex-col items-center gap-unit-4 border border-mint-dark/10 shadow-sm">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-primary text-[32px]">info</span>
+</div>
+<div class="space-y-unit-2">
+<h2 class="font-headline-md tracking-tight">IMPORTANTE: Configuración de Notificaciones</h2>
+<p class="font-body-md opacity-90 leading-relaxed max-w-md mx-auto">
+                        Para que Kuentas Klaras funcione correctamente, es esencial que actives las notificaciones por correo electrónico en cada uno de tus bancos. Esto permite que la información de tus transacciones se sincronice automáticamente en tiempo real.
+                    </p>
+</div>
+</div>
+<!-- Additional Instruction Card (placeholder for bento style replacement) -->
+<div class="w-full bg-white p-unit-6 rounded-2xl border border-outline-variant/30 flex flex-col items-center gap-unit-3 shadow-sm">
+<div class="w-12 h-12 bg-mint-bright/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">mark_email_read</span>
+</div>
+<p class="font-label-md text-secondary">Asegúrate de haber configurado el reenvío automático a tu dirección de Kuentas Klaras.</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-between items-center px-margin-mobile py-4 bg-surface dark:bg-on-secondary-fixed shadow-[0_-4px_12px_rgba(10,25,47,0.1)] z-50 rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-secondary px-6 py-2 hover:bg-mint-bright/10 rounded-xl transition-all active:scale-95">
+<span class="material-symbols-outlined mb-1">arrow_back</span>
+<span class="font-label-md text-label-md">Anterior</span>
+</button>
+<button class="flex items-center justify-center bg-mint-dark text-white rounded-xl px-12 py-3 shadow-lg hover:shadow-mint-dark/20 active:scale-95 transition-all" id="nextBtn">
+<span class="font-label-md mr-2">Finalizar</span>
+<span class="material-symbols-outlined">close</span>
+</button>
+</nav>
+<!-- Floating Atmosphere Elements -->
+<div class="fixed top-20 right-[-5%] w-64 h-64 bg-mint-bright opacity-5 blur-[120px] pointer-events-none rounded-full"></div>
+<div class="fixed bottom-20 left-[-5%] w-80 h-80 bg-primary opacity-5 blur-[140px] pointer-events-none rounded-full"></div>
+</body></html>
