@@ -402,6 +402,7 @@ function extractGmailAuthUrl(html, text) {
     /https:\/\/mail\.google\.com[^\s"'<>)\]]+/gi,
     /https:\/\/www\.google\.com\/accounts[^\s"'<>)\]]+/gi,
     /https:\/\/accounts\.google\.co\.cl[^\s"'<>)\]]+/gi,
+    /https:\/\/mail-settings\.google\.com\/mail\/vf[^\s"'<>)\]]+/gi,
   ];
 
   const authKeywords = ['confirm', 'verify', 'signup', 'signin', 'disable', 'enable', 'approval', 'authorize', 'verificar', 'autorizar', 'confirmar'];
