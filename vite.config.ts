@@ -19,6 +19,7 @@ export default defineConfig({
         name: 'Kuentas Klaras',
         short_name: 'Kuentas Klaras',
         description: 'Tus finanzas claras, bajo control',
+        lang: 'es',
         theme_color: '#2DBC8B',
         background_color: '#2DBC8B',
         display: 'standalone',
