@@ -29,6 +29,7 @@ CREATE TABLE "users" (
   "name" TEXT NOT NULL,
   "email" TEXT UNIQUE NOT NULL,
   "casilla" TEXT UNIQUE,
+  "gmail_forwarding_authorized" BOOLEAN DEFAULT FALSE,
   "password" TEXT NOT NULL,
   "role" TEXT DEFAULT 'user',
   "blocked" INTEGER DEFAULT 0,

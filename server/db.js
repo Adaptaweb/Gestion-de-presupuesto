@@ -225,5 +225,14 @@ async function reassignOrphanTransactions(userId) {
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn };
+async function addGmailForwardingAuthorizedColumn() {
+  try {
+    await db.run('ALTER TABLE users ADD COLUMN "gmail_forwarding_authorized" BOOLEAN DEFAULT FALSE');
+    console.log('[MIGRATION] gmail_forwarding_authorized column added to users table');
+  } catch (e) {
+    // columna ya existe, ignorar
+  }
+}
+
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn };
 export default db;

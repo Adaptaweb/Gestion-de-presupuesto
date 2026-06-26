@@ -2,10 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
-import { parseHTML } from './transactionParser.js';
+import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
 import cache from './cache.js';
 import { createJob, getJob } from './jobQueue.js';
 
@@ -16,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 addCasillaColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
+addGmailForwardingAuthorizedColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -736,7 +737,7 @@ app.post('/api/webhook/email', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { userId, from, subject, html, messageId } = req.body;
+    const { userId, from, subject, html, text, messageId } = req.body;
     if (!userId || !html) {
       return res.status(400).json({ error: 'Missing userId or html' });
     }
@@ -750,6 +751,38 @@ app.post('/api/webhook/email', async (req, res) => {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
       actualUserId = userByCasilla.id;
+    }
+
+    // Check if this is a Gmail authorization email
+    if (isGmailAuthorizationEmail(from, subject, html, text)) {
+      console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject}`);
+
+      const authUrl = extractGmailAuthUrl(html, text);
+      if (authUrl) {
+        console.log(`[GmailAuth] Auto-clicking authorization URL: ${authUrl.substring(0, 80)}...`);
+        try {
+          const clickRes = await fetch(authUrl, {
+            method: 'GET',
+            redirect: 'manual',
+          });
+          console.log(`[GmailAuth] Authorization click response status: ${clickRes.status}`);
+        } catch (clickErr) {
+          console.error(`[GmailAuth] Error clicking authorization URL: ${clickErr.message}`);
+        }
+      }
+
+      // Update user's gmail_forwarding_authorized status
+      try {
+        await db.run(
+          'UPDATE users SET gmail_forwarding_authorized = TRUE WHERE id = $1 AND (gmail_forwarding_authorized IS NULL OR gmail_forwarding_authorized = FALSE)',
+          actualUserId
+        );
+        console.log(`[GmailAuth] Marked user ${actualUserId} as gmail_forwarding_authorized`);
+      } catch (dbErr) {
+        console.error(`[GmailAuth] Error updating user status: ${dbErr.message}`);
+      }
+
+      return res.json({ success: true, type: 'gmail_authorization', autoClicked: !!authUrl });
     }
 
     const headers = {

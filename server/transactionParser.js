@@ -382,5 +382,93 @@ function categorize(comercio, comercioRaw, bodyText) {
   return 'Otros';
 }
 
-export { parseHTML, detectBank, categorize, simplifyComercio, parseMonto, parseFecha, fetchUsdRate, convertToClp };
+function extractGmailAuthUrl(html, text) {
+  if (!html && !text) return null;
+
+  const content = html || text;
+  const lowerContent = content.toLowerCase();
+
+  const isGmailAuthEmail = lowerContent.includes('accounts.google.com') ||
+                           lowerContent.includes('gmail.com') ||
+                           lowerContent.includes('google.com') ||
+                           lowerContent.includes('verificar') ||
+                           lowerContent.includes('confirm') ||
+                           lowerContent.includes('autoriz');
+
+  if (!isGmailAuthEmail) return null;
+
+  const urlPatterns = [
+    /https:\/\/accounts\.google\.com[^\s"'<>)\]]+/gi,
+    /https:\/\/mail\.google\.com[^\s"'<>)\]]+/gi,
+    /https:\/\/www\.google\.com\/accounts[^\s"'<>)\]]+/gi,
+    /https:\/\/accounts\.google\.co\.cl[^\s"'<>)\]]+/gi,
+  ];
+
+  const authKeywords = ['confirm', 'verify', 'signup', 'signin', 'disable', 'enable', 'approval', 'authorize', 'verificar', 'autorizar', 'confirmar'];
+
+  for (const pattern of urlPatterns) {
+    const matches = content.match(pattern);
+    if (matches) {
+      for (const url of matches) {
+        const urlLower = url.toLowerCase();
+        const hasAuthKeyword = authKeywords.some(kw => urlLower.includes(kw));
+        if (hasAuthKeyword) {
+          try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname.includes('google.com') || urlObj.hostname.includes('gmail.com')) {
+              return url.split('&')[0].split('#')[0];
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+    }
+  }
+
+  const generalUrlPattern = /https:\/\/[^\s"'<>)\]]+/gi;
+  const generalMatches = content.match(generalUrlPattern);
+  if (generalMatches) {
+    for (const url of generalMatches) {
+      const urlLower = url.toLowerCase();
+      const isGoogle = urlLower.includes('google.com') || urlLower.includes('gmail.com');
+      const hasAuthKeyword = authKeywords.some(kw => urlLower.includes(kw));
+      if (isGoogle && hasAuthKeyword) {
+        return url.split('&')[0].split('#')[0];
+      }
+    }
+  }
+
+  return null;
+}
+
+function isGmailAuthorizationEmail(from, subject, html, text) {
+  if (!from && !subject) return false;
+
+  const fromLower = (from || '').toLowerCase();
+  const subjectLower = (subject || '').toLowerCase();
+  const content = (html || text || '').toLowerCase();
+
+  const isFromGoogle = fromLower.includes('@google.com') ||
+                       fromLower.includes('@gmail.com') ||
+                       fromLower.includes('google.com') ||
+                       fromLower.includes('no-reply@');
+
+  const authSubjects = [
+    'confirm', 'verify', 'verificar', 'autoriz', 'confirmac',
+    'new device', 'nuevo dispositivo', 'sign-in', 'inicio de sesi',
+    'security', 'seguridad', 'enable', 'disable', 'aprobar',
+    'reenv', 'forwarding', 'redirect'
+  ];
+
+  const hasAuthSubject = authSubjects.some(s => subjectLower.includes(s));
+
+  const hasGmailInterface = content.includes('accounts.google.com') ||
+                            content.includes('mail.google.com') ||
+                            content.includes('gmail.com');
+
+  return isFromGoogle && (hasAuthSubject || hasGmailInterface);
+}
+
+export { parseHTML, detectBank, categorize, simplifyComercio, parseMonto, parseFecha, fetchUsdRate, convertToClp, extractGmailAuthUrl, isGmailAuthorizationEmail };
 export default { parseHTML };
