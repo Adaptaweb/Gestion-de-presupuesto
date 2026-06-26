@@ -107,7 +107,7 @@ async function processEmail(msgId, gmail, userId, results) {
     sendPushToUser(userId, 'Nueva transacción detectada',
       `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
       '/'
-    ).catch(() => {});
+    ).catch(err => console.error(`[GmailService] Push error: ${err.message}`));
   } catch (msgErr) {
     results.errors++;
     console.error('[GmailService] Error processing message:', msgErr.message);

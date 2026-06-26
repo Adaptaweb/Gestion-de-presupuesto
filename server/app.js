@@ -802,6 +802,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
     const parsed = await parseHTML(content, headers, actualUserId);
     if (!parsed || !parsed.monto || !parsed.fecha) {
+      console.log(`[Webhook] Could not parse transaction from ${from}: ${subject} - monto=${parsed?.monto}, fecha=${parsed?.fecha}`);
       return res.json({ success: false, reason: 'no_parsed_data' });
     }
 
@@ -829,7 +830,7 @@ app.post('/api/webhook/email', async (req, res) => {
     sendPushToUser(actualUserId, 'Nueva transacción detectada',
       `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
       '/'
-    ).catch(() => {});
+    ).catch(err => console.error(`[Webhook] Push error: ${err.message}`));
 
     res.json({ success: true, transaction: parsed });
   } catch (error) {

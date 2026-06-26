@@ -42,7 +42,12 @@ export async function sendPushToUser(userId, title, body, url = '/') {
       userId
     );
 
-    if (subs.length === 0) return;
+    console.log(`[Push] Sending to user ${userId}: "${title}" - ${subs.length} subscription(s) found`);
+
+    if (subs.length === 0) {
+      console.log(`[Push] No subscriptions found for user ${userId}`);
+      return;
+    }
 
     const payload = JSON.stringify({ title, body, url });
 
@@ -54,7 +59,9 @@ export async function sendPushToUser(userId, title, body, url = '/') {
 
       try {
         await webPush.sendNotification(subscription, payload);
+        console.log(`[Push] Sent to ${sub.endpoint.substring(0, 50)}...`);
       } catch (err) {
+        console.error(`[Push] Error sending to ${sub.endpoint.substring(0, 50)}...: ${err.message}`);
         if (err.statusCode === 410 || err.statusCode === 404) {
           await db.run('DELETE FROM push_subscriptions WHERE endpoint = $1', sub.endpoint);
         }
