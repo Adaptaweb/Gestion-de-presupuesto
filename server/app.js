@@ -8,8 +8,11 @@ import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
 import cache from './cache.js';
 import { createJob, getJob } from './jobQueue.js';
+import { Resend } from 'resend';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 const app = express();
 app.use(cors());
@@ -758,32 +761,33 @@ app.post('/api/webhook/email', async (req, res) => {
     if (isGmailAuthorizationEmail(from, subject, html, text)) {
       console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject}`);
 
-      const authUrl = extractGmailAuthUrl(html, text);
-      if (authUrl) {
-        console.log(`[GmailAuth] Auto-clicking authorization URL: ${authUrl.substring(0, 80)}...`);
+      // Get user's personal email to forward the authorization request
+      const user = await db.get('SELECT email FROM users WHERE id = ?', actualUserId);
+      if (!user?.email) {
+        console.error(`[GmailAuth] User ${actualUserId} has no personal email`);
+        return res.status(400).json({ error: 'User has no personal email' });
+      }
+
+      // Forward the authorization email to user's personal email via Resend
+      if (resend) {
         try {
-          const clickRes = await fetch(authUrl, {
-            method: 'GET',
-            redirect: 'manual',
+          const emailContent = html || text || '';
+          await resend.emails.send({
+            from: 'Kuentas Klaras <noreply@adaptaweb.cl>',
+            to: user.email,
+            subject: subject || 'Gmail: Confirma el reenvío de correos',
+            html: emailContent.includes('<') ? emailContent : `<pre>${emailContent}</pre>`,
+            text: emailContent,
           });
-          console.log(`[GmailAuth] Authorization click response status: ${clickRes.status}`);
-        } catch (clickErr) {
-          console.error(`[GmailAuth] Error clicking authorization URL: ${clickErr.message}`);
+          console.log(`[GmailAuth] Forwarded authorization email to ${user.email}`);
+        } catch (emailErr) {
+          console.error(`[GmailAuth] Error forwarding email: ${emailErr.message}`);
         }
+      } else {
+        console.warn(`[GmailAuth] Resend not configured, skipping email forward`);
       }
 
-      // Update user's gmail_forwarding_authorized status
-      try {
-        await db.run(
-          'UPDATE users SET gmail_forwarding_authorized = TRUE WHERE id = $1 AND (gmail_forwarding_authorized IS NULL OR gmail_forwarding_authorized = FALSE)',
-          actualUserId
-        );
-        console.log(`[GmailAuth] Marked user ${actualUserId} as gmail_forwarding_authorized`);
-      } catch (dbErr) {
-        console.error(`[GmailAuth] Error updating user status: ${dbErr.message}`);
-      }
-
-      return res.json({ success: true, type: 'gmail_authorization', autoClicked: !!authUrl });
+      return res.json({ success: true, type: 'gmail_authorization_forwarded', forwardedTo: user.email });
     }
 
     const headers = {
