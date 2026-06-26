@@ -33,7 +33,7 @@ export function UserMenu({
   isDarkMode, setIsDarkMode,
   onOpenAdmin, onOpenCategorias, onLogout,
   generateFinancialAdvice, isAiLoading,
-  isPushSupported, isPushSubscribed, isPushLoading,
+  isPushSubscribed, isPushLoading,
   onToggleNotifications,
 }) {
   return (
@@ -129,22 +129,20 @@ export function UserMenu({
             <span>Consultar IA ✨</span>
           </DropdownMenuItem>
 
-          {isPushSupported && (
-            <DropdownMenuItem
-              onClick={onToggleNotifications}
-              disabled={isPushLoading}
-              className="p-2 rounded-lg cursor-pointer"
-            >
-              {isPushLoading ? (
-                <Loader2 size={16} className="mr-2 text-slate-500 animate-spin" />
-              ) : isPushSubscribed ? (
-                <BellOff size={16} className="mr-2 text-slate-500" />
-              ) : (
-                <Bell size={16} className="mr-2 text-slate-500" />
-              )}
-              <span>{isPushSubscribed ? 'Desactivar notificaciones' : 'Activar notificaciones'}</span>
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem
+            onClick={onToggleNotifications}
+            disabled={isPushLoading}
+            className="p-2 rounded-lg cursor-pointer"
+          >
+            {isPushLoading ? (
+              <Loader2 size={16} className="mr-2 text-slate-500 animate-spin" />
+            ) : isPushSubscribed ? (
+              <BellOff size={16} className="mr-2 text-slate-500" />
+            ) : (
+              <Bell size={16} className="mr-2 text-slate-500" />
+            )}
+            <span>{isPushSubscribed ? 'Desactivar notificaciones' : 'Activar notificaciones'}</span>
+          </DropdownMenuItem>
 
         </DropdownMenuGroup>
 

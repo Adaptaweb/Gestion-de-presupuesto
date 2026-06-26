@@ -64,7 +64,6 @@ import {
   ClipboardList,
   Check,
   ClipboardCheck,
-  Bell,
   BookOpen,
   BookMarked,
   Laptop,
@@ -1522,7 +1521,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial }) => {
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
               isAiLoading={isAiLoading}
-              isPushSupported={push.isSupported}
               isPushSubscribed={push.isSubscribed}
               isPushLoading={push.loading}
               onToggleNotifications={() => {
@@ -1536,27 +1534,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial }) => {
           </div>
         </header>
 
-        {(install.isInstallable || (push.isSupported && !push.isSubscribed && push.permission !== 'denied')) && (
-          <div className="mb-4 md:mb-6 flex flex-wrap items-center gap-2">
-            {install.isInstallable && (
-              <button
-                onClick={install.install}
-                className="flex items-center gap-2 px-4 py-2.5 bg-kk text-white rounded-xl text-xs font-bold shadow-sm hover:bg-kk-dark transition-all"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                Instalar App
-              </button>
-            )}
-            {push.isSupported && !push.isSubscribed && push.permission !== 'denied' && (
-              <button
-                onClick={() => push.subscribe()}
-                disabled={push.loading}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all"
-              >
-                {push.loading ? <Loader2 size={16} className="animate-spin" /> : <Bell size={16} />}
-                {push.loading ? 'Activando...' : 'Activar notificaciones'}
-              </button>
-            )}
+        {install.isInstallable && (
+          <div className="mb-4 md:mb-6">
+            <button
+              onClick={install.install}
+              className="flex items-center gap-2 px-4 py-2.5 bg-kk text-white rounded-xl text-xs font-bold shadow-sm hover:bg-kk-dark transition-all"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Instalar App
+            </button>
           </div>
         )}
 

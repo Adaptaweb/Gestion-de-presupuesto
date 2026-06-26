@@ -10,34 +10,29 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export function usePushNotifications(token) {
-  const [isSupported, setIsSupported] = useState(false);
-  const [permission, setPermission] = useState(Notification.permission);
+  const canNotify = 'Notification' in window;
+  const hasSw = 'serviceWorker' in navigator;
+  const [permission, setPermission] = useState(
+    canNotify ? Notification.permission : 'denied'
+  );
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
-      setIsSupported(true);
-      setPermission(Notification.permission);
-    }
-  }, []);
-
-  const updateSubscriptionStatus = useCallback(async () => {
-    try {
-      if (!isSupported) return;
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      setIsSubscribed(!!sub);
-    } catch {
-      setIsSubscribed(false);
-    }
-  }, [isSupported]);
+  const isSupported = canNotify && hasSw;
 
   useEffect(() => {
     if (token && isSupported) {
-      updateSubscriptionStatus();
+      (async () => {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const sub = await reg.pushManager.getSubscription();
+          setIsSubscribed(!!sub);
+        } catch {
+          setIsSubscribed(false);
+        }
+      })();
     }
-  }, [token, isSupported, updateSubscriptionStatus]);
+  }, [token, isSupported]);
 
   const subscribe = useCallback(async () => {
     if (!isSupported || !token) return false;
@@ -45,6 +40,7 @@ export function usePushNotifications(token) {
 
     try {
       if (Notification.permission === 'denied') {
+        alert('Las notificaciones están bloqueadas para este sitio. Actívalas desde la configuración del navegador.');
         setLoading(false);
         return false;
       }
@@ -59,9 +55,19 @@ export function usePushNotifications(token) {
       }
 
       const reg = await navigator.serviceWorker.ready;
-      let sub = await reg.pushManager.getSubscription();
+      let sub;
+      try {
+        sub = await reg.pushManager.getSubscription();
+      } catch {
+        sub = null;
+      }
 
       if (!sub) {
+        if (!('PushManager' in window)) {
+          alert('Las notificaciones push no están disponibles en este navegador. En iOS, agrega la app a la pantalla de inicio primero.');
+          setLoading(false);
+          return false;
+        }
         sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
@@ -93,7 +99,12 @@ export function usePushNotifications(token) {
 
     try {
       const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
+      let sub;
+      try {
+        sub = await reg.pushManager.getSubscription();
+      } catch {
+        sub = null;
+      }
 
       if (sub) {
         await sub.unsubscribe();
