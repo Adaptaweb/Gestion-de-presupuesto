@@ -991,15 +991,16 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
           if (!bankTotalsMap[bank]) bankTotalsMap[bank] = {};
           bankTotalsMap[bank][row.tipo_tarjeta] = { total: row.total, count: row.count };
         }
+        const filteredSummary = summary.filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria));
         return (
           <div key={filterMonth + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            {summary.length > 0 && (
+            {filteredSummary.length > 0 && (
               <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-2.5 sm:p-3">
                 <div className="text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">Categorías</div>
                 <div className="space-y-0.5 max-h-[100px] overflow-y-auto custom-scrollbar">
                   {(() => {
-                    const maxTotal = Math.max(...summary.map(s => s.total), 1);
-                    return summary.map(s => (
+                    const maxTotal = Math.max(...filteredSummary.map(s => s.total), 1);
+                    return filteredSummary.map(s => (
                       <div key={s.categoria} className="flex items-center gap-1.5 text-[10px] sm:text-xs leading-tight">
                         <span {...catBadgeStyle(s.categoria)} className={`font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 w-28 sm:w-32 text-left leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${catBadgeStyle(s.categoria).className || ''}`}>{s.categoria}</span>
                         <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden">
@@ -1015,7 +1016,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
                 </div>
                 <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-200">
                   <span>Total</span>
-                  <span>{formatCurrency(summary.reduce((acc, s) => acc + s.total, 0))}</span>
+                  <span>{formatCurrency(filteredSummary.reduce((acc, s) => acc + s.total, 0))}</span>
                 </div>
               </div>
             )}
