@@ -738,8 +738,9 @@ app.post('/api/webhook/email', async (req, res) => {
     }
 
     const { userId, from, subject, html, text, messageId } = req.body;
-    if (!userId || !html) {
-      return res.status(400).json({ error: 'Missing userId or html' });
+    const content = html || text;
+    if (!userId || !content) {
+      return res.status(400).json({ error: 'Missing userId or content' });
     }
 
     // Resolve casilla → userId for new-format emails (parse+juan@...)
@@ -793,7 +794,7 @@ app.post('/api/webhook/email', async (req, res) => {
       to: '',
     };
 
-    const parsed = await parseHTML(html, headers, actualUserId);
+    const parsed = await parseHTML(content, headers, actualUserId);
     if (!parsed || !parsed.monto || !parsed.fecha) {
       return res.json({ success: false, reason: 'no_parsed_data' });
     }
