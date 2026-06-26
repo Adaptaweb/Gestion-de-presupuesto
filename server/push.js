@@ -6,7 +6,12 @@ const privateKey = process.env.VAPID_PRIVATE_KEY;
 const subject = process.env.VAPID_SUBJECT || 'mailto:admin@kuentasklaras.cl';
 
 if (publicKey && privateKey) {
-  webPush.setVapidDetails(subject, publicKey, privateKey);
+  try {
+    webPush.setVapidDetails(subject, publicKey, privateKey);
+    console.log('[Push] VAPID configured');
+  } catch (e) {
+    console.error('[Push] Invalid VAPID keys:', e.message);
+  }
 }
 
 export async function saveSubscription(userId, subscription) {
