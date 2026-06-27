@@ -1,8 +1,25 @@
-import { ArrowLeft, CheckCircle, X } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, CheckCircle, Loader2, X } from 'lucide-react';
 import { TUTORIAL_CONFIG } from './tutorialConfig';
 
 const Step3 = ({ onNext, onBack, onClose }) => {
+  const [loading, setLoading] = useState(false);
   const { MESSAGES } = TUTORIAL_CONFIG;
+
+  const handleComplete = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('/api/tutorial/complete', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+    } catch (e) {
+      // proceed anyway
+    }
+    setLoading(false);
+    onNext();
+  };
 
   return (
     <div className="bg-[#f7f9fb] text-[#191c1e] h-full flex flex-col overflow-hidden">
@@ -54,11 +71,12 @@ const Step3 = ({ onNext, onBack, onClose }) => {
 
       <footer className="flex-shrink-0 flex justify-center px-4 py-3 border-t border-[#f1f5f9]">
         <button
-          onClick={onNext}
-          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition-all"
+          onClick={handleComplete}
+          disabled={loading}
+          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition-all disabled:opacity-50"
         >
-          <span className="text-sm font-semibold">{MESSAGES.step3.closeButton}</span>
-          <X size={20} />
+          {loading ? <Loader2 size={20} className="animate-spin" /> : <X size={20} />}
+          <span className="text-sm font-semibold">{loading ? 'Finalizando...' : MESSAGES.step3.closeButton}</span>
         </button>
       </footer>
     </div>

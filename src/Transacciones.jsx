@@ -366,6 +366,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   const [error, setError] = useState(null);
   const [lastCheck, setLastCheck] = useState(null);
   const [authStatus, setAuthStatus] = useState(null);
+  const [gmailForwardingAuthorized, setGmailForwardingAuthorized] = useState(null);
   const [filterCat, setFilterCat] = useState('');
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
   const [statusMsg, setStatusMsg] = useState(null);
@@ -522,8 +523,10 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
       const res = await fetch('/api/transacciones/status', { headers: getHeaders() });
       const data = await res.json();
       setAuthStatus(data.authenticated);
+      setGmailForwardingAuthorized(data.gmail_forwarding_authorized || false);
     } catch (e) {
       setAuthStatus(false);
+      setGmailForwardingAuthorized(false);
     }
   }, [getHeaders]);
 
@@ -910,7 +913,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
 
   const currentReviewTx = pendingTxs[reviewIdx] || null;
 
-  if (filters.length === 0 && pendingTxs.length === 0) {
+  if (gmailForwardingAuthorized === false) {
     return (
       <div className="animate-in fade-in duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6">

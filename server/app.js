@@ -538,9 +538,20 @@ app.get('/api/transacciones/status', authenticateToken, async (req, res) => {
   const cached = cache.get(cacheKey);
   if (cached) return res.json(cached);
   const authenticated = await hasValidTokens(userId);
-  const result = { authenticated, lastCheck: getLastCheckTime() };
+  const user = await db.get('SELECT gmail_forwarding_authorized FROM users WHERE id = ?', userId);
+  const result = { authenticated, lastCheck: getLastCheckTime(), gmail_forwarding_authorized: user?.gmail_forwarding_authorized || false };
   cache.set(cacheKey, result, 60);
   res.json(result);
+});
+
+app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
+  try {
+    await db.run('UPDATE users SET gmail_forwarding_authorized = TRUE WHERE id = ?', req.user.id);
+    cache.del(`status:${req.user.id}`);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al marcar tutorial como completado' });
+  }
 });
 
 app.get('/api/transacciones', authenticateToken, async (req, res) => {
