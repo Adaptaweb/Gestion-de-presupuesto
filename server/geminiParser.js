@@ -34,7 +34,10 @@ export function esComercioGenerico(comercio) {
 }
 
 export async function parseWithGemini(emailText, subject, from) {
-  if (!model) return null;
+  if (!model) {
+    console.error('[GeminiParser] model es null — API key no configurada o fallo al inicializar');
+    return null;
+  }
 
   const key = cacheKey(emailText, subject, from);
   if (cache.has(key)) return cache.get(key);
@@ -86,6 +89,8 @@ ${(emailText || '').substring(0, 4000)}`;
   } catch (e) {
     if (e.message?.includes('Candidates') || e.message?.includes('SAFETY')) {
       console.warn(`[GeminiParser] Blocked for: ${subject}`);
+    } else {
+      console.error(`[GeminiParser] Error llamando a Gemini (${subject?.substring(0, 60)}): ${e.message}`);
     }
     return null;
   }
