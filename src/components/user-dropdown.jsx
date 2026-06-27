@@ -1,6 +1,6 @@
 import {
   User, Users, Palette, BrainCircuit,
-  LogOut, ChevronDown, Check, Loader2,
+  LogOut, ChevronDown, Check, Loader2, RefreshCw,
   Settings2, Filter, Tags, Bell,
 } from 'lucide-react'
 import {
@@ -158,6 +158,22 @@ export function UserMenu({
               />
             </button>
           </div>
+
+          <DropdownMenuItem
+            onClick={() => {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                  regs.forEach(r => r.unregister());
+                }).finally(() => window.location.reload());
+              } else {
+                window.location.reload();
+              }
+            }}
+            className="p-2 rounded-lg cursor-pointer"
+          >
+            <RefreshCw size={16} className="mr-2 text-slate-500" />
+            <span>Recargar app</span>
+          </DropdownMenuItem>
 
         </DropdownMenuGroup>
 
