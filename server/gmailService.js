@@ -170,4 +170,68 @@ async function buildGmailQuery(userId) {
   return `(${parts.join(' OR ')}) after:${getDateDaysAgo(days)}`;
 }
 
-export { fetchLatestTransactions, getLastCheckTime, buildGmailQuery };
+async function reprocessPendingTransactions(userId) {
+  if (!(await hasValidTokens(userId))) {
+    return { success: false, error: 'Gmail no autenticado' };
+  }
+
+  const auth = await getAuthenticatedClient(userId);
+  if (!auth) return { success: false, error: 'No se pudo autenticar con Gmail' };
+
+  const gmail = google.gmail({ version: 'v1', auth });
+
+  const pending = await db.all(
+    `SELECT * FROM transacciones_extraidas
+     WHERE user_id = $1
+       AND (revisado = FALSE OR revisado IS NULL)
+       AND gmail_msg_id IS NOT NULL AND gmail_msg_id != ''
+       AND deleted_at IS NULL`,
+    userId
+  );
+
+  const results = { total: pending.length, processed: 0, errors: 0, updates: [] };
+
+  for (const tx of pending) {
+    try {
+      const fullMsg = await gmail.users.messages.get({
+        userId: 'me',
+        id: tx.gmail_msg_id,
+        format: 'full',
+      });
+
+      const headers = {};
+      for (const h of fullMsg.data.payload.headers || []) {
+        headers[h.name.toLowerCase()] = h.value;
+      }
+
+      const body = getEmailBody(fullMsg.data.payload);
+      if (!body) { results.errors++; continue; }
+
+      const parsed = await parseHTML(body, headers, userId);
+      if (!parsed || !parsed.monto || !parsed.fecha) { results.errors++; continue; }
+
+      await db.run(
+        `UPDATE transacciones_extraidas SET
+          banco = $1, tipo_movimiento = $2, tipo_tarjeta = $3, monto = $4,
+          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $5 ELSE transacciones_extraidas.comercio END,
+          fecha = $6,
+          categoria = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $7 ELSE transacciones_extraidas.categoria END,
+          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND $8 IS NOT NULL THEN $8 ELSE transacciones_extraidas.tipo_transaccion END
+         WHERE id = $9 AND user_id = $10 AND (revisado = FALSE OR revisado IS NULL)`,
+        parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto,
+        parsed.comercio, parsed.fecha, parsed.categoria, parsed.tipo_transaccion_auto || 'gasto',
+        tx.id, userId
+      );
+
+      results.processed++;
+      results.updates.push({ id: tx.id, comercio: parsed.comercio, categoria: parsed.categoria, tipo: parsed.tipo_transaccion_auto });
+    } catch (e) {
+      results.errors++;
+      console.error(`[Reprocess] Error en ${tx.id}: ${e.message}`);
+    }
+  }
+
+  return results;
+}
+
+export { fetchLatestTransactions, getLastCheckTime, buildGmailQuery, reprocessPendingTransactions };

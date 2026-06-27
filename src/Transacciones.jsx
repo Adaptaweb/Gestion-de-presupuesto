@@ -401,6 +401,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewVisible, setReviewVisible] = useState(false);
   const [reviewDirection, setReviewDirection] = useState('forward');
+  const [reprocessing, setReprocessing] = useState(false);
   const reviewSliderRef = useRef(null);
 
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
@@ -559,6 +560,26 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
     } catch (e) { console.error(e); }
     return [];
   }, [getHeaders]);
+
+  const handleReprocess = async () => {
+    setReprocessing(true);
+    setStatusMsg({ type: 'info', text: 'Reprocesando transacciones con IA...' });
+    try {
+      const res = await fetch('/api/transacciones/reprocesar', { method: 'POST', headers: getHeaders() });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      setStatusMsg({ type: 'success', text: `Reprocesadas ${result.processed || 0} de ${result.total} transacciones` });
+      await fetchPendientes();
+      fetchTransactions();
+      fetchMonths();
+      fetchPendientesCount();
+    } catch (e) {
+      setStatusMsg({ type: 'error', text: `Error al reprocesar: ${e.message}` });
+    } finally {
+      setReprocessing(false);
+      setTimeout(() => setStatusMsg(null), 5000);
+    }
+  };
 
   useEffect(() => {
     fetchStatus();
@@ -1098,6 +1119,9 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
           <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
             <Check size={14} />
             Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
+          </button>
+          <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
+            <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
           </button>
         </div>
         <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">

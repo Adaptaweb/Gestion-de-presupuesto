@@ -272,26 +272,24 @@ async function parseHTML(html, headers = {}, userId = null) {
     if (bancoOrigen) comercio = simplifyComercio(bancoOrigen);
   }
 
-  let geminiResult = null;
-  const shouldQueryGemini = (tipo_movimiento === 'Transferencia' && !tipo_transaccion_auto) || esComercioGenerico(comercio);
+  const geminiResult = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
 
-  if (shouldQueryGemini) {
-    geminiResult = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
-    if (geminiResult) {
-      if (geminiResult.tipo) tipo_transaccion_auto = geminiResult.tipo;
-      if (geminiResult.comercio && esComercioGenerico(comercio)) {
-        comercio = simplifyComercio(geminiResult.comercio);
-      }
+  if (geminiResult) {
+    if (geminiResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
+      tipo_transaccion_auto = geminiResult.tipo;
+    }
+    if (geminiResult.comercio && (esComercioGenerico(comercio) || comercio.length < 3)) {
+      comercio = simplifyComercio(geminiResult.comercio);
     }
   }
 
   let categoria = categorize(comercio || '', comercio || '', bodyText);
 
   if (geminiResult?.categoria) {
-    categoria = geminiResult.categoria;
-  } else if (!shouldQueryGemini && categoria === 'Otros') {
-    const fallback = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
-    if (fallback?.categoria) categoria = fallback.categoria;
+    const CATS = ['Mercadería', 'Gustitos', 'Transporte', 'Compras', 'Salud y deportes', 'Educación', 'Suscripciones', 'Viajes y vacaciones', 'Donaciones y regalos', 'Casa y cuentas', 'Intereses', 'Créditos de consumo', 'Gastos bancarios', 'Juegos', 'Sueldo', 'Ahorro', 'Inversiones / Renta', 'Otros ingresos', 'Sin categoría', 'Otros'];
+    if (CATS.includes(geminiResult.categoria)) {
+      categoria = geminiResult.categoria;
+    }
   }
 
   if (userId && comercio) {

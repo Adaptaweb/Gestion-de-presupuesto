@@ -3,7 +3,7 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns } from './db.js';
-import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
+import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
 import cache from './cache.js';
@@ -744,6 +744,18 @@ app.get('/api/transacciones/revisar/status/:jobId', authenticateToken, async (re
   const job = await getJob(req.params.jobId);
   if (!job) return res.status(404).json({ error: 'Job no encontrado' });
   res.json({ status: job.status, result: job.result, error: job.error });
+});
+
+app.post('/api/transacciones/reprocesar', authenticateToken, async (req, res) => {
+  try {
+    const result = await reprocessPendingTransactions(req.user.id);
+    cache.delByPattern(`tx:*:${req.user.id}`);
+    cache.del(`tx:meses:${req.user.id}`);
+    cache.delByPattern(`tx:pendientes:${req.user.id}`);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Webhook de Cloudflare Email Worker
