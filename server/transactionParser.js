@@ -308,7 +308,7 @@ async function parseHTML(html, headers = {}, userId = null) {
     if (geminiResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
       tipo_transaccion_auto = geminiResult.tipo;
     }
-    if (geminiResult.comercio && (esComercioGenerico(comercio) || comercio.length < 3)) {
+    if (geminiResult.comercio && !esComercioGenerico(geminiResult.comercio)) {
       comercio = simplifyComercio(geminiResult.comercio);
     }
   }
