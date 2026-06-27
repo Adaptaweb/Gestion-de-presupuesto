@@ -18,13 +18,16 @@ export default function UpdateBanner() {
   if (!stale) return null;
 
   const handleUpdate = () => {
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => caches.delete(name));
-      });
-    }
     localStorage.setItem(STORAGE_KEY, String(__BUILD_TIME__));
-    window.location.reload();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      }).finally(() => {
+        window.location.reload();
+      });
+    } else {
+      window.location.reload();
+    }
   };
 
   return (
