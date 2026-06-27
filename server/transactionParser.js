@@ -281,12 +281,21 @@ async function parseHTML(html, headers = {}, userId = null) {
       const strongTags = $('strong').toArray();
       for (const tag of strongTags) {
         const text = $(tag).text().trim();
+        const lowerText = text.toLowerCase();
         if (text.length > 3
-          && !text.toLowerCase().includes('débito')
-          && !text.toLowerCase().includes('debito')
+          && !lowerText.includes('débito')
+          && !lowerText.includes('debito')
+          && !lowerText.includes('transferencia')
+          && !lowerText.includes('comprobante')
+          && !lowerText.includes('comentario')
+          && !lowerText.includes('importante')
+          && !lowerText.includes('automático')
+          && !lowerText.includes('automatico')
+          && !lowerText.includes('contacte')
+          && !lowerText.includes('garantía')
+          && !lowerText.includes('garantia')
           && !text.includes('@')
-          && !text.toLowerCase().includes('transferencia')
-          && !text.toLowerCase().includes('comprobante de')
+          && !/\d{7,}/.test(text)
         ) {
           comercio = simplifyComercio(text);
           break;
@@ -313,13 +322,18 @@ async function parseHTML(html, headers = {}, userId = null) {
   }
 
   if (!comercio && tipo_movimiento === 'Transferencia') {
-    const clienteMatch = bodyText.match(/(?:nuestro\s*\(\s*a\s*\)\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,60}?)\s*,\s*ha\s+(?:instruido|efectuado)/i);
+    const clienteMatch = bodyText.match(/(?:nuestro\s*\(?\s*a\s*\)?\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*,?\s*ha\s+(?:instruido|efectuado)/i);
     if (clienteMatch) comercio = simplifyComercio(clienteMatch[1]);
   }
 
   if (!comercio && tipo_movimiento === 'Transferencia') {
-    const clienteMatch2 = bodyText.match(/(?:nuestro\s*\(\s*a\s*\)\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,60}?)\s+ha\s+efectuado/i);
+    const clienteMatch2 = bodyText.match(/(?:nuestro\s*\(?\s*a\s*\)?\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s+ha\s+(?:instruido|efectuado)/i);
     if (clienteMatch2) comercio = simplifyComercio(clienteMatch2[1]);
+  }
+
+  if (!comercio && tipo_movimiento === 'Transferencia') {
+    const clienteMatch3 = bodyText.match(/cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*,\s*ha\s+(?:instruido|efectuado)/i);
+    if (clienteMatch3) comercio = simplifyComercio(clienteMatch3[1]);
   }
   } // fin else (!parserResult)
 
