@@ -532,6 +532,22 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
     }
   }, [getHeaders]);
 
+  const handleGmailAuth = useCallback(async () => {
+    try {
+      const res = await fetch('/api/transacciones/auth-url', { headers: getHeaders() });
+      const data = await res.json();
+      if (data.url) {
+        const w = window.open(data.url, '_blank');
+        if (!w) {
+          window.location.href = data.url;
+        }
+      }
+    } catch (e) {
+      setStatusMsg({ type: 'error', text: 'Error al conectar con Gmail' });
+      setTimeout(() => setStatusMsg(null), 4000);
+    }
+  }, [getHeaders]);
+
   const fetchMonths = useCallback(async () => {
     try {
       const res = await fetch('/api/transacciones/meses', { headers: getHeaders() });
@@ -1448,6 +1464,18 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
               <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
             </div>
 
+            <div className="mb-6 p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
+              <label className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-2 block">Conexión Gmail</label>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-2 h-2 rounded-full ${authStatus ? 'bg-emerald-500' : 'bg-red-400'}`} />
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                  {authStatus ? 'Conectado' : 'No conectado'}
+                </span>
+              </div>
+              <button onClick={handleGmailAuth} className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all">
+                <ExternalLink size={16} /> {authStatus ? 'Reconectar Gmail' : 'Conectar Gmail'}
+              </button>
+            </div>
             <div className="mb-6 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
               <label className="text-[10px] font-black uppercase text-blue-500 dark:text-blue-400 mb-2 block">Reenvío automático</label>
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
