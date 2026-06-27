@@ -3,6 +3,7 @@ import { BCIDebitoParser } from './bci/debito.js';
 import { BCICreditoParser } from './bci/credito.js';
 import { BCITransferenciaParser } from './bci/transferencia.js';
 import { ItauTransferenciaParser } from './itau/transferencia.js';
+import { FalabellaTransferenciaParser } from './falabella/transferencia.js';
 import { SantanderCompraParser } from './santander/compra.js';
 import { SantanderTransferenciaParser } from './santander/transferencia.js';
 import { BancoChileCompraParser } from './bancochile/compra.js';
@@ -15,6 +16,7 @@ const parsers = [
   new BCICreditoParser(),
   new BCITransferenciaParser(),
   new ItauTransferenciaParser(),
+  new FalabellaTransferenciaParser(),
   new SantanderCompraParser(),
   new SantanderTransferenciaParser(),
   new BancoChileCompraParser(),

@@ -1,14 +1,15 @@
 import { BaseParser } from '../base.js';
 
-export class ItauTransferenciaParser extends BaseParser {
+export class FalabellaTransferenciaParser extends BaseParser {
   constructor() {
-    super('Itau.transferencia');
+    super('Falabella.transferencia');
   }
 
   puedeParsear(html, headers) {
     const from = (headers?.from || '').toLowerCase();
-    return (from.includes('itau') || from.includes('itau.cl')) &&
-           /transferencia|ha\s+instruido|nuestro.*cliente/i.test(html);
+    const subject = (headers?.subject || '').toLowerCase();
+    return (from.includes('falabella') || from.includes('falabella.cl') || subject.includes('transferencia')) &&
+           /nuestro.*cliente|ha\s+instruido/i.test(html);
   }
 
   extraer(html, headers) {
@@ -16,11 +17,11 @@ export class ItauTransferenciaParser extends BaseParser {
     const bodyText = $.text().replace(/\s+/g, ' ');
 
     let monto = 0;
-    const montoMatch = bodyText.match(/Monto[\s:]*\$?\s*([0-9.]{1,15})/i);
+    const montoMatch = bodyText.match(/(?:Monto|Monto\s+transferencia)[\s:]*\$?\s*([0-9.]{1,15})/i);
     if (montoMatch) monto = this.normalizarMonto(montoMatch[1]);
 
     let fecha = null;
-    const fechaMatch = bodyText.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
+    const fechaMatch = bodyText.match(/(\d{2})[\-\/](\d{2})[\-\/](\d{4})/);
     if (fechaMatch) fecha = `${fechaMatch[3]}-${fechaMatch[2]}-${fechaMatch[1]}`;
 
     let comercioRaw = '';
@@ -44,8 +45,8 @@ export class ItauTransferenciaParser extends BaseParser {
 
     if (!comercioRaw) {
       const patrones = [
-        /nuestro\s*\(?\s*a\s*\)?\s*cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*,?\s*ha\s+(?:instruido|efectuado)/i,
-        /cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*,?\s*ha\s+(?:instruido|efectuado)/i,
+        /nuestro\s*\(?\s*a\s*\)?\s*cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*(?:ha\s+instruido|,)/i,
+        /cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*ha\s+instruido/i,
       ];
 
       for (const patron of patrones) {
@@ -57,15 +58,28 @@ export class ItauTransferenciaParser extends BaseParser {
       }
     }
 
+    if (!comercioRaw) {
+      const lines = bodyText.split('.');
+      for (const line of lines) {
+        if (/nuestro.*cliente/i.test(line)) {
+          const nameMatch = line.match(/cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)/i);
+          if (nameMatch && nameMatch[1]) {
+            comercioRaw = nameMatch[1].trim();
+            break;
+          }
+        }
+      }
+    }
+
     const comercio = this.simplifyComercio(comercioRaw);
 
     let tipo_transaccion = 'gasto';
-    if (/a\s+su\s+cuenta|a\s+tu\s+cuenta|ha\s+instruido.*a\s+tu\s|transferencia\s+a\s+su\s/i.test(bodyText)) {
+    if (/a\s+su\s+cuenta|a\s+tu\s+cuenta|ha\s+instruido.*a\s+tu/i.test(bodyText)) {
       tipo_transaccion = 'ingreso';
     }
 
     return {
-      banco: 'Itau',
+      banco: 'Falabella',
       tipo_movimiento: 'Transferencia',
       tipo_tarjeta: '',
       monto,
@@ -82,7 +96,7 @@ export class ItauTransferenciaParser extends BaseParser {
     name = name.replace(/[,|.]+$/g, '');
     name = name.replace(/\s+/g, ' ').trim();
 
-    const suffixes = ['CALAMA', 'SANTIAGO', 'PROVIDENCIA', 'LAS CONDES', 'VITACURA', 'SPA', 'LTD', 'LTDA', 'LIMITADA', 'SA', 'S.A.', 'CHILE', 'EMISORA'];
+    const suffixes = ['CALAMA', 'SANTIAGO', 'PROVIDENCIA', 'LAS CONDES', 'VITACURA', 'SPA', 'LTD', 'LTDA', 'LIMITADA', 'SA', 'S.A.', 'CHILE', 'EMISORA', 'CUENTA'];
     const words = name.split(/\s+/);
     const filtered = words.filter(w => !suffixes.includes(w.toUpperCase()) && w.length > 1);
     name = filtered.join(' ');
@@ -92,4 +106,4 @@ export class ItauTransferenciaParser extends BaseParser {
   }
 }
 
-export default ItauTransferenciaParser;
+export default FalabellaTransferenciaParser;
