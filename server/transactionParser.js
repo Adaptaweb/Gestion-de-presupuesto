@@ -470,8 +470,7 @@ function isGmailAuthorizationEmail(from, subject, html, text) {
   const hasAuthSubject = authSubjects.some(s => subjectLower.includes(s));
 
   const hasGmailInterface = content.includes('accounts.google.com') ||
-                            content.includes('mail.google.com') ||
-                            content.includes('gmail.com');
+                            content.includes('mail.google.com');
 
   const hasGmailForwardingLink = content.includes('mail-settings.google.com/mail/vf-') ||
                                   content.includes('mail-settings.google.com/mail/uf-') ||
