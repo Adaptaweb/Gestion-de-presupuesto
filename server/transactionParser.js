@@ -302,15 +302,24 @@ async function parseHTML(html, headers = {}, userId = null) {
     if (clienteMatch2) comercio = simplifyComercio(clienteMatch2[1]);
   }
 
-  const geminiResult = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
+  const subject = headers['subject'] || headers['Subject'] || '';
+  const from = headers['from'] || headers['From'] || '';
+  console.log(`[DEBUG-Gemini] Enviando a Gemini | asunto="${subject}" | from="${from}" | bodyText="${bodyText.substring(0, 800)}"`);
+  const geminiResult = await parseWithGemini(bodyText, subject, from);
+  console.log(`[DEBUG-Gemini] Respuesta de Gemini: ${JSON.stringify(geminiResult)}`);
 
   if (geminiResult) {
     if (geminiResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
       tipo_transaccion_auto = geminiResult.tipo;
     }
     if (geminiResult.comercio && !esComercioGenerico(geminiResult.comercio)) {
+      console.log(`[DEBUG-Gemini] Usando comercio de Gemini: "${geminiResult.comercio}" -> reemplaza "${comercio}"`);
       comercio = simplifyComercio(geminiResult.comercio);
+    } else {
+      console.log(`[DEBUG-Gemini] NO se usa comercio de Gemini. Resultado: "${geminiResult?.comercio}", esGenerico: ${esComercioGenerico(geminiResult?.comercio || '')}. Se mantiene: "${comercio}"`);
     }
+  } else {
+    console.log(`[DEBUG-Gemini] Gemini devolvio null. Se mantiene comercio: "${comercio}"`);
   }
 
   let categoria = categorize(comercio || '', comercio || '', bodyText);
