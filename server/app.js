@@ -864,7 +864,7 @@ app.post('/api/webhook/email', async (req, res) => {
          fecha_extraccion = NOW(),
          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
-       id, actualUserId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
+       id, actualUserId, parsed.banco || 'Otros', parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
     );
 
     try {
@@ -872,7 +872,7 @@ app.post('/api/webhook/email', async (req, res) => {
         `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT DO NOTHING`,
-        actualUserId, emailId, parsed.banco, parsed.fingerprint || null,
+        actualUserId, emailId, parsed.banco || 'Otros', parsed.fingerprint || null,
         parsed.monto && parsed.fecha,
         JSON.stringify({ monto: !!parsed.monto, fecha: !!parsed.fecha, comercio: !!parsed.comercio }),
         parsed.confianza || 0,

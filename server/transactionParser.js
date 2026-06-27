@@ -157,7 +157,7 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   const bodyText = $.text().replace(/\s+/g, ' ').trim();
 
-  const bank = detectBank(headers, bodyText);
+  let bank = detectBank(headers, bodyText);
   const hasUsd = bodyText.includes('US$');
 
   const subjectText = (headers['subject'] || headers['Subject'] || '').toLowerCase();
