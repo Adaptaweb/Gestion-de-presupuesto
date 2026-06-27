@@ -171,7 +171,7 @@ async function buildGmailQuery(userId) {
 }
 
 async function reprocessPendingTransactions(userId) {
-  const results = { total: 0, processed: 0, errors: 0, skipped: 0, updates: [], errors_detail: [] };
+  const results = { total: 0, processed: 0, errors: 0, skipped: 0, updates: [], errors_detail: [], needsReauth: false };
 
   if (!(await hasValidTokens(userId))) {
     results.errors_detail.push('Gmail no autenticado');
@@ -182,6 +182,18 @@ async function reprocessPendingTransactions(userId) {
   if (!auth) { results.errors_detail.push('No se pudo autenticar con Gmail'); return results; }
 
   const gmail = google.gmail({ version: 'v1', auth });
+
+  // Validate token with a lightweight Gmail API call
+  try {
+    await gmail.users.getProfile({ userId: 'me' });
+  } catch (e) {
+    if (e.message?.includes('invalid_grant') || e.message?.includes('Invalid Credentials')) {
+      await clearTokens(userId);
+      results.needsReauth = true;
+      results.errors_detail.push('Token de Gmail expirado. Necesitas re-autenticar.');
+      return results;
+    }
+  }
 
   const pending = await db.all(
     `SELECT * FROM transacciones_extraidas
@@ -209,10 +221,16 @@ async function reprocessPendingTransactions(userId) {
           gmailId = searchRes.data.messages[0].id;
         } else {
           results.skipped++;
-          results.errors_detail.push(`${tx.id}: email no encontrado en Gmail (webhook - rfc822msgid:${tx.email_id})`);
+          results.errors_detail.push(`${tx.id}: email no encontrado en Gmail (rfc822msgid:${tx.email_id})`);
           continue;
         }
       } catch (e) {
+        if (e.message?.includes('invalid_grant')) {
+          await clearTokens(userId);
+          results.needsReauth = true;
+          results.errors_detail.push('Token de Gmail expirado. Necesitas re-autenticar.');
+          return results;
+        }
         results.skipped++;
         results.errors_detail.push(`${tx.id}: error buscando en Gmail: ${e.message}`);
         continue;
@@ -253,6 +271,12 @@ async function reprocessPendingTransactions(userId) {
       results.processed++;
       results.updates.push({ id: tx.id, comercio: parsed.comercio, categoria: parsed.categoria, tipo: parsed.tipo_transaccion_auto });
     } catch (e) {
+      if (e.message?.includes('invalid_grant')) {
+        await clearTokens(userId);
+        results.needsReauth = true;
+        results.errors_detail.push('Token de Gmail expirado. Necesitas re-autenticar.');
+        return results;
+      }
       results.errors++;
       results.errors_detail.push(`${tx.id}: ${e.message}`);
       console.error(`[Reprocess] Error en ${tx.id}: ${e.message}`);

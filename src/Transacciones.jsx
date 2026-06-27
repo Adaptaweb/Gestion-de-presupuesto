@@ -568,6 +568,11 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
       const res = await fetch('/api/transacciones/reprocesar', { method: 'POST', headers: getHeaders() });
       const result = await res.json();
       if (result.error) throw new Error(result.error);
+      if (result.needsReauth) {
+        setAuthStatus(false);
+        setStatusMsg({ type: 'error', text: 'Token de Gmail expirado. Ve a Configuración → Gmail para re-autenticar.' });
+        return;
+      }
       const skipped = result.skipped || 0;
       const msg = skipped > 0
         ? `Reprocesadas ${result.processed} de ${result.total} (${skipped} no encontradas en Gmail)`
