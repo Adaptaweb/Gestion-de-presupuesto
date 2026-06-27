@@ -4,6 +4,7 @@ import ColorPicker from './ColorPicker.jsx';
 import EmojiPicker from './EmojiPicker.jsx';
 import { DeleteConfirmModal } from './DeleteConfirmModal.jsx';
 
+const TIPO_ORDER = ['gasto', 'ingreso', 'ambos'];
 const TIPO_LABELS = { gasto: 'Gasto', ingreso: 'Ingreso', ambos: 'Ambos' };
 
 function Toast({ msg, onDone }) {
