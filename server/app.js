@@ -761,7 +761,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
     // Check if this is a Gmail authorization email
     if (isGmailAuthorizationEmail(from, subject, html, text)) {
-      console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject}`);
+      console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject} from ${from}`);
 
       // Get user's personal email to forward the authorization request
       const user = await db.get('SELECT email FROM users WHERE id = ?', actualUserId);
@@ -790,6 +790,8 @@ app.post('/api/webhook/email', async (req, res) => {
       }
 
       return res.json({ success: true, type: 'gmail_authorization_forwarded', forwardedTo: user.email });
+    } else {
+      console.log(`[Webhook] Processing bank transaction: ${subject} from ${from}`);
     }
 
     const headers = {

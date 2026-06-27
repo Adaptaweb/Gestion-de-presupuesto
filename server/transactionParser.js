@@ -130,7 +130,9 @@ const KNOWN_TABLE_LABELS = ['monto', 'fecha', 'comercio', 'número tarjeta', 'nr
 function hasRealDataTable($) {
   const allRows = $('tr').toArray().filter(r => $(r).children('td').length >= 2);
   for (const row of allRows) {
-    const text = $(row).children('td').first().text().trim().toLowerCase();
+    const cells = $(row).children('td');
+    if (cells.length < 2) continue;
+    const text = cells.first().text().trim().toLowerCase();
     for (const label of KNOWN_TABLE_LABELS) {
       if (text.includes(label)) return true;
     }
@@ -178,11 +180,16 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   if (hasRealDataTable($)) {
     usedTable = true;
-    const tableRows = $('table table tr').toArray().filter(r => $(r).children('td').length >= 2);
-    if (tableRows.length === 0) {
-      const allRows = $('tr').toArray().filter(r => $(r).children('td').length >= 2);
-      tableRows.push(...allRows);
-    }
+  }
+
+  const tableRows = $('table table tr').toArray().filter(r => $(r).children('td').length >= 2);
+  if (tableRows.length === 0) {
+    const allRows = $('tr').toArray().filter(r => $(r).children('td').length >= 2);
+    tableRows.push(...allRows);
+  }
+
+  if (tableRows.length > 0) {
+    usedTable = true;
 
     let montoRaw = extractTableValue($, tableRows, 'monto');
     monto = parseMonto(montoRaw);
@@ -319,7 +326,7 @@ function parseClpText(bodyText) {
   const amounts = [];
   while ((amatch = amountRegex.exec(bodyText)) !== null) {
     const parsed = parseMonto(amatch[1]);
-    if (parsed && parsed > 500) amounts.push(parsed);
+    if (parsed && parsed >= 500) amounts.push(parsed);
   }
   if (amounts.length > 0) result.monto = amounts[0];
 
