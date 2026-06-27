@@ -51,7 +51,8 @@ A partir del siguiente correo, extrae estos datos en formato JSON (SOLO JSON, si
 
 Reglas:
 - tipo: "ingreso" si recibiste dinero, "gasto" si pagaste, "interno" si es entre cuentas propias
-- comercio: nombre REAL. NUNCA pongas "Nuestro Cliente", "Cliente", "Sr", "Señor" ni genéricos
+- Si el correo dice "ha efectuado una transferencia a tu cuenta", "ha instruido una transferencia", "Has recibido una transferencia de fondos de", "nuestro(a) cliente X ha efectuado/instruido una transferencia" → es INGRESO (alguien envió dinero al usuario)
+- comercio: nombre REAL de quien envía. Busca después de "de fondos de", "cliente", "remitente", "Nombre". NUNCA pongas "Nuestro Cliente", "Cliente", "Sr", "Señor" ni genéricos
 - categoria: Mercadería | Transporte | Compras | Salud y deportes | Educación | Suscripciones | Viajes y vacaciones | Donaciones y regalos | Casa y cuentas | Sueldo | Otros ingresos | Otros | Inversiones/Renta
 
 Asunto: ${subject || ''}

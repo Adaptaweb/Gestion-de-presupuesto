@@ -167,7 +167,7 @@ async function parseHTML(html, headers = {}, userId = null) {
   if (tipo_movimiento === 'Transferencia') {
     if (/a terceros|transferencia enviada|giro por transferencia|realizaste una transferencia|transferiste|comprobante de transferencia/i.test(bodyText)) {
       tipo_transaccion_auto = 'gasto';
-    } else if (/recibida|abono por|depósito por transferencia|recibiste un depósito|monto recibido|\bdepósito\b/i.test(bodyText)) {
+    } else if (/recibida|abono por|depósito por transferencia|recibiste un depósito|monto recibido|\bdepósito\b|has recibido una transferencia|recibiste una transferencia|ha efectuado.*transferencia.*a tu cuenta|ha instruido una transferencia|transferencia recibida/i.test(bodyText)) {
       tipo_transaccion_auto = 'ingreso';
     } else if (/traspaso|entre cuentas|movimiento interno/i.test(bodyText)) {
       tipo_transaccion_auto = 'interno';
@@ -270,6 +270,21 @@ async function parseHTML(html, headers = {}, userId = null) {
   if (!comercio && tipo_movimiento === 'Transferencia') {
     const bancoOrigen = extractTableValue($, $('tr').toArray().filter(r => $(r).children('td').length >= 2), 'banco de origen');
     if (bancoOrigen) comercio = simplifyComercio(bancoOrigen);
+  }
+
+  if (!comercio && tipo_movimiento === 'Transferencia') {
+    const deFondos = bodyText.match(/transferencia\s+de\s+fondos\s+de\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,60}?)\s+hacia/i);
+    if (deFondos) comercio = simplifyComercio(deFondos[1]);
+  }
+
+  if (!comercio && tipo_movimiento === 'Transferencia') {
+    const clienteMatch = bodyText.match(/(?:nuestro\s*\(\s*a\s*\)\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,60}?)\s*,\s*ha\s+(?:instruido|efectuado)/i);
+    if (clienteMatch) comercio = simplifyComercio(clienteMatch[1]);
+  }
+
+  if (!comercio && tipo_movimiento === 'Transferencia') {
+    const clienteMatch2 = bodyText.match(/(?:nuestro\s*\(\s*a\s*\)\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,60}?)\s+ha\s+efectuado/i);
+    if (clienteMatch2) comercio = simplifyComercio(clienteMatch2[1]);
   }
 
   const geminiResult = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
