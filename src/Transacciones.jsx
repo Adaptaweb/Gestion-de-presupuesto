@@ -910,7 +910,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
 
   const currentReviewTx = pendingTxs[reviewIdx] || null;
 
-  if (authStatus === false && filters.length === 0 && pendingTxs.length === 0) {
+  if (filters.length === 0 && pendingTxs.length === 0) {
     return (
       <div className="animate-in fade-in duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6">
