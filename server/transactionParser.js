@@ -143,21 +143,36 @@ function hasRealDataTable($) {
 
 async function parseHTML(html, headers = {}, userId = null) {
   const $ = cheerio.load(html);
-  const bodyText = $.text();
+
+  // Remove boilerplate elements that pollute text with nav/footer labels
+  $('script, style, nav, footer, header, .footer, .navbar, .menu, [aria-hidden="true"], [hidden]').remove();
+  // Add spacing between adjacent elements so table cell content is separated
+  $('br').replaceWith('\n');
+  $('td, th, p, div, li, h1, h2, h3, h4, h5, h6, hr').each(function() {
+    $(this).append(' ');
+  });
+
+  const bodyText = $.text().replace(/\s+/g, ' ').trim();
 
   const bank = detectBank(headers, bodyText);
   const hasUsd = bodyText.includes('US$');
 
+  const subjectText = (headers['subject'] || headers['Subject'] || '').toLowerCase();
+
+  // Priority: subject first (cleanest), then cleaned bodyText
   let tipo_movimiento = 'Compra';
-  if (bodyText.includes('retiro') || bodyText.includes('Retiro')) tipo_movimiento = 'Retiro';
-  else if (bodyText.includes('transferencia') || bodyText.includes('Transferencia') || bodyText.includes('traspaso') || bodyText.includes('Traspaso')) tipo_movimiento = 'Transferencia';
-  else if (/cargo/i.test(bodyText)) {
+  if (/transferencia|traspaso/i.test(subjectText)) {
+    tipo_movimiento = 'Transferencia';
+  } else if (/retiro/i.test(bodyText)) {
+    tipo_movimiento = 'Retiro';
+  } else if (/transferencia|traspaso/i.test(bodyText)) {
+    tipo_movimiento = 'Transferencia';
+  } else if (/cargo/i.test(bodyText)) {
     const falsePositives = ['devolución de este cargo', 'validar tu tarjeta', 'hacen un cargo de', 'este cargo tarda'];
     const isValidation = falsePositives.some(t => bodyText.toLowerCase().includes(t));
     if (!isValidation) tipo_movimiento = 'Cargo';
   }
 
-  const subjectText = (headers['subject'] || headers['Subject'] || '').toLowerCase();
   const allText = `${subjectText} ${bodyText}`.toLowerCase();
   let tipo_tarjeta = '';
   if (/d[eé]bito/.test(allText)) tipo_tarjeta = 'Débito';
@@ -314,7 +329,7 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   if (!monto || !fecha) return {};
 
-  return { banco: bank, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto };
+  return { banco: bank, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto, bodyText: bodyText.substring(0, 5000) };
 }
 
 function parseMonto(raw) {
