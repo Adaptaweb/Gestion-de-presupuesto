@@ -5,7 +5,7 @@ import StepOpcional from './tutorial/StepOpcional';
 import Step2 from './tutorial/Step2';
 import Step3 from './tutorial/Step3';
 
-const TutorialFlow = ({ onClose, hasMailboxConfigured = false }) => {
+const TutorialFlow = ({ user, onClose, hasMailboxConfigured = false }) => {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState('forward');
   const [animKey, setAnimKey] = useState(0);
@@ -75,7 +75,7 @@ const TutorialFlow = ({ onClose, hasMailboxConfigured = false }) => {
     );
   }
 
-  const sharedProps = { emailData, onClose };
+  const sharedProps = { emailData, user, onClose };
 
   const renderStep = () => {
     if (step === 0) return <Welcome onNext={goNext} onClose={onClose} />;

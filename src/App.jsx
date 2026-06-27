@@ -3576,7 +3576,7 @@ const App = () => {
       {showTutorial && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90vh] max-h-[900px] shadow-2xl overflow-hidden">
-            <TutorialFlow onClose={() => setShowTutorial(false)} hasMailboxConfigured={tutorialHasMailbox} />
+            <TutorialFlow user={user} onClose={() => setShowTutorial(false)} hasMailboxConfigured={tutorialHasMailbox} />
           </div>
         </div>
       )}

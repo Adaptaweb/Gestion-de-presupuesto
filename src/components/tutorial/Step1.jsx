@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ArrowLeft, Check, Copy, Eye, Settings, Shield, X } from 'lucide-react';
-import { FORWARD_EMAIL, TUTORIAL_CONFIG } from './tutorialConfig';
+import { TUTORIAL_CONFIG } from './tutorialConfig';
 
-const Step1 = ({ emailData, onNext, onOpcional, onBack, onClose }) => {
+const Step1 = ({ emailData, user, onNext, onOpcional, onBack, onClose }) => {
   const [copied, setCopied] = useState(false);
-  const reenvioEmail = emailData?.email || FORWARD_EMAIL;
+  const casilla = emailData?.casilla || user?.id || '';
+  const reenvioEmail = emailData?.email || (casilla ? `parse+${casilla}@adaptaweb.cl` : '');
   const { MESSAGES } = TUTORIAL_CONFIG;
 
   const handleCopy = () => {
