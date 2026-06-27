@@ -1,27 +1,30 @@
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useState, useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 
+const STORAGE_KEY = 'kk_build_version';
+
 export default function UpdateBanner() {
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(swUrl, r) {
-      if (r) {
-        console.log('[PWA] SW registered:', swUrl);
-        r.addEventListener('updatefound', () => {
-          console.log('[PWA] New version found');
-        });
-      }
-    },
-  });
+  const [stale, setStale] = useState(false);
 
-  if (!needRefresh) return null;
-
-  const handleUpdate = async () => {
-    if (typeof updateServiceWorker === 'function') {
-      await updateServiceWorker(true);
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const current = String(__BUILD_TIME__);
+    if (stored && stored !== current) {
+      setStale(true);
     }
+    localStorage.setItem(STORAGE_KEY, current);
+  }, []);
+
+  if (!stale) return null;
+
+  const handleUpdate = () => {
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+    localStorage.setItem(STORAGE_KEY, String(__BUILD_TIME__));
+    window.location.reload();
   };
 
   return (

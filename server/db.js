@@ -266,5 +266,42 @@ async function addPushSubscriptionsTable() {
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable };
+async function addCreatedAtColumns() {
+  const tables = [
+    'users',
+    'meses',
+    'deudas',
+    'gastos_fijos',
+    'pagos_deudas',
+    'pagos_gastos',
+    'sueldos',
+    'cuentas_ahorro',
+    'ahorros_data',
+    'suscripciones',
+    'pagos_suscripciones',
+    'abonos',
+    'pagos_abonos',
+    'transacciones_extraidas',
+    'filtros_correo',
+    'config_extraccion',
+    'ahorros_programados',
+    'pagos_ahorros',
+  ];
+
+  let added = 0;
+  for (const table of tables) {
+    try {
+      await db.run(`ALTER TABLE "${table}" ADD COLUMN "created_at" TIMESTAMP DEFAULT NOW()`);
+      added++;
+      console.log(`[MIGRATION] created_at column added to ${table}`);
+    } catch (e) {
+      // column already exists, skip
+    }
+  }
+  if (added > 0) {
+    console.log(`[MIGRATION] Added created_at to ${added} table(s)`);
+  }
+}
+
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns };
 export default db;

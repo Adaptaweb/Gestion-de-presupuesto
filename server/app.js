@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
@@ -22,6 +22,7 @@ app.use(express.json());
 addCasillaColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 addGmailForwardingAuthorizedColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 addPushSubscriptionsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
+addCreatedAtColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
