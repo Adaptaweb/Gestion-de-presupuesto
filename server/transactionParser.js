@@ -210,6 +210,7 @@ async function parseHTML(html, headers = {}, userId = null) {
     monto = parserResult.monto;
     fecha = parserResult.fecha;
     comercio = parserResult.comercio;
+    if (parserResult.banco) bank = parserResult.banco;
     if (parserResult.tipo_transaccion) {
       tipo_transaccion_auto = parserResult.tipo_transaccion;
     }
@@ -327,7 +328,12 @@ async function parseHTML(html, headers = {}, userId = null) {
   const from = headers['from'] || headers['From'] || '';
 
   const fingerprint = generarFingerprint(html, subject);
-  const openrouterResult = await parseWithOpenRouter(bodyText, subject, from, fingerprint);
+
+  let openrouterResult = null;
+  const necesitaOpenRouter = !parserResult || !monto || !comercio;
+  if (necesitaOpenRouter) {
+    openrouterResult = await parseWithOpenRouter(bodyText, subject, from, fingerprint);
+  }
 
   if (openrouterResult) {
     if (openrouterResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
@@ -375,7 +381,7 @@ async function parseHTML(html, headers = {}, userId = null) {
     fechaTabla: !!fecha,
     comercioConocido,
     categoriaUsuario,
-    openrouterFallback: false,
+    openrouterFallback: !!openrouterResult,
   });
 
   return { fingerprint, confianza, banco, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto, bodyText: bodyText.substring(0, 5000) };

@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { getAuthenticatedClient, hasValidTokens, clearTokens } from './gmailAuth.js';
 import { parseHTML } from './transactionParser.js';
+import { generarFingerprint } from './fingerprint.js';
 import db from './db.js';
 import { sendPushToUser } from './push.js';
 
@@ -78,15 +79,31 @@ async function processEmail(msgId, gmail, userId, results) {
     }
 
     const emailId = headers['message-id'] || headers['message_id'] || msgId;
+    const subject = (headers['subject'] || '').slice(0, 200);
+    const from = headers['from'] || '';
 
     const body = getEmailBody(payload);
     if (!body) return;
 
     const parsed = await parseHTML(body, headers, userId);
-    if (!parsed || !parsed.monto || !parsed.fecha) return;
+    if (!parsed || !parsed.monto || !parsed.fecha) {
+      try {
+        const fingerprint = generarFingerprint(body, subject);
+        await db.run(
+          `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
+           VALUES ($1, $2, $3, $4, FALSE, $5, 0, 'fallido', TRUE)
+           ON CONFLICT DO NOTHING`,
+          userId, emailId, parsed?.banco || 'Otros', fingerprint,
+          JSON.stringify({ monto: !!parsed?.monto, fecha: !!parsed?.fecha, comercio: !!parsed?.comercio })
+        );
+      } catch (logErr) {
+        console.warn('[GmailService] Error logging failed parse:', logErr.message);
+      }
+      return;
+    }
 
     const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const subject = (headers['subject'] || '').slice(0, 200);
+    const bancoFinal = parsed.banco || 'Otros';
 
     await db.run(
       `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
@@ -98,8 +115,36 @@ async function processEmail(msgId, gmail, userId, results) {
          fecha_extraccion = NOW(),
          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
-      id, userId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto', msgId
+      id, userId, bancoFinal, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto', msgId
     );
+
+    try {
+      const fingerprint = parsed.fingerprint || generarFingerprint(body, subject);
+      const tipoCorreo = parsed.tipo_movimiento?.toLowerCase() || 'compra';
+      await db.run(
+        `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
+         VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7, FALSE)
+         ON CONFLICT DO NOTHING`,
+        userId, emailId, bancoFinal, fingerprint,
+        JSON.stringify({ monto: true, fecha: true, comercio: !!parsed.comercio }),
+        parsed.confianza || 0,
+        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico'
+      );
+
+      await db.run(
+        `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
+         VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
+         ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
+           count_uso = plantillas_email.count_uso + 1,
+           count_exitoso = plantillas_email.count_exitoso + 1,
+           ultimo_uso = NOW()`,
+        bancoFinal, tipoCorreo, fingerprint, subject,
+        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
+        body.substring(0, 2000)
+      );
+    } catch (logErr) {
+      console.warn('[GmailService] Error logging to parsing_logs/plantillas:', logErr.message);
+    }
 
     results.new++;
     results.transactions.push(parsed);
@@ -263,7 +308,7 @@ async function reprocessPendingTransactions(userId) {
           categoria = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $7 ELSE transacciones_extraidas.categoria END,
           tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE THEN CAST($8 AS TEXT) ELSE transacciones_extraidas.tipo_transaccion END
          WHERE id = $9 AND user_id = $10 AND (revisado = FALSE OR revisado IS NULL)`,
-        parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto,
+        parsed.banco || 'Otros', parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto,
         parsed.comercio, parsed.fecha, parsed.categoria, parsed.tipo_transaccion_auto || 'gasto',
         tx.id, userId
       );
