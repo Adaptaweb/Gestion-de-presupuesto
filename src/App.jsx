@@ -3504,6 +3504,19 @@ const App = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (currentView !== 'loading') {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('splash');
+        if (el) {
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 500);
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentView]);
+
   const handleLogin = (userData) => {
     setUser(userData);
     setToken(localStorage.getItem('token'));

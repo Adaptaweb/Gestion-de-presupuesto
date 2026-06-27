@@ -405,6 +405,7 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
 
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
   const [isDeleting, setIsDeleting] = useState(false);
+  const splashRemoved = useRef(false);
 
   const confirmDelete = (options) => {
     return new Promise((resolve) => {
@@ -567,6 +568,17 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
     fetchMonths();
     fetchPendientesCount();
   }, []);
+
+  useEffect(() => {
+    if (!loading && !splashRemoved.current) {
+      splashRemoved.current = true;
+      const el = document.getElementById('splash');
+      if (el) {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 500);
+      }
+    }
+  }, [loading]);
 
   useEffect(() => {
     setPage(0);

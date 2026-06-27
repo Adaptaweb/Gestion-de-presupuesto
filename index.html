@@ -15,6 +15,67 @@
 </head>
 <body>
   <div id="root"></div>
+
+  <div id="splash" style="position:fixed;inset:0;background:#1a1a1a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s ease;font-family:'Manrope','system-ui',sans-serif;">
+    <style>
+      @keyframes splash-float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+      @keyframes splash-bounce {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+        40% { transform: scale(1); opacity: 1; }
+      }
+      .splash-logo {
+        animation: splash-float 6s ease-in-out infinite;
+        margin-bottom: 28px;
+      }
+      .splash-logo img {
+        width: 130px;
+        height: 130px;
+      }
+      .splash-title {
+        color: #ffffff;
+        font-size: 30px;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .splash-subtitle {
+        color: #9ca3af;
+        font-size: 15px;
+        font-weight: 500;
+        margin: 0 0 44px 0;
+        opacity: 0.7;
+      }
+      .splash-loader {
+        display: flex;
+        gap: 10px;
+      }
+      .splash-dot {
+        width: 10px;
+        height: 10px;
+        background: #2DBC8B;
+        border-radius: 50%;
+        animation: splash-bounce 1.4s ease-in-out infinite both;
+      }
+      .splash-dot:nth-child(1) { animation-delay: -0.32s; }
+      .splash-dot:nth-child(2) { animation-delay: -0.16s; }
+      .splash-dot:nth-child(3) { animation-delay: 0s; }
+    </style>
+    <div class="splash-logo">
+      <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" />
+    </div>
+    <h1 class="splash-title">Kuentas Klaras</h1>
+    <p class="splash-subtitle">Tus finanzas claras, bajo control</p>
+    <div class="splash-loader">
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+      <div class="splash-dot"></div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
