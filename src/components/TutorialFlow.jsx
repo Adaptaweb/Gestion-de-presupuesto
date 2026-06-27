@@ -13,11 +13,6 @@ const TutorialFlow = ({ onClose, hasMailboxConfigured = false }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!hasMailboxConfigured) {
-      setLoading(false);
-      return;
-    }
-
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     fetch('/api/user/mailbox', { headers })
@@ -27,7 +22,7 @@ const TutorialFlow = ({ onClose, hasMailboxConfigured = false }) => {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [hasMailboxConfigured]);
+  }, []);
 
   const getAnimClass = () => {
     if (direction === 'opcional') {
