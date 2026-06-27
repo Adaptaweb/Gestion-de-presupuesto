@@ -1,7 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2,
-  Settings2, Filter, Tags, Bell, BellOff,
+  Settings2, Filter, Tags, Bell,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -129,20 +129,35 @@ export function UserMenu({
             <span>Consultar IA ✨</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem
-            onClick={onToggleNotifications}
-            disabled={isPushLoading}
-            className="p-2 rounded-lg cursor-pointer"
+          <div
+            onClick={() => { if (!isPushLoading) onToggleNotifications(); }}
+            className="flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-dark-lighter transition-colors select-none"
           >
-            {isPushLoading ? (
-              <Loader2 size={16} className="mr-2 text-slate-500 animate-spin" />
-            ) : isPushSubscribed ? (
-              <BellOff size={16} className="mr-2 text-slate-500" />
-            ) : (
-              <Bell size={16} className="mr-2 text-slate-500" />
-            )}
-            <span>{isPushSubscribed ? 'Desactivar notificaciones' : 'Activar notificaciones'}</span>
-          </DropdownMenuItem>
+            <div className="flex items-center gap-2">
+              {isPushLoading ? (
+                <Loader2 size={16} className="text-slate-500 animate-spin" />
+              ) : (
+                <Bell size={16} className="text-slate-500" />
+              )}
+              <span>Notificaciones</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isPushSubscribed}
+              disabled={isPushLoading}
+              onClick={(e) => { e.stopPropagation(); if (!isPushLoading) onToggleNotifications(); }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isPushSubscribed ? 'bg-kk-primary' : 'bg-slate-300 dark:bg-slate-600'
+              } ${isPushLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
+                  isPushSubscribed ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
 
         </DropdownMenuGroup>
 

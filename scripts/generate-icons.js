@@ -7,13 +7,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public/icons');
 
+const LOGO_SOURCE = path.join(root, 'public/icons/KuentasKlaras_Logo.png');
+const LOGO_WIDTH = 709;
+const LOGO_HEIGHT = 726;
+const ASPECT = LOGO_WIDTH / LOGO_HEIGHT;
+
 const ICONS = [
-  { file: 'icon-64x64.png', size: 64, padding: 0.1 },
-  { file: 'icon-180x180.png', size: 180, padding: 0.1 },
-  { file: 'icon-192x192.png', size: 192, padding: 0.1 },
-  { file: 'icon-512x512.png', size: 512, padding: 0.1 },
-  { file: 'icon-192x192-maskable.png', size: 192, padding: 0.15 },
-  { file: 'icon-512x512-maskable.png', size: 512, padding: 0.15 },
+  { file: 'icon-64x64.png', size: 64, padding: 0.10 },
+  { file: 'icon-180x180.png', size: 180, padding: 0.10 },
+  { file: 'icon-192x192.png', size: 192, padding: 0.10 },
+  { file: 'icon-196x196.png', size: 196, padding: 0.10 },
+  { file: 'icon-512x512.png', size: 512, padding: 0.10 },
+  { file: 'icon-192x192-maskable.png', size: 192, padding: 0.30 },
+  { file: 'icon-512x512-maskable.png', size: 512, padding: 0.30 },
 ];
 
 const BRAND_COLOR = '#2DBC8B';
@@ -23,21 +29,18 @@ async function generateIcons() {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  const svgBuffer = fs.readFileSync(
-    path.join(root, 'public/kuentasklaras-logo.svg')
-  );
-  const ASPECT = 709 / 726;
+  const logoBuffer = fs.readFileSync(LOGO_SOURCE);
 
   for (const { file, size, padding } of ICONS) {
-    const paddedSize = size * (1 - padding * 2);
+    const paddedSize = Math.round(size * (1 - padding * 2));
     let logoW, logoH;
 
     if (ASPECT > 1) {
       logoW = paddedSize;
-      logoH = paddedSize / ASPECT;
+      logoH = Math.round(paddedSize / ASPECT);
     } else {
       logoH = paddedSize;
-      logoW = paddedSize * ASPECT;
+      logoW = Math.round(paddedSize * ASPECT);
     }
 
     const bg = await sharp({
@@ -51,8 +54,8 @@ async function generateIcons() {
       .png()
       .toBuffer();
 
-    const logo = await sharp(svgBuffer)
-      .resize(Math.round(logoW), Math.round(logoH))
+    const logo = await sharp(logoBuffer)
+      .resize(logoW, logoH)
       .png()
       .toBuffer();
 
