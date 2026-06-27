@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import db from './db.js';
-import { parseWithGemini, esComercioGenerico } from './geminiParser.js';
+import { parseWithOpenRouter, esComercioGenerico } from './openrouterParser.js';
 
 const BANK_DOMAINS = {
   'bci.cl': 'BCI',
@@ -304,7 +304,7 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   const subject = headers['subject'] || headers['Subject'] || '';
   const from = headers['from'] || headers['From'] || '';
-  const geminiResult = await parseWithGemini(bodyText, subject, from);
+  const geminiResult = await parseWithOpenRouter(bodyText, subject, from);
 
   if (geminiResult) {
     if (geminiResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
