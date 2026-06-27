@@ -232,6 +232,20 @@ async function addGmailForwardingAuthorizedColumn() {
   } catch (e) {
     // columna ya existe, ignorar
   }
+
+  // Backfill: mark users who already have email filters as authorized
+  try {
+    const result = await db.run(
+      `UPDATE users SET gmail_forwarding_authorized = TRUE
+       WHERE id IN (SELECT DISTINCT user_id FROM filtros_correo)
+       AND (gmail_forwarding_authorized IS NULL OR gmail_forwarding_authorized = FALSE)`
+    );
+    if (result.changes > 0) {
+      console.log(`[MIGRATION] Backfilled gmail_forwarding_authorized for ${result.changes} user(s) with existing filters`);
+    }
+  } catch (e) {
+    console.error('[MIGRATION] Error backfilling gmail_forwarding_authorized:', e.message);
+  }
 }
 
 async function addPushSubscriptionsTable() {
