@@ -459,14 +459,12 @@ function isGmailAuthorizationEmail(from, subject, html, text) {
 
   const isFromGoogle = fromLower.includes('@google.com') ||
                        fromLower.includes('@gmail.com') ||
-                       fromLower.includes('google.com') ||
-                       fromLower.includes('no-reply@');
+                       fromLower.includes('google.com');
 
   const authSubjects = [
     'confirm', 'verify', 'verificar', 'autoriz', 'confirmac',
     'new device', 'nuevo dispositivo', 'sign-in', 'inicio de sesi',
-    'security', 'seguridad', 'enable', 'disable', 'aprobar',
-    'reenv', 'forwarding', 'redirect'
+    'security', 'seguridad', 'enable', 'disable', 'aprobar'
   ];
 
   const hasAuthSubject = authSubjects.some(s => subjectLower.includes(s));
@@ -475,7 +473,11 @@ function isGmailAuthorizationEmail(from, subject, html, text) {
                             content.includes('mail.google.com') ||
                             content.includes('gmail.com');
 
-  return isFromGoogle && (hasAuthSubject || hasGmailInterface);
+  const hasGmailForwardingLink = content.includes('mail-settings.google.com/mail/vf-') ||
+                                  content.includes('mail-settings.google.com/mail/uf-') ||
+                                  content.includes('accounts.google.com/signin/');
+
+  return isFromGoogle && (hasAuthSubject || hasGmailInterface || hasGmailForwardingLink);
 }
 
 export { parseHTML, detectBank, categorize, simplifyComercio, parseMonto, parseFecha, fetchUsdRate, convertToClp, extractGmailAuthUrl, isGmailAuthorizationEmail };
