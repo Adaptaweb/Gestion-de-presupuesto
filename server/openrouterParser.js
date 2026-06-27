@@ -1,5 +1,5 @@
 const API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'openrouter/free';
+const MODEL = 'openai/gpt-oss-120b:free';
 
 const cache = new Map();
 const CACHE_MAX = 200;
@@ -72,7 +72,7 @@ ${(emailText || '').substring(0, 4000)}`;
           { role: 'user', content: prompt },
         ],
         temperature: 0.1,
-        max_tokens: 300,
+        max_tokens: 500,
       }),
       signal: AbortSignal.timeout(15000),
     });
@@ -94,19 +94,33 @@ ${(emailText || '').substring(0, 4000)}`;
     }
 
     const data = await response.json();
+    const usedModel = data.model || MODEL;
+    console.log(`[OpenRouter] Modelo usado: ${usedModel} para: ${subject?.substring(0, 60)}`);
+
     const content = data.choices?.[0]?.message?.content;
     if (!content) {
       console.warn(`[OpenRouter] Respuesta vacia para: ${subject}`);
       return null;
     }
 
-    const jsonMatch = content.match(/\{[\s\S]*?\}/);
+    let jsonStr = null;
+    const codeBlock = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/i);
+    if (codeBlock) {
+      jsonStr = codeBlock[1];
+    } else {
+      const greedy = content.match(/\{[\s\S]*\}/);
+      if (greedy) jsonStr = greedy[0];
+    }
+    if (!jsonStr) {
+      console.warn(`[OpenRouter] No se encontro JSON en respuesta. Model: ${usedModel}. Content: ${content.substring(0, 200)}`);
+      return null;
+    }
     if (!jsonMatch) {
       console.warn(`[OpenRouter] No se encontro JSON en respuesta. Content: ${content.substring(0, 200)}`);
       return null;
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    const parsed = JSON.parse(jsonStr);
 
     const output = {
       tipo: ['ingreso', 'gasto', 'interno'].includes(parsed.tipo) ? parsed.tipo : null,
