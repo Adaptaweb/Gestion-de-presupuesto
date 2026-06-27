@@ -1,9 +1,8 @@
 import * as cheerio from 'cheerio';
 import db from './db.js';
-import { parseWithOpenRouter, esComercioGenerico } from './openrouterParser.js';
 import { generarFingerprint, calcularConfianza } from './fingerprint.js';
 import { seleccionarParser, usarParser } from './parsers/index.js';
-import { encontrarComercioSimilar, normalizarNombreComercio } from './embeddings.js';
+import { encontrarComercioSimilar } from './embeddings.js';
 
 const BANK_DOMAINS = {
   'bci.cl': 'BCI',
@@ -324,34 +323,9 @@ async function parseHTML(html, headers = {}, userId = null) {
   }
   } // fin else (!parserResult)
 
-  const subject = headers['subject'] || headers['Subject'] || '';
-  const from = headers['from'] || headers['From'] || '';
-
-  const fingerprint = generarFingerprint(html, subject);
-
-  let openrouterResult = null;
-  const necesitaOpenRouter = !parserResult || !monto || !comercio;
-  if (necesitaOpenRouter) {
-    openrouterResult = await parseWithOpenRouter(bodyText, subject, from, fingerprint);
-  }
-
-  if (openrouterResult) {
-    if (openrouterResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
-      tipo_transaccion_auto = openrouterResult.tipo;
-    }
-    if (openrouterResult.comercio && !esComercioGenerico(openrouterResult.comercio)) {
-      comercio = simplifyComercio(openrouterResult.comercio);
-    }
-  }
+  const fingerprint = generarFingerprint(html, (headers['subject'] || ''));
 
   let categoria = categorize(comercio || '', comercio || '', bodyText);
-
-  if (openrouterResult?.categoria) {
-    const CATS = ['Mercadería', 'Gustitos', 'Transporte', 'Compras', 'Salud y deportes', 'Educación', 'Suscripciones', 'Viajes y vacaciones', 'Donaciones y regalos', 'Casa y cuentas', 'Intereses', 'Créditos de consumo', 'Gastos bancarios', 'Juegos', 'Sueldo', 'Ahorro', 'Inversiones / Renta', 'Otros ingresos', 'Sin categoría', 'Otros'];
-    if (CATS.includes(openrouterResult.categoria)) {
-      categoria = openrouterResult.categoria;
-    }
-  }
 
   let comercioConocido = false;
   let categoriaUsuario = false;
@@ -372,7 +346,7 @@ async function parseHTML(html, headers = {}, userId = null) {
   }
 
   if (!monto || !fecha) {
-    return { fingerprint, confianza: 0, banco, tipo_movimiento, tipo_tarjeta: '', monto: null, comercio: '', fecha: null, categoria: 'Otros', email_id: messageId, tipo_transaccion_auto: null, bodyText: bodyText.substring(0, 5000) };
+    return { fingerprint, confianza: 0, banco: bank, tipo_movimiento, tipo_tarjeta: '', monto: null, comercio: '', fecha: null, categoria: 'Otros', email_id: messageId, tipo_transaccion_auto: null, bodyText: bodyText.substring(0, 5000) };
   }
 
   const confianza = calcularConfianza({
@@ -381,10 +355,10 @@ async function parseHTML(html, headers = {}, userId = null) {
     fechaTabla: !!fecha,
     comercioConocido,
     categoriaUsuario,
-    openrouterFallback: !!openrouterResult,
+    openrouterFallback: false,
   });
 
-  return { fingerprint, confianza, banco, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto, bodyText: bodyText.substring(0, 5000) };
+  return { fingerprint, confianza, banco: bank, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto, bodyText: bodyText.substring(0, 5000) };
 }
 
 function parseMonto(raw) {

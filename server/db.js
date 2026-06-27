@@ -303,7 +303,10 @@ async function addCreatedAtColumns() {
   }
 }
 
+let _migrationsRun = false;
+
 async function addParsingLogsTable() {
+  if (_migrationsRun) return;
   try {
     await db.run(`CREATE TABLE IF NOT EXISTS parsing_logs (
       id SERIAL PRIMARY KEY,
@@ -320,19 +323,16 @@ async function addParsingLogsTable() {
       correccion_categoria TEXT,
       created_at TIMESTAMP DEFAULT NOW()
     )`);
-    console.log('[MIGRATION] parsing_logs table created');
-  } catch (e) {
-    console.error('[MIGRATION] parsing_logs error:', e.message);
-  }
-  try {
     await db.run(`CREATE INDEX IF NOT EXISTS idx_parsing_logs_user ON parsing_logs(user_id)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_parsing_logs_fingerprint ON parsing_logs(fingerprint_hash)`);
+    console.log('[MIGRATION] parsing_logs ready');
   } catch (e) {
-    console.warn('[MIGRATION] parsing_logs indexes error:', e.message);
+    if (!e.message.includes('timeout')) console.error('[MIGRATION] parsing_logs:', e.message);
   }
 }
 
 async function addPlantillasEmailTable() {
+  if (_migrationsRun) return;
   try {
     await db.run(`CREATE TABLE IF NOT EXISTS plantillas_email (
       id SERIAL PRIMARY KEY,
@@ -351,15 +351,12 @@ async function addPlantillasEmailTable() {
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE(banco, fingerprint_hash)
     )`);
-    console.log('[MIGRATION] plantillas_email table created');
-  } catch (e) {
-    console.error('[MIGRATION] plantillas_email error:', e.message);
-  }
-  try {
     await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_banco ON plantillas_email(banco)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_fingerprint ON plantillas_email(fingerprint_hash)`);
+    console.log('[MIGRATION] plantillas_email ready');
+    _migrationsRun = true;
   } catch (e) {
-    console.warn('[MIGRATION] plantillas_email indexes error:', e.message);
+    if (!e.message.includes('timeout')) console.error('[MIGRATION] plantillas_email:', e.message);
   }
 }
 
