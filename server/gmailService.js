@@ -261,7 +261,7 @@ async function reprocessPendingTransactions(userId) {
           comercio = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $5 ELSE transacciones_extraidas.comercio END,
           fecha = $6,
           categoria = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $7 ELSE transacciones_extraidas.categoria END,
-          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND $8 IS NOT NULL THEN $8 ELSE transacciones_extraidas.tipo_transaccion END
+          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE THEN CAST($8 AS TEXT) ELSE transacciones_extraidas.tipo_transaccion END
          WHERE id = $9 AND user_id = $10 AND (revisado = FALSE OR revisado IS NULL)`,
         parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto,
         parsed.comercio, parsed.fecha, parsed.categoria, parsed.tipo_transaccion_auto || 'gasto',
