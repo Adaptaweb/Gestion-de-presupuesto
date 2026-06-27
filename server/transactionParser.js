@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import db from './db.js';
+import { parseWithGemini, esComercioGenerico } from './geminiParser.js';
 
 const BANK_DOMAINS = {
   'bci.cl': 'BCI',
@@ -271,7 +272,27 @@ async function parseHTML(html, headers = {}, userId = null) {
     if (bancoOrigen) comercio = simplifyComercio(bancoOrigen);
   }
 
+  let geminiResult = null;
+  const shouldQueryGemini = (tipo_movimiento === 'Transferencia' && !tipo_transaccion_auto) || esComercioGenerico(comercio);
+
+  if (shouldQueryGemini) {
+    geminiResult = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
+    if (geminiResult) {
+      if (geminiResult.tipo) tipo_transaccion_auto = geminiResult.tipo;
+      if (geminiResult.comercio && esComercioGenerico(comercio)) {
+        comercio = simplifyComercio(geminiResult.comercio);
+      }
+    }
+  }
+
   let categoria = categorize(comercio || '', comercio || '', bodyText);
+
+  if (geminiResult?.categoria) {
+    categoria = geminiResult.categoria;
+  } else if (!shouldQueryGemini && categoria === 'Otros') {
+    const fallback = await parseWithGemini(bodyText, headers['subject'] || headers['Subject'] || '', headers['from'] || headers['From'] || '');
+    if (fallback?.categoria) categoria = fallback.categoria;
+  }
 
   if (userId && comercio) {
     const saved = await db.get('SELECT categoria FROM clasificacion_comercios WHERE user_id = $1 AND comercio = $2', userId, comercio.toLowerCase());
