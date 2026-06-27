@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public/icons');
 
-const LOGO_SOURCE = path.join(root, 'public/icons/KuentasKlaras_Logo.png');
+const LOGO_SOURCE = path.join(root, 'public/kuentasklaras-logo.svg');
 const LOGO_WIDTH = 709;
 const LOGO_HEIGHT = 726;
 const ASPECT = LOGO_WIDTH / LOGO_HEIGHT;
@@ -22,14 +22,14 @@ const ICONS = [
   { file: 'icon-512x512-maskable.png', size: 512, padding: 0.30 },
 ];
 
-const BRAND_COLOR = '#2DBC8B';
+const BG_COLOR = '#1a1a1a';
 
 async function generateIcons() {
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  const logoBuffer = fs.readFileSync(LOGO_SOURCE);
+  const svgString = fs.readFileSync(LOGO_SOURCE, 'utf-8');
 
   for (const { file, size, padding } of ICONS) {
     const paddedSize = Math.round(size * (1 - padding * 2));
@@ -48,13 +48,13 @@ async function generateIcons() {
         width: size,
         height: size,
         channels: 4,
-        background: BRAND_COLOR,
+        background: BG_COLOR,
       },
     })
       .png()
       .toBuffer();
 
-    const logo = await sharp(logoBuffer)
+    const logo = await sharp(Buffer.from(svgString))
       .resize(logoW, logoH)
       .png()
       .toBuffer();
