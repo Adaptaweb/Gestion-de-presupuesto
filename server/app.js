@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
@@ -10,6 +10,9 @@ import cache from './cache.js';
 import { createJob, getJob } from './jobQueue.js';
 import { Resend } from 'resend';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
+import { setDb as setEmbeddingsDb } from './embeddings.js';
+
+setEmbeddingsDb(db);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -23,6 +26,8 @@ addCasillaColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 addGmailForwardingAuthorizedColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
 addPushSubscriptionsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
 addCreatedAtColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
+addParsingLogsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
+addPlantillasEmailTable().catch(e => console.error('[MIGRATION] Error:', e.message));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -861,6 +866,36 @@ app.post('/api/webhook/email', async (req, res) => {
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
        id, actualUserId, parsed.banco, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
     );
+
+    try {
+      await db.run(
+        `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT DO NOTHING`,
+        actualUserId, emailId, parsed.banco, parsed.fingerprint || null,
+        parsed.monto && parsed.fecha,
+        JSON.stringify({ monto: !!parsed.monto, fecha: !!parsed.fecha, comercio: !!parsed.comercio }),
+        parsed.confianza || 0,
+        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
+        false
+      );
+
+      const tipoCorreo = parsed.tipo_movimiento?.toLowerCase() || 'compra';
+      await db.run(
+        `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
+         VALUES ($1, $2, $3, $4, $5, $6, 1, $7, NOW())
+         ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
+           count_uso = plantillas_email.count_uso + 1,
+           count_exitoso = plantillas_email.count_exitoso + $7,
+           ultimo_uso = NOW()`,
+        parsed.banco || 'Otros', tipoCorreo, parsed.fingerprint || '', subjectSafe,
+        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
+        html?.substring(0, 2000) || '',
+        (parsed.monto && parsed.fecha) ? 1 : 0
+      );
+    } catch (logErr) {
+      console.warn('[Webhook] Error guardando parsing_log/plantilla:', logErr.message);
+    }
 
     cache.delByPattern(`tx:*:${actualUserId}`);
     cache.del(`tx:meses:${actualUserId}`);

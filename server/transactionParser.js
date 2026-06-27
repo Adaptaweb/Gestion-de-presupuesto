@@ -1,6 +1,9 @@
 import * as cheerio from 'cheerio';
 import db from './db.js';
 import { parseWithOpenRouter, esComercioGenerico } from './openrouterParser.js';
+import { generarFingerprint, calcularConfianza } from './fingerprint.js';
+import { seleccionarParser, usarParser } from './parsers/index.js';
+import { encontrarComercioSimilar, normalizarNombreComercio } from './embeddings.js';
 
 const BANK_DOMAINS = {
   'bci.cl': 'BCI',
@@ -159,6 +162,15 @@ async function parseHTML(html, headers = {}, userId = null) {
 
   const subjectText = (headers['subject'] || headers['Subject'] || '').toLowerCase();
 
+  const parser = seleccionarParser(html, headers);
+  let parserResult = null;
+  if (parser) {
+    parserResult = usarParser(parser, html, headers);
+    if (parserResult) {
+      console.log(`[Parser] Usando ${parser.nombre} para ${headers['subject']?.substring(0, 50)}`);
+    }
+  }
+
   // Priority: subject first (cleanest), then cleaned bodyText
   let tipo_movimiento = 'Compra';
   if (/transferencia|traspaso/i.test(subjectText)) {
@@ -192,11 +204,19 @@ async function parseHTML(html, headers = {}, userId = null) {
   const messageId = headers['message-id'] || headers['Message-ID'] || headers['message_id'] || '';
 
   let monto, fecha, comercio;
-  let usedTable = false;
+  let usedTable = !!parserResult;
 
-  if (hasRealDataTable($)) {
-    usedTable = true;
-  }
+  if (parserResult) {
+    monto = parserResult.monto;
+    fecha = parserResult.fecha;
+    comercio = parserResult.comercio;
+    if (parserResult.tipo_transaccion) {
+      tipo_transaccion_auto = parserResult.tipo_transaccion;
+    }
+  } else {
+    if (hasRealDataTable($)) {
+      usedTable = true;
+    }
 
   const tableRows = $('table table tr').toArray().filter(r => $(r).children('td').length >= 2);
   if (tableRows.length === 0) {
@@ -301,37 +321,64 @@ async function parseHTML(html, headers = {}, userId = null) {
     const clienteMatch2 = bodyText.match(/(?:nuestro\s*\(\s*a\s*\)\s*)?cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{3,60}?)\s+ha\s+efectuado/i);
     if (clienteMatch2) comercio = simplifyComercio(clienteMatch2[1]);
   }
+  } // fin else (!parserResult)
 
   const subject = headers['subject'] || headers['Subject'] || '';
   const from = headers['from'] || headers['From'] || '';
-  const geminiResult = await parseWithOpenRouter(bodyText, subject, from);
 
-  if (geminiResult) {
-    if (geminiResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
-      tipo_transaccion_auto = geminiResult.tipo;
+  const fingerprint = generarFingerprint(html, subject);
+  const openrouterResult = await parseWithOpenRouter(bodyText, subject, from, fingerprint);
+
+  if (openrouterResult) {
+    if (openrouterResult.tipo && (tipo_movimiento === 'Transferencia' || !tipo_transaccion_auto)) {
+      tipo_transaccion_auto = openrouterResult.tipo;
     }
-    if (geminiResult.comercio && !esComercioGenerico(geminiResult.comercio)) {
-      comercio = simplifyComercio(geminiResult.comercio);
+    if (openrouterResult.comercio && !esComercioGenerico(openrouterResult.comercio)) {
+      comercio = simplifyComercio(openrouterResult.comercio);
     }
   }
 
   let categoria = categorize(comercio || '', comercio || '', bodyText);
 
-  if (geminiResult?.categoria) {
+  if (openrouterResult?.categoria) {
     const CATS = ['Mercadería', 'Gustitos', 'Transporte', 'Compras', 'Salud y deportes', 'Educación', 'Suscripciones', 'Viajes y vacaciones', 'Donaciones y regalos', 'Casa y cuentas', 'Intereses', 'Créditos de consumo', 'Gastos bancarios', 'Juegos', 'Sueldo', 'Ahorro', 'Inversiones / Renta', 'Otros ingresos', 'Sin categoría', 'Otros'];
-    if (CATS.includes(geminiResult.categoria)) {
-      categoria = geminiResult.categoria;
+    if (CATS.includes(openrouterResult.categoria)) {
+      categoria = openrouterResult.categoria;
     }
   }
 
+  let comercioConocido = false;
+  let categoriaUsuario = false;
   if (userId && comercio) {
     const saved = await db.get('SELECT categoria FROM clasificacion_comercios WHERE user_id = $1 AND comercio = $2', userId, comercio.toLowerCase());
-    if (saved) categoria = saved.categoria;
+    if (saved) {
+      categoria = saved.categoria;
+      categoriaUsuario = true;
+      comercioConocido = true;
+    } else {
+      const similar = await encontrarComercioSimilar(comercio, userId);
+      if (similar) {
+        console.log(`[Embeddings] ${comercio} → ${similar.comercio} (score: ${similar.score.toFixed(2)})`);
+        categoria = similar.categoria;
+        comercioConocido = true;
+      }
+    }
   }
 
-  if (!monto || !fecha) return {};
+  if (!monto || !fecha) {
+    return { fingerprint, confianza: 0, banco, tipo_movimiento, tipo_tarjeta: '', monto: null, comercio: '', fecha: null, categoria: 'Otros', email_id: messageId, tipo_transaccion_auto: null, bodyText: bodyText.substring(0, 5000) };
+  }
 
-  return { banco: bank, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto, bodyText: bodyText.substring(0, 5000) };
+  const confianza = calcularConfianza({
+    bancoDetectado: bank !== 'Otros',
+    montoTabla: usedTable && !!monto,
+    fechaTabla: !!fecha,
+    comercioConocido,
+    categoriaUsuario,
+    openrouterFallback: false,
+  });
+
+  return { fingerprint, confianza, banco, tipo_movimiento, tipo_tarjeta, monto, comercio: comercio || '', fecha, categoria, email_id: messageId, tipo_transaccion_auto, bodyText: bodyText.substring(0, 5000) };
 }
 
 function parseMonto(raw) {

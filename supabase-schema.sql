@@ -220,3 +220,45 @@ CREATE TABLE "clasificacion_comercios" (
   "updated_at" TEXT DEFAULT (NOW()),
   PRIMARY KEY ("user_id", "comercio")
 );
+
+-- ============================================================
+-- NUEVAS TABLAS PARA PARSING INTELIGENTE
+-- ============================================================
+
+CREATE TABLE "parsing_logs" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" TEXT REFERENCES "users"("id") ON DELETE CASCADE,
+  "email_id" TEXT,
+  "banco_detectado" TEXT,
+  "fingerprint_hash" TEXT,
+  "parsing_exitoso" BOOLEAN DEFAULT FALSE,
+  "campos_extraidos" JSONB,
+  "confianza_score" REAL DEFAULT 0,
+  "metodo_extraccion" TEXT,
+  "openrouter_fallback" BOOLEAN DEFAULT FALSE,
+  "usuario_corrijo" BOOLEAN DEFAULT FALSE,
+  "correccion_categoria" TEXT,
+  "created_at" TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX "idx_parsing_logs_user" ON "parsing_logs"("user_id");
+CREATE INDEX "idx_parsing_logs_fingerprint" ON "parsing_logs"("fingerprint_hash");
+
+CREATE TABLE "plantillas_email" (
+  "id" SERIAL PRIMARY KEY,
+  "banco" TEXT NOT NULL,
+  "tipo_correo" TEXT NOT NULL,
+  "fingerprint_hash" TEXT NOT NULL,
+  "asunto_normalizado" TEXT,
+  "estructura_html_hash" TEXT,
+  "parser_nombre" TEXT,
+  "count_uso" INT DEFAULT 0,
+  "count_exitoso" INT DEFAULT 0,
+  "count_fallido" INT DEFAULT 0,
+  "ultimo_uso" TIMESTAMP,
+  "ejemplo_html" TEXT,
+  "activo" BOOLEAN DEFAULT TRUE,
+  "created_at" TIMESTAMP DEFAULT NOW(),
+  UNIQUE("banco", "fingerprint_hash")
+);
+CREATE INDEX "idx_plantillas_banco" ON "plantillas_email"("banco");
+CREATE INDEX "idx_plantillas_fingerprint" ON "plantillas_email"("fingerprint_hash");
