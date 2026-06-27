@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 function normalizarAsunto(asunto) {
   if (!asunto) return '';
-  return assunto
+  return asunto
     .toLowerCase()
     .replace(/\d{2}\/\d{2}\/\d{4}/g, '<FECHA>')
     .replace(/\$[\d.,]+/g, '<MONTO>')
