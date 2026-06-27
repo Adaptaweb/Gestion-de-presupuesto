@@ -742,10 +742,23 @@ app.post('/api/webhook/email', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { userId, from, subject, html, text, messageId } = req.body;
+    const { userId, from, subject, html, text, messageId, message } = req.body;
     const content = html || text;
     if (!userId || !content) {
       return res.status(400).json({ error: 'Missing userId or content' });
+    }
+
+    // Extract original From header for Gmail forwarded emails
+    // When Gmail forwards an email, it wraps it and changes the From to the Gmail address
+    // The original From is preserved in the raw message headers
+    let originalFrom = from;
+    if (message?.raw) {
+      const rawStr = typeof message.raw === 'string' ? message.raw : JSON.stringify(message.raw);
+      const fromMatch = rawStr.match(/^From:\s*(.+)$/mi);
+      if (fromMatch && fromMatch[1]) {
+        originalFrom = fromMatch[1].trim();
+        console.log(`[Webhook] Original From extracted from raw: ${originalFrom}`);
+      }
     }
 
     // Resolve casilla → userId for new-format emails (parse+juan@...)
@@ -759,8 +772,8 @@ app.post('/api/webhook/email', async (req, res) => {
       actualUserId = userByCasilla.id;
     }
 
-    // Check if this is a Gmail authorization email
-    if (isGmailAuthorizationEmail(from, subject, html, text)) {
+    // Check if this is a Gmail authorization email (using original From to avoid false positives from Gmail-forwarded emails)
+    if (isGmailAuthorizationEmail(originalFrom, subject, html, text)) {
       console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject} from ${from}`);
 
       // Get user's personal email to forward the authorization request
@@ -791,7 +804,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
       return res.json({ success: true, type: 'gmail_authorization_forwarded', forwardedTo: user.email });
     } else {
-      console.log(`[Webhook] Processing bank transaction: ${subject} from ${from}`);
+      console.log(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
     }
 
     const headers = {
