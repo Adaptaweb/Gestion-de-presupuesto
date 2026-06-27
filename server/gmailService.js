@@ -270,6 +270,7 @@ async function reprocessPendingTransactions(userId) {
 
       results.processed++;
       results.updates.push({ id: tx.id, comercio: parsed.comercio, categoria: parsed.categoria, tipo: parsed.tipo_transaccion_auto });
+      await new Promise(r => setTimeout(r, 3000));
     } catch (e) {
       if (e.message?.includes('invalid_grant')) {
         await clearTokens(userId);

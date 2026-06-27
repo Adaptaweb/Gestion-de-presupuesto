@@ -33,11 +33,12 @@ export function esComercioGenerico(comercio) {
   return GENERIC_COMERCIOS.some(g => c === g || c.startsWith(g + ' '));
 }
 
-export async function parseWithGemini(emailText, subject, from) {
+export async function parseWithGemini(emailText, subject, from, retryCount = 0) {
   if (!model) {
     console.error('[GeminiParser] model es null — API key no configurada o fallo al inicializar');
     return null;
   }
+  const MAX_RETRIES = 3;
 
   const key = cacheKey(emailText, subject, from);
   if (cache.has(key)) return cache.get(key);
@@ -87,7 +88,15 @@ ${(emailText || '').substring(0, 4000)}`;
 
     return output;
   } catch (e) {
-    if (e.message?.includes('Candidates') || e.message?.includes('SAFETY')) {
+    if (e.message?.includes('429') || e.message?.includes('Too Many Requests') || e.message?.includes('quota')) {
+      if (retryCount < MAX_RETRIES) {
+        const delay = Math.min(60 * 1000, (retryCount + 1) * 20 * 1000);
+        console.warn(`[GeminiParser] Cuota excedida, reintento ${retryCount + 1}/${MAX_RETRIES} en ${delay / 1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+        return parseWithGemini(emailText, subject, from, retryCount + 1);
+      }
+      console.error(`[GeminiParser] Cuota excedida tras ${MAX_RETRIES} reintentos (${subject?.substring(0, 60)})`);
+    } else if (e.message?.includes('Candidates') || e.message?.includes('SAFETY')) {
       console.warn(`[GeminiParser] Blocked for: ${subject}`);
     } else {
       console.error(`[GeminiParser] Error llamando a Gemini (${subject?.substring(0, 60)}): ${e.message}`);
