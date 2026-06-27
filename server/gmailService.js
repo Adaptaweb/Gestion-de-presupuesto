@@ -171,12 +171,15 @@ async function buildGmailQuery(userId) {
 }
 
 async function reprocessPendingTransactions(userId) {
+  const results = { total: 0, processed: 0, errors: 0, skipped: 0, updates: [], errors_detail: [] };
+
   if (!(await hasValidTokens(userId))) {
-    return { success: false, error: 'Gmail no autenticado' };
+    results.errors_detail.push('Gmail no autenticado');
+    return results;
   }
 
   const auth = await getAuthenticatedClient(userId);
-  if (!auth) return { success: false, error: 'No se pudo autenticar con Gmail' };
+  if (!auth) { results.errors_detail.push('No se pudo autenticar con Gmail'); return results; }
 
   const gmail = google.gmail({ version: 'v1', auth });
 
@@ -189,13 +192,37 @@ async function reprocessPendingTransactions(userId) {
     userId
   );
 
-  const results = { total: pending.length, processed: 0, errors: 0, updates: [] };
+  results.total = pending.length;
 
   for (const tx of pending) {
+    let gmailId = tx.gmail_msg_id;
+
+    // Webhook transactions have fake gmail_msg_id (wb-...), search by email_id instead
+    if (gmailId.startsWith('wb-') && tx.email_id) {
+      try {
+        const searchRes = await gmail.users.messages.list({
+          userId: 'me',
+          q: `rfc822msgid:${tx.email_id}`,
+          maxResults: 1,
+        });
+        if (searchRes.data.messages?.[0]) {
+          gmailId = searchRes.data.messages[0].id;
+        } else {
+          results.skipped++;
+          results.errors_detail.push(`${tx.id}: email no encontrado en Gmail (webhook - rfc822msgid:${tx.email_id})`);
+          continue;
+        }
+      } catch (e) {
+        results.skipped++;
+        results.errors_detail.push(`${tx.id}: error buscando en Gmail: ${e.message}`);
+        continue;
+      }
+    }
+
     try {
       const fullMsg = await gmail.users.messages.get({
         userId: 'me',
-        id: tx.gmail_msg_id,
+        id: gmailId,
         format: 'full',
       });
 
@@ -205,10 +232,10 @@ async function reprocessPendingTransactions(userId) {
       }
 
       const body = getEmailBody(fullMsg.data.payload);
-      if (!body) { results.errors++; continue; }
+      if (!body) { results.errors++; results.errors_detail.push(`${tx.id}: sin cuerpo HTML`); continue; }
 
       const parsed = await parseHTML(body, headers, userId);
-      if (!parsed || !parsed.monto || !parsed.fecha) { results.errors++; continue; }
+      if (!parsed || !parsed.monto || !parsed.fecha) { results.errors++; results.errors_detail.push(`${tx.id}: parseo fallido`); continue; }
 
       await db.run(
         `UPDATE transacciones_extraidas SET
@@ -227,6 +254,7 @@ async function reprocessPendingTransactions(userId) {
       results.updates.push({ id: tx.id, comercio: parsed.comercio, categoria: parsed.categoria, tipo: parsed.tipo_transaccion_auto });
     } catch (e) {
       results.errors++;
+      results.errors_detail.push(`${tx.id}: ${e.message}`);
       console.error(`[Reprocess] Error en ${tx.id}: ${e.message}`);
     }
   }
