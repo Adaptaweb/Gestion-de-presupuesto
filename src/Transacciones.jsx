@@ -1060,7 +1060,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap">
               <Bell size={16} />
               Pendientes
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
+              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
                 {pendientesCount}
               </span>
             </button>
