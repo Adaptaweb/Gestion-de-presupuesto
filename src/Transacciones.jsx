@@ -4,7 +4,8 @@ import {
   Settings2, Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
-  Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight
+  Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
+  Bell
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
@@ -403,6 +404,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [reviewDirection, setReviewDirection] = useState('forward');
   const [reprocessing, setReprocessing] = useState(false);
   const [revisando, setRevisando] = useState(false);
+  const [toast, setToast] = useState(null);
   const reviewSliderRef = useRef(null);
 
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
@@ -842,8 +844,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const handleOpenReview = async () => {
     const txs = await fetchPendientes();
     if (txs.length === 0) {
-      setStatusMsg({ type: 'info', text: 'Sin pendientes por revisar' });
-      setTimeout(() => setStatusMsg(null), 4000);
+      setToast('Sin pendientes por revisar');
+      setTimeout(() => setToast(null), 3000);
       return;
     }
     const first = txs[0];
@@ -1032,12 +1034,33 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   return (
     <>
+      {toast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold">
+            {toast}
+          </div>
+        </div>
+      )}
       <div className="animate-in fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
           <Mail className={theme.tabText} size={20} /> Transacciones
         </h2>
         <div className="flex gap-2 items-center flex-wrap">
+          {pendientesCount > 0 ? (
+            <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95">
+              <Bell size={16} />
+              Pendientes
+              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
+                {pendientesCount}
+              </span>
+            </button>
+          ) : (
+            <button onClick={handleOpenReview} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-dark-normal text-slate-400 dark:text-slate-500 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all active:scale-95 hover:bg-slate-200 dark:hover:bg-dark-lighter">
+              <Bell size={14} />
+              Sin pendientes
+            </button>
+          )}
           {statusMsg && (
             <span className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
               statusMsg.type === 'success' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
@@ -1181,10 +1204,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
             </button>
           )}
-          <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
-            <Check size={14} />
-            Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
-          </button>
+
           {user?.role === 'admin' && (
             <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
               <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
