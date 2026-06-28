@@ -908,7 +908,8 @@ app.post('/api/webhook/email', async (req, res) => {
 
     res.json({ success: true, transaction: parsed });
   } catch (error) {
-    console.error('[Webhook] Error:', error.message);
+    const ctx = { from: req.body?.from, subject: req.body?.subject, userId: req.body?.userId };
+    console.error(`[Webhook] Error: ${error.message} — from: ${ctx.from}, subject: ${ctx.subject}, userId: ${ctx.userId}`);
     res.status(500).json({ error: error.message });
   }
 });

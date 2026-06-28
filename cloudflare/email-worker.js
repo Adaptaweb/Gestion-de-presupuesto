@@ -1,5 +1,19 @@
 import PostalMime from 'postal-mime';
 
+async function fetchWithRetry(url, options, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    const res = await fetch(url, options);
+    if (res.ok) return res;
+    if (res.status < 500) return res;
+    if (i < retries - 1) {
+      const delay = 2000 * (i + 1);
+      console.error(`[EmailWorker] Retry ${i + 1}/${retries} after ${delay}ms (status ${res.status})`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  return fetch(url, options);
+}
+
 export default {
   async email(message, env, ctx) {
     try {
@@ -15,7 +29,7 @@ export default {
       const text = parsed.text || '';
       const messageId = parsed.messageId || message.headers.get('message-id') || '';
 
-      const res = await fetch(`${env.VERCEL_URL}/api/webhook/email`, {
+      const res = await fetchWithRetry(`${env.VERCEL_URL}/api/webhook/email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,10 +46,10 @@ export default {
       });
 
       if (!res.ok) {
-        console.error(`[EmailWorker] Webhook failed: ${res.status} ${await res.text()}`);
+        console.error(`[EmailWorker] Webhook permanently failed: ${res.status} ${await res.text()}`);
       }
     } catch (err) {
-      console.error('[EmailWorker] Error:', err.message);
+      console.error('[EmailWorker] Error:', err.message, err.stack);
     }
   },
 };

@@ -23,9 +23,10 @@ if (!DATABASE_URL.includes('pgbouncer=true')) {
 const pool = new pg.Pool({
   connectionString: DATABASE_URL,
   ssl: { rejectUnauthorized: false },
-  max: 1,
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 5000,
+  max: 2,
+  connectionTimeoutMillis: 20000,
+  idleTimeoutMillis: 30000,
+  allowExitOnIdle: true,
 });
 
 function toPgParams(sql) {
