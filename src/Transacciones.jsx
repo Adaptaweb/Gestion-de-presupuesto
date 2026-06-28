@@ -327,7 +327,7 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -1176,16 +1176,20 @@ const Transacciones = ({ token, theme, isDarkMode, categorias, gastosCats, ingre
               })}
             </select>
           </div>
-          <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition-all disabled:opacity-50">
-            <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
-          </button>
+          {user?.role === 'admin' && (
+            <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition-all disabled:opacity-50">
+              <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
+            </button>
+          )}
           <button onClick={handleOpenReview} className="flex items-center justify-center gap-1.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-2 rounded-xl text-xs font-bold border border-amber-200 dark:border-amber-800 transition-all">
             <Check size={14} />
             Pendientes <span className="bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full text-[10px]">{pendientesCount}</span>
           </button>
-          <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
-            <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
-          </button>
+          {user?.role === 'admin' && (
+            <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
+              <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
+            </button>
+          )}
         </div>
         <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">
           <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar

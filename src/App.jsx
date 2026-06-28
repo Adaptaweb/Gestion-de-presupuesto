@@ -2673,6 +2673,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
         <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
           <Transacciones
+            user={user}
             token={token}
             theme={theme}
             isDarkMode={isDarkMode}
