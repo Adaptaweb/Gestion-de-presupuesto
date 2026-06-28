@@ -63,6 +63,9 @@ export class ItauTransferenciaParser extends BaseParser {
     if (/a\s+su\s+cuenta|a\s+tu\s+cuenta|ha\s+instruido.*a\s+tu\s|transferencia\s+a\s+su\s/i.test(bodyText)) {
       tipo_transaccion = 'ingreso';
     }
+    if (tipo_transaccion === 'gasto' && /ha\s+instruido\s+una\s+transferencia\s+de\s+fondos/i.test(bodyText)) {
+      tipo_transaccion = 'ingreso';
+    }
 
     return {
       banco: 'Itau',
