@@ -1052,20 +1052,20 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       )}
       <div className="animate-in fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3 whitespace-nowrap">
             <Mail className={theme.tabText} size={20} /> Transacciones
           </h2>
           {pendientesCount > 0 ? (
-            <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95">
+            <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95 whitespace-nowrap">
               <Bell size={16} />
               Pendientes
-              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
                 {pendientesCount}
               </span>
             </button>
           ) : (
-            <button onClick={handleOpenReview} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-dark-normal text-slate-400 dark:text-slate-500 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all active:scale-95 hover:bg-slate-200 dark:hover:bg-dark-lighter">
+            <button onClick={handleOpenReview} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-dark-normal text-slate-400 dark:text-slate-500 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all active:scale-95 hover:bg-slate-200 dark:hover:bg-dark-lighter whitespace-nowrap">
               <Bell size={14} />
               Sin pendientes
             </button>
