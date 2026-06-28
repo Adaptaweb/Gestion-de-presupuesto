@@ -171,12 +171,21 @@ const ReviewCard = ({
           <div className="text-base font-bold text-slate-800 dark:text-white">
             {tx.comercio || 'Comercio no detectado'}
           </div>
-          {tx.tipo_tarjeta && (
-            <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-              tx.tipo_tarjeta === 'Débito' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
-              'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
-            }`}>{tx.tipo_tarjeta}</span>
-          )}
+          {(() => {
+            const label = tx.tipo_movimiento || tx.tipo_tarjeta || '';
+            if (!label) return null;
+            const colorMap = {
+              Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+              Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+              Retiro: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+              Cargo: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+              Débito: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+              Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+            };
+            return (
+              <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
+            );
+          })()}
         </div>
 
         <div>
@@ -1043,10 +1052,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       )}
       <div className="animate-in fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
-          <Mail className={theme.tabText} size={20} /> Transacciones
-        </h2>
-        <div className="flex gap-2 items-center flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
+            <Mail className={theme.tabText} size={20} /> Transacciones
+          </h2>
           {pendientesCount > 0 ? (
             <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95">
               <Bell size={16} />
@@ -1061,6 +1070,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               Sin pendientes
             </button>
           )}
+        </div>
+        <div className="flex gap-2 items-center flex-wrap">
           {statusMsg && (
             <span className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
               statusMsg.type === 'success' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
@@ -1289,13 +1300,21 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   {!isMuted && (tx.tipo_transaccion === 'ingreso' ? '+' : '')}{formatCurrency(tx.monto)}
 </td>
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
-                        {tx.tipo_tarjeta ? (
-                          <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${
-                            tx.tipo_tarjeta === 'Débito' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
-                            tx.tipo_tarjeta === 'Crédito' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
-                            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                          }`}>{tx.tipo_tarjeta}</span>
-                        ) : <span className="text-[10px] text-slate-300 dark:text-slate-600">—</span>}
+                        {(() => {
+                          const label = tx.tipo_movimiento || tx.tipo_tarjeta || '';
+                          if (!label) return <span className="text-[10px] text-slate-300 dark:text-slate-600">—</span>;
+                          const colorMap = {
+                            Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                            Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+                            Retiro: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+                            Cargo: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+                            Débito: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                            Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+                          };
+                          return (
+                            <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
+                          );
+                        })()}
                       </td>
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
                         <span {...catBadgeStyle(tx.categoria)} className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${catBadgeStyle(tx.categoria).className || ''}`}>{tx.categoria}</span>
