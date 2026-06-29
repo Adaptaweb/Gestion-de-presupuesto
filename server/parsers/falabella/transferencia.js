@@ -7,8 +7,13 @@ export class FalabellaTransferenciaParser extends BaseParser {
 
   puedeParsear(html, headers) {
     const from = (headers?.from || '').toLowerCase();
-    const subject = (headers?.subject || '').toLowerCase();
-    return (from.includes('falabella') || from.includes('falabella.cl') || subject.includes('transferencia')) &&
+    if (from.includes('bancochile') || from.includes('bci') ||
+        from.includes('itau') || from.includes('santander') ||
+        from.includes('bancoestado') || from.includes('mach') ||
+        from.includes('banco.bci')) {
+      return false;
+    }
+    return (from.includes('falabella') || from.includes('falabella.cl')) &&
            /nuestro.*cliente|ha\s+instruido/i.test(html);
   }
 

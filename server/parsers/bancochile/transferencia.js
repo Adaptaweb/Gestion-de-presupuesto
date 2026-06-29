@@ -12,29 +12,51 @@ export class BancoChileTransferenciaParser extends BaseParser {
 
   extraer(html, headers) {
     const $ = this.loadHtml(html);
-    const bodyText = $.text();
-    const rows = $('table tr').toArray().filter(r => $(r).children('td').length >= 2);
-    const tableRows = rows.length > 0 ? rows : $('tr').toArray().filter(r => $(r).children('td').length >= 2);
+    const bodyText = $.text().replace(/\s+/g, ' ');
 
-    const montoRaw = this.extractTableValue($, tableRows, 'monto');
-    const monto = this.normalizarMonto(montoRaw);
+    let monto = 0;
+    const montoMatch = bodyText.match(/Monto[\s:]*\$?\s*([0-9.]{1,15})/i);
+    if (montoMatch) monto = this.normalizarMonto(montoMatch[1]);
 
-    let fechaRaw = this.extractTableValue($, tableRows, 'fecha');
-    let fecha = this.normalizarFecha(fechaRaw);
-    if (!fecha) {
-      const match = bodyText.match(/(\d{2})[\/-](\d{2})[\/-](\d{4})/);
-      if (match) fecha = `${match[3]}-${match[2]}-${match[1]}`;
+    let fecha = null;
+    const fechaMatch = bodyText.match(/(\d{2})[\/-](\d{2})[\/-](\d{4})/);
+    if (fechaMatch) fecha = `${fechaMatch[3]}-${fechaMatch[2]}-${fechaMatch[1]}`;
+
+    let comercioRaw = '';
+
+    const boldTexts = [];
+    $('b, strong').each((_, el) => {
+      const text = $(el).text().trim().replace(/\s+/g, ' ');
+      if (text.length > 3) boldTexts.push(text);
+    });
+
+    for (const boldText of boldTexts) {
+      const match = boldText.match(/^([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)$/);
+      if (match) {
+        const potentialName = match[1].trim();
+        if (potentialName.length > 5 && !potentialName.includes('@') && !/\d{5,}/.test(potentialName)) {
+          comercioRaw = potentialName;
+          break;
+        }
+      }
     }
 
-    let comercioRaw = this.extractTableValue($, tableRows, 'remitente');
+    if (!comercioRaw) {
+      const tableRows = $('table tr').toArray().filter(r => $(r).children('td').length >= 2);
+      comercioRaw = this.extractTableValue($, tableRows, 'remitente');
+    }
+
     if (!comercioRaw) {
       const nombreMatch = bodyText.match(/remitente[:\s]?(.*?)(?=\s*Monto|\s*Rut|$)/i);
       if (nombreMatch) comercioRaw = nombreMatch[1].trim();
     }
+
     const comercio = this.simplifyComercio(comercioRaw || '');
 
     let tipo_transaccion = 'gasto';
-    if (/recibida|abono|recibiste|has recibido/i.test(bodyText)) {
+    if (/ha\s+efectuado\s+una\s+transferencia\s+a\s+tu\s+cuenta/i.test(bodyText) ||
+        /ha\s+efectuado\s+una\s+transferencia\s+de\s+fondos\s+a\s+tu/i.test(bodyText) ||
+        /recibida|abono|recibiste|has\s+recibido/i.test(bodyText)) {
       tipo_transaccion = 'ingreso';
     }
 
@@ -50,8 +72,19 @@ export class BancoChileTransferenciaParser extends BaseParser {
   }
 
   simplifyComercio(raw) {
-    if (!raw) return '';
-    return raw.trim().replace(/\s+/g, ' ').trim();
+    if (!raw || raw.length < 2) return '';
+    let name = raw.trim();
+    name = name.replace(/^(de|del)\s+/i, '');
+    name = name.replace(/[,|.]+$/g, '');
+    name = name.replace(/\s+/g, ' ').trim();
+
+    const suffixes = ['CALAMA', 'SANTIAGO', 'PROVIDENCIA', 'LAS CONDES', 'VITACURA', 'SPA', 'LTD', 'LTDA', 'LIMITADA', 'SA', 'S.A.', 'CHILE', 'EMISORA', 'CUENTA'];
+    const words = name.split(/\s+/);
+    const filtered = words.filter(w => !suffixes.includes(w.toUpperCase()) && w.length > 1);
+    name = filtered.join(' ');
+
+    if (name.length < 2) return '';
+    return name;
   }
 }
 

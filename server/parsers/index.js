@@ -16,11 +16,11 @@ const parsers = [
   new BCICreditoParser(),
   new BCITransferenciaParser(),
   new ItauTransferenciaParser(),
+  new BancoChileTransferenciaParser(),
   new FalabellaTransferenciaParser(),
   new SantanderCompraParser(),
   new SantanderTransferenciaParser(),
   new BancoChileCompraParser(),
-  new BancoChileTransferenciaParser(),
   new BancoEstadoDebitoParser(),
   new MachCompraParser(),
 ];

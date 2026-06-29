@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const VAPID_PUBLIC_KEY = 'BHLzyyYrvcSbxKDG6I6q8SbPeFdM3jAq5qq-wvgpCxDBUJheThqsbnwPPevQHygF0zvJvORUXh67p8jJtwFr9vc';
 
@@ -19,6 +19,7 @@ export function usePushNotifications(token) {
   const [loading, setLoading] = useState(false);
 
   const isSupported = canNotify && hasSw;
+  const actionRef = useRef(false);
 
   useEffect(() => {
     if (token && isSupported) {
@@ -26,9 +27,9 @@ export function usePushNotifications(token) {
         try {
           const reg = await navigator.serviceWorker.ready;
           const sub = await reg.pushManager.getSubscription();
-          setIsSubscribed(!!sub);
+          if (!actionRef.current) setIsSubscribed(!!sub);
         } catch {
-          setIsSubscribed(false);
+          if (!actionRef.current) setIsSubscribed(false);
         }
       })();
     }
@@ -36,6 +37,7 @@ export function usePushNotifications(token) {
 
   const subscribe = useCallback(async () => {
     if (!isSupported || !token) return false;
+    actionRef.current = true;
     setLoading(true);
 
     try {
@@ -87,7 +89,9 @@ export function usePushNotifications(token) {
       setLoading(false);
       return true;
     } catch {
-      setIsSubscribed(false);
+      const reg = await navigator.serviceWorker.ready.catch(() => null);
+      const actualSub = reg ? await reg.pushManager.getSubscription().catch(() => null) : null;
+      setIsSubscribed(!!actualSub);
       setLoading(false);
       return false;
     }
@@ -95,6 +99,7 @@ export function usePushNotifications(token) {
 
   const unsubscribe = useCallback(async () => {
     if (!isSupported || !token) return;
+    actionRef.current = true;
     setLoading(true);
 
     try {
@@ -121,7 +126,9 @@ export function usePushNotifications(token) {
 
       setIsSubscribed(false);
     } catch {
-      setIsSubscribed(false);
+      const reg = await navigator.serviceWorker.ready.catch(() => null);
+      const actualSub = reg ? await reg.pushManager.getSubscription().catch(() => null) : null;
+      setIsSubscribed(!!actualSub);
     }
 
     setLoading(false);
