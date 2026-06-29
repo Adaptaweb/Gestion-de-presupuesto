@@ -12,6 +12,8 @@ import { Resend } from 'resend';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 import { setDb as setEmbeddingsDb } from './embeddings.js';
 import { seedTemplates } from './seedTemplates.js';
+import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
+import { detectBankFromSender } from './bankMapping.js';
 
 setEmbeddingsDb(db);
 
@@ -858,7 +860,12 @@ app.post('/api/webhook/email', async (req, res) => {
       to: '',
     };
 
-    const parsed = await parseHTML(content, headers, actualUserId);
+    let parsed = await extractWithTemplateSystem(content, headers, actualUserId);
+
+    if (!parsed || !parsed.monto || !parsed.fecha) {
+      parsed = await parseHTML(content, headers, actualUserId);
+    }
+
     if (!parsed || !parsed.monto || !parsed.fecha) {
       console.log(`[Webhook] Could not parse transaction from ${from}: ${subject} - monto=${parsed?.monto}, fecha=${parsed?.fecha}`);
       return res.json({ success: false, reason: 'no_parsed_data' });
@@ -882,6 +889,7 @@ app.post('/api/webhook/email', async (req, res) => {
     );
 
     try {
+      const metodo = parsed.is_template ? 'template' : ((parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico');
       await db.run(
         `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -890,23 +898,27 @@ app.post('/api/webhook/email', async (req, res) => {
         !!(parsed.monto && parsed.fecha),
         JSON.stringify({ monto: !!parsed.monto, fecha: !!parsed.fecha, comercio: !!parsed.comercio }),
         parsed.confianza || 0,
-        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
+        metodo,
         false
       );
 
-      const tipoCorreo = parsed.tipo_movimiento?.toLowerCase() || 'compra';
-      await db.run(
-        `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
-         VALUES ($1, $2, $3, $4, $5, $6, 1, $7, NOW())
-         ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
-           count_uso = plantillas_email.count_uso + 1,
-           count_exitoso = plantillas_email.count_exitoso + $7,
-           ultimo_uso = NOW()`,
-        parsed.banco || 'Otros', tipoCorreo, parsed.fingerprint || '', subjectSafe,
-        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
-        html?.substring(0, 2000) || '',
-        (parsed.monto && parsed.fecha) ? 1 : 0
-      );
+      if (parsed.is_template) {
+        await saveTemplateFromExtraction(parsed, content, headers, subject, actualUserId);
+      } else {
+        const tipoCorreo = parsed.tipo_movimiento?.toLowerCase() || 'compra';
+        await db.run(
+          `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
+           VALUES ($1, $2, $3, $4, $5, $6, 1, $7, NOW())
+           ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
+             count_uso = plantillas_email.count_uso + 1,
+             count_exitoso = plantillas_email.count_exitoso + $7,
+             ultimo_uso = NOW()`,
+          parsed.banco || 'Otros', tipoCorreo, parsed.fingerprint || '', subjectSafe,
+          metodo,
+          html?.substring(0, 2000) || '',
+          (parsed.monto && parsed.fecha) ? 1 : 0
+        );
+      }
     } catch (logErr) {
       console.warn('[Webhook] Error guardando parsing_log/plantilla:', logErr.message);
     }
