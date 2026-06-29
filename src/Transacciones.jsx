@@ -5,10 +5,11 @@ import {
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
-  Bell, Search, ArrowUpDown, ArrowUp, ArrowDown
+  Bell, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
+import { Calendar } from '@/components/ui/calendar';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -362,6 +363,17 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     return { style: { backgroundColor: val.backgroundColor, color: val.color } };
   };
 
+  const formatDateRange = (range) => {
+    if (!range.from) return '';
+    const opts = { month: 'short', year: 'numeric' };
+    const fromStr = range.from.toLocaleDateString('es-CL', opts);
+    if (!range.to || range.from.toDateString() === range.to.toDateString()) return fromStr;
+    const toStr = range.to.toLocaleDateString('es-CL', opts);
+    return `${fromStr} - ${toStr}`;
+  };
+
+  const dateToInputStr = (d) => d.toISOString().slice(0, 10);
+
   const catBarStyle = (catName) => {
     const val = CATEGORY_BAR_COLORS[catName] || CATEGORY_BAR_COLORS['Otros'];
     if (typeof val === 'string') return { className: val };
@@ -398,17 +410,22 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [lastCheck, setLastCheck] = useState(null);
   const [authStatus, setAuthStatus] = useState(null);
   const [gmailForwardingAuthorized, setGmailForwardingAuthorized] = useState(null);
+  const today = new Date();
+  const defaultDateRange = {
+    from: new Date(today.getFullYear(), today.getMonth(), 1),
+    to: new Date(today.getFullYear(), today.getMonth() + 1, 0),
+  };
+  const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
   const [filterCat, setFilterCat] = useState('');
-  const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
   const [filterTipo, setFilterTipo] = useState('');
   const [filterBanco, setFilterBanco] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const searchTimer = useRef(null);
   const [sortConfig, setSortConfig] = useState({ key: 'fecha', dir: 'desc' });
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef(null);
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
-  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showFilterRulesModal, setShowFilterRulesModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [newFilterRemitente, setNewFilterRemitente] = useState('');
@@ -416,7 +433,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [bulkRemitentes, setBulkRemitentes] = useState('');
   const [diasAtras, setDiasAtras] = useState(3);
   const [configLoaded, setConfigLoaded] = useState(false);
-  const [availableMonths, setAvailableMonths] = useState([]);
+
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [pendientesCount, setPendientesCount] = useState(0);
@@ -486,11 +503,11 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         setLoading(true);
       }
       const params = new URLSearchParams();
+      if (filterDateRange.from) params.set('fecha_desde', dateToInputStr(filterDateRange.from));
+      if (filterDateRange.to) params.set('fecha_hasta', dateToInputStr(filterDateRange.to));
       if (filterCat) params.set('categoria', filterCat);
-      if (filterMonth) params.set('mes', filterMonth);
       if (filterTipo) params.set('tipo_transaccion', filterTipo);
       if (filterBanco) params.set('banco', filterBanco);
-      if (searchQuery) params.set('search', searchQuery);
       if (sortConfig) {
         params.set('sort_by', sortConfig.key);
         params.set('sort_order', sortConfig.dir);
@@ -502,8 +519,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       const data = await res.json();
       if (res.ok) {
         setTransactions(data.transactions || []);
-        setSummary(data.summary || []);
-        setBankTotals(data.bankTotals || []);
         setTotalCount(data.total || 0);
         setLastCheck(data.lastCheck);
         if (data.pendientes_count !== undefined) setPendientesCount(data.pendientes_count);
@@ -516,17 +531,36 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       setLoading(false);
       setPageLoading(false);
     }
-  }, [getHeaders, filterCat, filterMonth, filterTipo, filterBanco, searchQuery, sortConfig, page]);
+  }, [getHeaders, filterDateRange, filterCat, filterTipo, filterBanco, sortConfig, page]);
+
+  const fetchSummary = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filterDateRange.from) params.set('fecha_desde', dateToInputStr(filterDateRange.from));
+      if (filterDateRange.to) params.set('fecha_hasta', dateToInputStr(filterDateRange.to));
+      params.set('revisado', 'true');
+      params.set('limit', '1');
+      params.set('offset', '0');
+      const res = await fetch(`/api/transacciones?${params.toString()}`, { headers: getHeaders() });
+      const data = await res.json();
+      if (res.ok) {
+        setSummary(data.summary || []);
+        setBankTotals(data.bankTotals || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, [getHeaders, filterDateRange]);
 
   const refreshTable = useCallback(async () => {
     try {
       setPageLoading(true);
       const params = new URLSearchParams();
+      if (filterDateRange.from) params.set('fecha_desde', dateToInputStr(filterDateRange.from));
+      if (filterDateRange.to) params.set('fecha_hasta', dateToInputStr(filterDateRange.to));
       if (filterCat) params.set('categoria', filterCat);
-      if (filterMonth) params.set('mes', filterMonth);
       if (filterTipo) params.set('tipo_transaccion', filterTipo);
       if (filterBanco) params.set('banco', filterBanco);
-      if (searchQuery) params.set('search', searchQuery);
       if (sortConfig) {
         params.set('sort_by', sortConfig.key);
         params.set('sort_order', sortConfig.dir);
@@ -538,8 +572,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       const data = await res.json();
       if (res.ok) {
         setTransactions(data.transactions || []);
-        setSummary(data.summary || []);
-        setBankTotals(data.bankTotals || []);
         setTotalCount(data.total || 0);
         setLastCheck(data.lastCheck);
         if (data.pendientes_count !== undefined) setPendientesCount(data.pendientes_count);
@@ -552,7 +584,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     } finally {
       setPageLoading(false);
     }
-  }, [getHeaders, filterCat, filterMonth, filterTipo, filterBanco, searchQuery, sortConfig, page]);
+  }, [getHeaders, filterDateRange, filterCat, filterTipo, filterBanco, sortConfig, page]);
 
   const fetchFilters = useCallback(async () => {
     try {
@@ -592,11 +624,17 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     }));
   };
 
+  const handleClearFilters = () => {
+    setFilterCat('');
+    setFilterTipo('');
+    setFilterBanco('');
+    setSortConfig({ key: 'fecha', dir: 'desc' });
+  };
+
   const activeFilters = [
     { key: 'filterCat', label: `Categoría: ${filterCat}`, value: filterCat, clear: () => setFilterCat('') },
     { key: 'filterTipo', label: `Tipo: ${filterTipo}`, value: filterTipo, clear: () => setFilterTipo('') },
     { key: 'filterBanco', label: `Banco: ${filterBanco}`, value: filterBanco, clear: () => setFilterBanco('') },
-    { key: 'searchQuery', label: `"${searchQuery}"`, value: searchQuery, clear: () => { setSearchQuery(''); setSearchInput(''); } },
   ].filter(f => f.value);
 
   const handleGmailAuth = useCallback(async () => {
@@ -615,13 +653,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     }
   }, [getHeaders]);
 
-  const fetchMonths = useCallback(async () => {
-    try {
-      const res = await fetch('/api/transacciones/meses', { headers: getHeaders() });
-      const data = await res.json();
-      if (res.ok) setAvailableMonths(data.months || []);
-    } catch (e) { console.error(e); }
-  }, [getHeaders]);
+
 
   const fetchPendientesCount = useCallback(async () => {
     try {
@@ -697,7 +729,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       setStatusMsg({ type: 'success', text: msg });
       await fetchPendientes();
       fetchTransactions();
-      fetchMonths();
+      fetchSummary();
       fetchPendientesCount();
     } catch (e) {
       setStatusMsg({ type: 'error', text: `Error al reprocesar: ${e.message}` });
@@ -712,17 +744,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     fetchTransactions(false);
     fetchFilters();
     fetchConfig();
-    fetchMonths();
+    fetchSummary();
     fetchPendientesCount();
   }, []);
-
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {
-      setSearchQuery(searchInput);
-    }, 400);
-    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
-  }, [searchInput]);
 
   useEffect(() => {
     if (!loading && !splashRemoved.current) {
@@ -738,11 +762,15 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   useEffect(() => {
     setPage(0);
     fetchTransactions(false, 0);
-  }, [filterCat, filterMonth, filterTipo, filterBanco, searchQuery, sortConfig]);
+  }, [filterCat, filterTipo, filterBanco, sortConfig, filterDateRange]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [filterDateRange]);
 
   useEffect(() => {
     const handleOpenConfig = () => setShowConfigModal(true);
-    const handleOpenFilters = () => setShowFilterModal(true);
+    const handleOpenFilters = () => setShowFilterRulesModal(true);
     const handleOpenManual = () => setShowManualEntry(true);
     window.addEventListener('opencode:open-config', handleOpenConfig);
     window.addEventListener('opencode:open-filters', handleOpenFilters);
@@ -753,10 +781,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       window.removeEventListener('opencode:open-manual', handleOpenManual);
     };
   }, []);
-
-  const months = availableMonths;
-  const currentMonthStr = new Date().toISOString().slice(0, 7);
-  const displayMonths = months.includes(currentMonthStr) ? months : [currentMonthStr, ...months];
 
   const formatCurrency = (val) => {
     if (val == null) return '$0';
@@ -798,7 +822,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           if (res.ok) {
             setTransactions(prev => prev.filter(tx => tx.id !== id));
             fetchTransactions();
-            fetchMonths();
+            fetchSummary();
           }
         } catch (err) { console.error(err); }
         return Promise.resolve();
@@ -903,7 +927,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               setShowReview(false);
               setPendingTxs([]);
               fetchTransactions();
-              fetchMonths();
+              fetchSummary();
             }, 200);
           }
         } else {
@@ -939,7 +963,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       setShowReview(false);
       setPendingTxs([]);
       fetchTransactions();
-      fetchMonths();
+      fetchSummary();
       fetchPendientesCount();
     }, 250);
   };
@@ -1018,7 +1042,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         setShowReview(false);
         setPendingTxs([]);
         fetchTransactions();
-        fetchMonths();
+        fetchSummary();
         fetchPendientesCount();
       }, 200);
     } else {
@@ -1251,83 +1275,68 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
 
 
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-2 items-center justify-between">
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="relative flex-1 min-w-[160px] max-w-[220px]">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <input
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                placeholder="Buscar transacciones..."
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none placeholder:text-slate-400 focus:border-blue-400 transition-all"
-              />
-              {searchInput && (
-                <button onClick={() => { setSearchInput(''); setSearchQuery(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={12} /></button>
-              )}
-            </div>
-            <div className="relative flex-1 min-w-[130px] max-w-[170px]">
-              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-                <option value="">Todas las categorías</option>
-                {CATEGORY_LIST.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            <div className="relative flex-1 min-w-[100px] max-w-[140px]">
-              <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-                <option value="">Todos los meses</option>
-                {displayMonths.map(m => {
-                  const [y, mo] = m.split('-');
-                  const date = new Date(parseInt(y), parseInt(mo) - 1);
-                  const label = date.toLocaleString('es-CL', { month: 'long', year: 'numeric' });
-                  return <option key={m} value={m}>{label}</option>;
-                })}
-              </select>
-            </div>
-            <div className="relative flex-1 min-w-[110px] max-w-[150px]">
-              <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-                <option value="">Todos los tipos</option>
-                <option value="gasto">Gasto</option>
-                <option value="ingreso">Ingreso</option>
-                <option value="interno">Interno</option>
-              </select>
-            </div>
-            <div className="relative flex-1 min-w-[110px] max-w-[150px]">
-              <select value={filterBanco} onChange={e => setFilterBanco(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-                <option value="">Todos los bancos</option>
-                {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
-                <option value="Otros">Otros</option>
-              </select>
-            </div>
-            {user?.role === 'admin' && (
-              <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition-all disabled:opacity-50">
-                <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
-              </button>
-            )}
-            {user?.role === 'admin' && (
-              <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
-                <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
-              </button>
+      <div className="flex flex-wrap gap-2 items-center justify-between">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative" ref={calendarRef}>
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className="flex items-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all"
+            >
+              <CalendarIcon size={14} />
+              <span>{formatDateRange(filterDateRange)}</span>
+              {showCalendar ? <ChevronRight size={12} className="rotate-90" /> : <ChevronRight size={12} />}
+            </button>
+            {showCalendar && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowCalendar(false)} />
+                <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-2">
+                  <Calendar
+                    mode="range"
+                    selected={filterDateRange}
+                    onSelect={(range) => {
+                      if (range?.from) {
+                        const maxDate = new Date(range.from);
+                        maxDate.setMonth(maxDate.getMonth() + 3);
+                        maxDate.setDate(maxDate.getDate() - 1);
+                        const newRange = {
+                          from: range.from,
+                          to: range.to && range.to <= maxDate ? range.to : undefined,
+                        };
+                        setFilterDateRange(newRange);
+                      } else {
+                        setFilterDateRange({ from: undefined, to: undefined });
+                      }
+                      setShowCalendar(false);
+                    }}
+                    numberOfMonths={2}
+                    captionLayout="dropdown"
+                    fromYear={2020}
+                    toYear={new Date().getFullYear() + 1}
+                    className="rounded-lg"
+                  />
+                </div>
+              </>
             )}
           </div>
-          <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">
-            <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar
-          </button>
-        </div>
 
-        {activeFilters.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 items-center">
-            {activeFilters.map(f => (
-              <span key={f.key} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                {f.label}
-                <button onClick={f.clear} className="hover:text-red-500 transition-colors"><X size={10} /></button>
-              </span>
-            ))}
-            <button onClick={() => { setFilterCat(''); setFilterTipo(''); setFilterBanco(''); setSearchQuery(''); setSearchInput(''); }} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline transition-all">Limpiar filtros</button>
-          </div>
-        )}
+          <button onClick={() => setShowFilterModal(true)} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all">
+            <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
+          </button>
+
+          {user?.role === 'admin' && (
+            <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition-all disabled:opacity-50">
+              <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
+            </button>
+          )}
+          {user?.role === 'admin' && (
+            <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
+              <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
+            </button>
+          )}
+        </div>
+        <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">
+          <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar
+        </button>
       </div>
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
@@ -1568,15 +1577,84 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </div>
       )}
 
-      {/* Filter Rules Modal */}
+      {/* Table Filter Modal */}
       {showFilterModal && (
+        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-sm p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
+                <Filter size={20} className={theme.tabText} /> Filtros de tabla
+              </h3>
+              <button onClick={() => setShowFilterModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Categoría</label>
+                <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
+                  <option value="">Todas las categorías</option>
+                  {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Tipo</label>
+                <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
+                  <option value="">Todos los tipos</option>
+                  <option value="gasto">Gasto</option>
+                  <option value="ingreso">Ingreso</option>
+                  <option value="interno">Interno</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Banco</label>
+                <select value={filterBanco} onChange={e => setFilterBanco(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
+                  <option value="">Todos los bancos</option>
+                  {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Ordenar por</label>
+                <select value={`${sortConfig.key}-${sortConfig.dir}`} onChange={e => { const [key, dir] = e.target.value.split('-'); setSortConfig({ key, dir }); }} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
+                  <option value="fecha-desc">Fecha ↓</option>
+                  <option value="fecha-asc">Fecha ↑</option>
+                  <option value="monto-desc">Monto ↓</option>
+                  <option value="monto-asc">Monto ↑</option>
+                  <option value="comercio-asc">Comercio A-Z</option>
+                  <option value="comercio-desc">Comercio Z-A</option>
+                </select>
+              </div>
+              {activeFilters.length > 0 && (
+                <div className="pt-2 border-t border-slate-100 dark:border-dark-lighter">
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    {activeFilters.map(f => (
+                      <span key={f.key} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                        {f.label}
+                        <button onClick={() => { f.clear(); }} className="hover:text-red-500 transition-colors"><X size={10} /></button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button onClick={handleClearFilters} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition-all">Limpiar</button>
+                <button onClick={() => setShowFilterModal(false)} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
+                  <Check size={16} /> Aceptar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Rules Modal */}
+      {showFilterRulesModal && (
         <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                 <Settings2 className={theme.tabText} size={20} /> Reglas de filtrado
               </h3>
-              <button onClick={() => setShowFilterModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+              <button onClick={() => setShowFilterRulesModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
               Gmail buscara correos de estos remitentes (sin filtrar por asunto). Se respeta el limite de dias hacia atras.
@@ -1715,7 +1793,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       <ManualTransactionPanel
         show={showManualEntry}
         onClose={() => setShowManualEntry(false)}
-        onCreated={() => { fetchTransactions(); fetchMonths(); }}
+        onCreated={() => { fetchTransactions(); fetchSummary(); }}
         theme={theme}
         token={token}
       />

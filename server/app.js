@@ -563,9 +563,9 @@ app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
 app.get('/api/transacciones', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order } = req.query;
+    const { mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order, fecha_desde, fecha_hasta } = req.query;
 
-    const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order })}`;
+    const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order, fecha_desde, fecha_hasta })}`;
     const cached = cache.get(cacheKey);
     if (cached) {
       console.log(`[CACHE] HIT tx:${userId}`);
@@ -576,6 +576,8 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     const filterValues = [userId];
 
     if (mes) { conditions.push("SUBSTR(fecha, 1, 7) = ?"); filterValues.push(mes); }
+    if (fecha_desde) { conditions.push("fecha >= ?"); filterValues.push(fecha_desde); }
+    if (fecha_hasta) { conditions.push("fecha <= ?"); filterValues.push(fecha_hasta); }
     if (categoria) { conditions.push("categoria = ?"); filterValues.push(categoria); }
     if (banco) { conditions.push("banco = ?"); filterValues.push(banco); }
     if (revisado !== undefined) { conditions.push(revisado === 'true' ? 'revisado = TRUE' : 'revisado = FALSE'); }
@@ -882,7 +884,7 @@ app.post('/api/webhook/email', async (req, res) => {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          ON CONFLICT DO NOTHING`,
         actualUserId, emailId, parsed.banco || 'Otros', parsed.fingerprint || null,
-        parsed.monto && parsed.fecha,
+        !!(parsed.monto && parsed.fecha),
         JSON.stringify({ monto: !!parsed.monto, fecha: !!parsed.fecha, comercio: !!parsed.comercio }),
         parsed.confianza || 0,
         (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
