@@ -1499,7 +1499,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       <button
         onClick={() => setShowManualEntry(true)}
-        className={`fixed bottom-6 right-6 lg:bottom-8 lg:right-8 z-40 ${theme.btnPrimary} text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${theme.shadowBtn}`}
+        className={`fixed bottom-20 md:bottom-6 right-6 lg:bottom-8 lg:right-8 z-[60] ${theme.btnPrimary} text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${theme.shadowBtn}`}
       >
         <Plus size={20} /> Ingreso Manual
       </button>
