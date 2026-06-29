@@ -350,16 +350,34 @@ async function addPlantillasEmailTable() {
       ejemplo_html TEXT,
       activo BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMP DEFAULT NOW(),
+      extraccion_json TEXT DEFAULT '{}',
+      from_pattern TEXT DEFAULT '%',
+      prioridad INT DEFAULT 0,
       UNIQUE(banco, fingerprint_hash)
     )`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_banco ON plantillas_email(banco)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_fingerprint ON plantillas_email(fingerprint_hash)`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_lookup ON plantillas_email(banco, activo) INCLUDE (from_pattern, prioridad)`);
     console.log('[MIGRATION] plantillas_email ready');
-    _migrationsRun = true;
   } catch (e) {
     if (!e.message.includes('timeout')) console.error('[MIGRATION] plantillas_email:', e.message);
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable };
+async function migratePlantillasEmailColumns() {
+  if (_migrationsRun) return;
+  try {
+    await db.run(`ALTER TABLE plantillas_email ADD COLUMN IF NOT EXISTS extraccion_json TEXT DEFAULT '{}'`);
+    await db.run(`ALTER TABLE plantillas_email ADD COLUMN IF NOT EXISTS from_pattern TEXT DEFAULT '%'`);
+    await db.run(`ALTER TABLE plantillas_email ADD COLUMN IF NOT EXISTS prioridad INT DEFAULT 0`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_lookup ON plantillas_email(banco, activo) INCLUDE (from_pattern, prioridad)`);
+    console.log('[MIGRATION] plantillas_email columns added');
+  } catch (e) {
+    if (!e.message.includes('timeout') && !e.message.includes('duplicate')) {
+      console.error('[MIGRATION] plantillas_email columns:', e.message);
+    }
+  }
+}
+
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns };
 export default db;

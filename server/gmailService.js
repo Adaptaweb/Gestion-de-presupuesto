@@ -4,6 +4,8 @@ import { parseHTML } from './transactionParser.js';
 import { generarFingerprint } from './fingerprint.js';
 import db from './db.js';
 import { sendPushToUser } from './push.js';
+import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
+import { detectBankFromSender } from './bankMapping.js';
 
 async function fetchLatestTransactions(userId) {
   if (!(await hasValidTokens(userId))) {
@@ -85,15 +87,21 @@ async function processEmail(msgId, gmail, userId, results) {
     const body = getEmailBody(payload);
     if (!body) return;
 
-    const parsed = await parseHTML(body, headers, userId);
+    let parsed = await extractWithTemplateSystem(body, headers, userId);
+
+    if (!parsed || !parsed.monto || !parsed.fecha) {
+      parsed = await parseHTML(body, headers, userId);
+    }
+
     if (!parsed || !parsed.monto || !parsed.fecha) {
       try {
         const fingerprint = generarFingerprint(body, subject);
+        const bancoDetectado = parsed?.banco || detectBankFromSender(headers?.from || '');
         await db.run(
           `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
            VALUES ($1, $2, $3, $4, FALSE, $5, 0, 'fallido', TRUE)
            ON CONFLICT DO NOTHING`,
-          userId, emailId, parsed?.banco || 'Otros', fingerprint,
+          userId, emailId, bancoDetectado, fingerprint,
           JSON.stringify({ monto: !!parsed?.monto, fecha: !!parsed?.fecha, comercio: !!parsed?.comercio })
         );
       } catch (logErr) {
@@ -121,6 +129,7 @@ async function processEmail(msgId, gmail, userId, results) {
     try {
       const fingerprint = parsed.fingerprint || generarFingerprint(body, subject);
       const tipoCorreo = parsed.tipo_movimiento?.toLowerCase() || 'compra';
+      const metodo = parsed.is_template ? 'template' : ((parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico');
       await db.run(
         `INSERT INTO parsing_logs (user_id, email_id, banco_detectado, fingerprint_hash, parsing_exitoso, campos_extraidos, confianza_score, metodo_extraccion, openrouter_fallback)
          VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7, FALSE)
@@ -128,20 +137,24 @@ async function processEmail(msgId, gmail, userId, results) {
         userId, emailId, bancoFinal, fingerprint,
         JSON.stringify({ monto: true, fecha: true, comercio: !!parsed.comercio }),
         parsed.confianza || 0,
-        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico'
+        metodo
       );
 
-      await db.run(
-        `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
-         VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
-         ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
-           count_uso = plantillas_email.count_uso + 1,
-           count_exitoso = plantillas_email.count_exitoso + 1,
-           ultimo_uso = NOW()`,
-        bancoFinal, tipoCorreo, fingerprint, subject,
-        (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
-        body.substring(0, 2000)
-      );
+      if (parsed.is_template) {
+        await saveTemplateFromExtraction(parsed, body, headers, subject, userId);
+      } else {
+        await db.run(
+          `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
+           VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
+           ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
+             count_uso = plantillas_email.count_uso + 1,
+             count_exitoso = plantillas_email.count_exitoso + 1,
+             ultimo_uso = NOW()`,
+          bancoFinal, tipoCorreo, fingerprint, subject,
+          (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
+          body.substring(0, 2000)
+        );
+      }
     } catch (logErr) {
       console.warn('[GmailService] Error logging to parsing_logs/plantillas:', logErr.message);
     }

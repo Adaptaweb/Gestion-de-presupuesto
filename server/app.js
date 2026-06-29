@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
@@ -11,6 +11,7 @@ import { createJob, getJob } from './jobQueue.js';
 import { Resend } from 'resend';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 import { setDb as setEmbeddingsDb } from './embeddings.js';
+import { seedTemplates } from './seedTemplates.js';
 
 setEmbeddingsDb(db);
 
@@ -28,6 +29,8 @@ addPushSubscriptionsTable().catch(e => console.error('[MIGRATION] Error:', e.mes
 addCreatedAtColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
 addParsingLogsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
 addPlantillasEmailTable().catch(e => console.error('[MIGRATION] Error:', e.message));
+migratePlantillasEmailColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
+seedTemplates().catch(e => console.error('[TEMPLATE] Seed error:', e.message));
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
