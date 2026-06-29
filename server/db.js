@@ -372,8 +372,9 @@ async function migratePlantillasEmailColumns() {
     await db.run(`ALTER TABLE plantillas_email ADD COLUMN IF NOT EXISTS prioridad INT DEFAULT 0`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_plantillas_lookup ON plantillas_email(banco, activo) INCLUDE (from_pattern, prioridad)`);
     console.log('[MIGRATION] plantillas_email columns added');
+    _migrationsRun = true;
   } catch (e) {
-    if (!e.message.includes('timeout') && !e.message.includes('duplicate')) {
+    if (!e.message.includes('timeout') && !e.message.includes('duplicate') && !e.message.includes('already exists')) {
       console.error('[MIGRATION] plantillas_email columns:', e.message);
     }
   }

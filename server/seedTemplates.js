@@ -185,8 +185,11 @@ export const SEED_TEMPLATES = [
 ];
 
 export async function seedTemplates() {
+  await new Promise(r => setTimeout(r, 2000));
+
   for (const template of SEED_TEMPLATES) {
     try {
+      const mockFingerprint = `seed:${template.banco}:${template.tipo_correo}:${template.from_pattern}`;
       const exists = await db.get(
         'SELECT id FROM plantillas_email WHERE banco = $1 AND tipo_correo = $2 AND from_pattern = $3',
         template.banco, template.tipo_correo, template.from_pattern
@@ -194,15 +197,17 @@ export async function seedTemplates() {
 
       if (!exists) {
         await db.run(
-          `INSERT INTO plantillas_email (banco, tipo_correo, from_pattern, extraccion_json, prioridad, count_uso, count_exitoso, activo)
-           VALUES ($1, $2, $3, $4, $5, 0, 0, TRUE)`,
-          template.banco, template.tipo_correo, template.from_pattern,
-          JSON.stringify(template.extraccion_json), template.prioridad
+          `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, from_pattern, extraccion_json, prioridad, count_uso, count_exitoso, activo)
+           VALUES ($1, $2, $3, $4, $5, $6, 0, 0, TRUE)`,
+          template.banco, template.tipo_correo, mockFingerprint,
+          template.from_pattern, JSON.stringify(template.extraccion_json), template.prioridad
         );
         console.log(`[TEMPLATE] Seeded: ${template.banco} - ${template.tipo_correo}`);
       }
     } catch (e) {
-      console.warn(`[TEMPLATE] Error seeding ${template.banco}/${template.tipo_correo}: ${e.message}`);
+      if (!e.message.includes('column') && !e.message.includes('null')) {
+        console.warn(`[TEMPLATE] Error seeding ${template.banco}/${template.tipo_correo}: ${e.message}`);
+      }
     }
   }
 }

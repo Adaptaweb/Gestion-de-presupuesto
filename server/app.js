@@ -32,7 +32,7 @@ addCreatedAtColumns().catch(e => console.error('[MIGRATION] Error:', e.message))
 addParsingLogsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
 addPlantillasEmailTable().catch(e => console.error('[MIGRATION] Error:', e.message));
 migratePlantillasEmailColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
-seedTemplates().catch(e => console.error('[TEMPLATE] Seed error:', e.message));
+setTimeout(() => seedTemplates().catch(e => console.error('[TEMPLATE] Seed error:', e.message)), 3000);
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
