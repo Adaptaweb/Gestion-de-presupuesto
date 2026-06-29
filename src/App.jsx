@@ -663,11 +663,24 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     'Authorization': `Bearer ${token}`
   });
 
+  const updateThemeColor = (dark) => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.content = dark ? '#0F0F0F' : '#F8FFFC';
+      meta.removeAttribute('media');
+    }
+  };
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     }
+    updateThemeColor(isDarkMode);
   }, []); // runs once on mount only
+
+  useEffect(() => {
+    updateThemeColor(isDarkMode);
+  }, [isDarkMode]);
 
   useEffect(() => {
     fetch('/api/data', { headers: getHeaders() })
