@@ -24,19 +24,34 @@ export class BancoChileTransferenciaParser extends BaseParser {
 
     let comercioRaw = '';
 
-    const boldTexts = [];
-    $('b, strong').each((_, el) => {
-      const text = $(el).text().trim().replace(/\s+/g, ' ');
-      if (text.length > 3) boldTexts.push(text);
-    });
+    const nuestroClienteMatch = bodyText.match(/nuestro\s*\(?\s*a\s*\)?\s*cliente\s+([A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)\s*(?:ha|,)/i);
+    if (nuestroClienteMatch && nuestroClienteMatch[1]) {
+      comercioRaw = nuestroClienteMatch[1].trim();
+    }
 
-    for (const boldText of boldTexts) {
-      const match = boldText.match(/^([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)$/);
-      if (match) {
-        const potentialName = match[1].trim();
-        if (potentialName.length > 5 && !potentialName.includes('@') && !/\d{5,}/.test(potentialName)) {
-          comercioRaw = potentialName;
-          break;
+    if (!comercioRaw) {
+      const clienteIdx = bodyText.indexOf('nuestro');
+      if (clienteIdx !== -1) {
+        const afterCliente = bodyText.substring(clienteIdx);
+        const boldTexts = [];
+        $('b, strong').each((_, el) => {
+          const text = $(el).text().trim().replace(/\s+/g, ' ');
+          if (text.length > 3) boldTexts.push(text);
+        });
+
+        for (const boldText of boldTexts) {
+          const match = boldText.match(/^([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{2,60}?)$/);
+          if (match) {
+            const potentialName = match[1].trim();
+            const nameIdx = bodyText.indexOf(potentialName);
+            if (nameIdx > clienteIdx &&
+                potentialName.length > 5 &&
+                !potentialName.includes('@') &&
+                !/\d{5,}/.test(potentialName)) {
+              comercioRaw = potentialName;
+              break;
+            }
+          }
         }
       }
     }
