@@ -5,7 +5,7 @@ import {
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
-  Bell
+  Bell, Search, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
@@ -368,6 +368,27 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     return { style: { backgroundColor: val.backgroundColor } };
   };
 
+  const SortableTh = ({ sortKey, align = 'left', hideMobile, children }) => {
+    const isActive = sortConfig.key === sortKey;
+    const isAsc = sortConfig.dir === 'asc';
+    const alignClass = align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
+    return (
+      <th
+        onClick={() => handleSort(sortKey)}
+        className={`p-2 sm:p-4 ${alignClass} font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors ${hideMobile ? 'hidden sm:table-cell' : ''}`}
+      >
+        <span className="inline-flex items-center gap-1">
+          {children}
+          {isActive ? (
+            isAsc ? <ArrowUp size={10} className="text-emerald-500" /> : <ArrowDown size={10} className="text-emerald-500" />
+          ) : (
+            <ArrowUpDown size={10} className="opacity-30" />
+          )}
+        </span>
+      </th>
+    );
+  };
+
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
   const [bankTotals, setBankTotals] = useState([]);
@@ -379,6 +400,12 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [gmailForwardingAuthorized, setGmailForwardingAuthorized] = useState(null);
   const [filterCat, setFilterCat] = useState('');
   const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [filterTipo, setFilterTipo] = useState('');
+  const [filterBanco, setFilterBanco] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const searchTimer = useRef(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'fecha', dir: 'desc' });
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -461,6 +488,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       const params = new URLSearchParams();
       if (filterCat) params.set('categoria', filterCat);
       if (filterMonth) params.set('mes', filterMonth);
+      if (filterTipo) params.set('tipo_transaccion', filterTipo);
+      if (filterBanco) params.set('banco', filterBanco);
+      if (searchQuery) params.set('search', searchQuery);
+      if (sortConfig) {
+        params.set('sort_by', sortConfig.key);
+        params.set('sort_order', sortConfig.dir);
+      }
       params.set('revisado', 'true');
       params.set('limit', '10');
       params.set('offset', String(currentPage * 10));
@@ -482,7 +516,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       setLoading(false);
       setPageLoading(false);
     }
-  }, [getHeaders, filterCat, filterMonth, page]);
+  }, [getHeaders, filterCat, filterMonth, filterTipo, filterBanco, searchQuery, sortConfig, page]);
 
   const refreshTable = useCallback(async () => {
     try {
@@ -490,6 +524,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       const params = new URLSearchParams();
       if (filterCat) params.set('categoria', filterCat);
       if (filterMonth) params.set('mes', filterMonth);
+      if (filterTipo) params.set('tipo_transaccion', filterTipo);
+      if (filterBanco) params.set('banco', filterBanco);
+      if (searchQuery) params.set('search', searchQuery);
+      if (sortConfig) {
+        params.set('sort_by', sortConfig.key);
+        params.set('sort_order', sortConfig.dir);
+      }
       params.set('revisado', 'true');
       params.set('limit', '10');
       params.set('offset', String(page * 10));
@@ -511,7 +552,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     } finally {
       setPageLoading(false);
     }
-  }, [getHeaders, filterCat, filterMonth, page]);
+  }, [getHeaders, filterCat, filterMonth, filterTipo, filterBanco, searchQuery, sortConfig, page]);
 
   const fetchFilters = useCallback(async () => {
     try {
@@ -543,6 +584,20 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       setGmailForwardingAuthorized(false);
     }
   }, [getHeaders]);
+
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc',
+    }));
+  };
+
+  const activeFilters = [
+    { key: 'filterCat', label: `Categoría: ${filterCat}`, value: filterCat, clear: () => setFilterCat('') },
+    { key: 'filterTipo', label: `Tipo: ${filterTipo}`, value: filterTipo, clear: () => setFilterTipo('') },
+    { key: 'filterBanco', label: `Banco: ${filterBanco}`, value: filterBanco, clear: () => setFilterBanco('') },
+    { key: 'searchQuery', label: `"${searchQuery}"`, value: searchQuery, clear: () => { setSearchQuery(''); setSearchInput(''); } },
+  ].filter(f => f.value);
 
   const handleGmailAuth = useCallback(async () => {
     try {
@@ -662,6 +717,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   }, []);
 
   useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 400);
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
+  }, [searchInput]);
+
+  useEffect(() => {
     if (!loading && !splashRemoved.current) {
       splashRemoved.current = true;
       const el = document.getElementById('splash');
@@ -675,7 +738,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   useEffect(() => {
     setPage(0);
     fetchTransactions(false, 0);
-  }, [filterCat, filterMonth]);
+  }, [filterCat, filterMonth, filterTipo, filterBanco, searchQuery, sortConfig]);
 
   useEffect(() => {
     const handleOpenConfig = () => setShowConfigModal(true);
@@ -1188,60 +1251,100 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
 
 
-      <div className="flex flex-wrap gap-2 items-center justify-between">
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="relative flex-1 min-w-[140px] max-w-[200px]">
-            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-              <option value="">Todas las categorías</option>
-              {CATEGORY_LIST.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative flex-1 min-w-[160px] max-w-[220px]">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                placeholder="Buscar transacciones..."
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none placeholder:text-slate-400 focus:border-blue-400 transition-all"
+              />
+              {searchInput && (
+                <button onClick={() => { setSearchInput(''); setSearchQuery(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X size={12} /></button>
+              )}
+            </div>
+            <div className="relative flex-1 min-w-[130px] max-w-[170px]">
+              <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+                <option value="">Todas las categorías</option>
+                {CATEGORY_LIST.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div className="relative flex-1 min-w-[100px] max-w-[140px]">
+              <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+                <option value="">Todos los meses</option>
+                {displayMonths.map(m => {
+                  const [y, mo] = m.split('-');
+                  const date = new Date(parseInt(y), parseInt(mo) - 1);
+                  const label = date.toLocaleString('es-CL', { month: 'long', year: 'numeric' });
+                  return <option key={m} value={m}>{label}</option>;
+                })}
+              </select>
+            </div>
+            <div className="relative flex-1 min-w-[110px] max-w-[150px]">
+              <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+                <option value="">Todos los tipos</option>
+                <option value="gasto">Gasto</option>
+                <option value="ingreso">Ingreso</option>
+                <option value="interno">Interno</option>
+              </select>
+            </div>
+            <div className="relative flex-1 min-w-[110px] max-w-[150px]">
+              <select value={filterBanco} onChange={e => setFilterBanco(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+                <option value="">Todos los bancos</option>
+                {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+            {user?.role === 'admin' && (
+              <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition-all disabled:opacity-50">
+                <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
+              </button>
+            )}
+            {user?.role === 'admin' && (
+              <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
+                <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
+              </button>
+            )}
           </div>
-          <div className="relative flex-1 min-w-[120px] max-w-[160px]">
-            <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="w-full appearance-none bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
-              <option value="">Todos los meses</option>
-              {displayMonths.map(m => {
-                const [y, mo] = m.split('-');
-                const date = new Date(parseInt(y), parseInt(mo) - 1);
-                const label = date.toLocaleString('es-CL', { month: 'long', year: 'numeric' });
-                return <option key={m} value={m}>{label}</option>;
-              })}
-            </select>
-          </div>
-          {user?.role === 'admin' && (
-            <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition-all disabled:opacity-50">
-              <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
-            </button>
-          )}
-
-          {user?.role === 'admin' && (
-            <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all disabled:opacity-50">
-              <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
-            </button>
-          )}
+          <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">
+            <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar
+          </button>
         </div>
-        <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all disabled:opacity-50">
-          <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar
-        </button>
+
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {activeFilters.map(f => (
+              <span key={f.key} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                {f.label}
+                <button onClick={f.clear} className="hover:text-red-500 transition-colors"><X size={10} /></button>
+              </span>
+            ))}
+            <button onClick={() => { setFilterCat(''); setFilterTipo(''); setFilterBanco(''); setSearchQuery(''); setSearchInput(''); }} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline transition-all">Limpiar filtros</button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
         {loading && transactions.length === 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse min-w-[700px]">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                  <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Fecha</th>
-                  <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Banco</th>
-                  <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Comercio</th>
-                  <th className="p-2 sm:p-4 text-right font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Monto</th>
-                  <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Tipo</th>
-                  <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Categoría</th>
-                  <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest w-16">Acción</th>
-                </tr>
-              </thead>
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
+                    <SortableTh sortKey="fecha" align="left">Fecha</SortableTh>
+                    <SortableTh sortKey="banco" align="left">Banco</SortableTh>
+                    <SortableTh sortKey="comercio" align="left">Comercio</SortableTh>
+                    <SortableTh sortKey="monto" align="right">Monto</SortableTh>
+                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Tipo</th>
+                    <SortableTh sortKey="categoria" align="center" hideMobile>Categoría</SortableTh>
+                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest w-16">Acción</th>
+                  </tr>
+                </thead>
               <tbody>
                 {Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="border-b border-slate-50 dark:border-dark-lighter/50">
@@ -1274,12 +1377,12 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               <table className="w-full border-collapse min-w-[700px]">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                    <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Fecha</th>
-                    <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Banco</th>
-                    <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Comercio</th>
-                    <th className="p-2 sm:p-4 text-right font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest">Monto</th>
+                    <SortableTh sortKey="fecha" align="left">Fecha</SortableTh>
+                    <SortableTh sortKey="banco" align="left">Banco</SortableTh>
+                    <SortableTh sortKey="comercio" align="left">Comercio</SortableTh>
+                    <SortableTh sortKey="monto" align="right">Monto</SortableTh>
                     <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Tipo</th>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Categoría</th>
+                    <SortableTh sortKey="categoria" align="center" hideMobile>Categoría</SortableTh>
                     <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest w-16">Acción</th>
                   </tr>
                 </thead>

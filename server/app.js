@@ -563,9 +563,9 @@ app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
 app.get('/api/transacciones', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { mes, categoria, banco, limit, offset, revisado } = req.query;
+    const { mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order } = req.query;
 
-    const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado })}`;
+    const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order })}`;
     const cached = cache.get(cacheKey);
     if (cached) {
       console.log(`[CACHE] HIT tx:${userId}`);
@@ -579,13 +579,22 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     if (categoria) { conditions.push("categoria = ?"); filterValues.push(categoria); }
     if (banco) { conditions.push("banco = ?"); filterValues.push(banco); }
     if (revisado !== undefined) { conditions.push(revisado === 'true' ? 'revisado = TRUE' : 'revisado = FALSE'); }
+    if (tipo_transaccion) { conditions.push("tipo_transaccion = ?"); filterValues.push(tipo_transaccion); }
+    if (search) {
+      conditions.push("(comercio LIKE ? OR asunto LIKE ?)");
+      const q = `%${search}%`;
+      filterValues.push(q, q);
+    }
 
     const whereClause = ' WHERE ' + conditions.join(' AND ');
 
     const countResult = await db.get('SELECT COUNT(*) as total FROM transacciones_extraidas' + whereClause, ...filterValues);
     const total = countResult.total;
 
-    let sql = 'SELECT * FROM transacciones_extraidas' + whereClause + ' ORDER BY fecha DESC, fecha_extraccion DESC';
+    const validSortColumns = ['fecha', 'monto', 'comercio', 'categoria', 'banco'];
+    const sortCol = validSortColumns.includes(sort_by) ? sort_by : 'fecha';
+    const sortDir = sort_order === 'asc' ? 'ASC' : 'DESC';
+    let sql = `SELECT * FROM transacciones_extraidas${whereClause} ORDER BY ${sortCol} ${sortDir}, fecha_extraccion DESC`;
     const txParams = [...filterValues];
     if (limit) { sql += ' LIMIT ?'; txParams.push(parseInt(limit)); }
     if (offset) { sql += ' OFFSET ?'; txParams.push(parseInt(offset)); }
