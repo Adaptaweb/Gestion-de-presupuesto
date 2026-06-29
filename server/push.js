@@ -63,7 +63,7 @@ export async function sendPushToUser(userId, title, body, url = '/') {
       } catch (err) {
         console.error(`[Push] Error sending to ${sub.endpoint.substring(0, 50)}...: ${err.message}`);
         if (err.statusCode === 410 || err.statusCode === 404) {
-          await db.run('DELETE FROM push_subscriptions WHERE endpoint = $1', sub.endpoint);
+          console.log(`[Push] Subscription expired/deleted on client for ${sub.endpoint.substring(0, 50)}... - keeping in DB for manual cleanup`);
         }
       }
     }
