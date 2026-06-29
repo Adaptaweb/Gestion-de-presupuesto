@@ -1477,7 +1477,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-	      <div className="min-h-screen bg-kk-background dark:bg-dark-darker p-1 md:p-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+	      <div className="min-h-screen bg-kk-background dark:bg-dark-darker p-1 md:p-2 pb-20 md:pb-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-[100%] lg:max-w-[1920px] mx-auto">
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-6">
@@ -1559,31 +1559,80 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </div>
         )}
 
-        <div className="flex gap-1 sm:gap-2 md:gap-4 mb-4 md:mb-8 bg-slate-200/50 dark:bg-dark-normal/50 p-1 sm:p-1.5 rounded-xl sm:rounded-[1.5rem] w-full md:w-fit overflow-x-auto">
+        <div className="hidden md:flex gap-1.5 justify-center mb-8">
           <button
             onClick={() => setActiveTab('transacciones')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
             <Mail size={16} /> Transacciones
           </button>
           <button
             onClick={() => setActiveTab('general')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'general' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'general' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
-            <ListChecks size={16} /> <span className="hidden sm:inline">Detalle General</span><span className="sm:hidden">Detalle</span>
+            <ListChecks size={16} /> Detalle General
           </button>
           <button
             onClick={() => setActiveTab('ahorros')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'ahorros' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'ahorros' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
-            <PiggyBank size={16} /> <span className="hidden sm:inline">Gestión de Ahorros</span><span className="sm:hidden">Ahorros</span>
+            <PiggyBank size={16} /> Gestión de Ahorros
           </button>
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all flex-shrink-0 ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
-            <LayoutDashboard size={16} /> <span className="hidden sm:inline">Resumen</span><span className="sm:hidden">Res</span>
+            <LayoutDashboard size={16} /> Resumen
           </button>
+        </div>
+
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-dark-normal/90 backdrop-blur-lg border-t border-slate-200 dark:border-dark-lighter animate-slide-in-from-bottom" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+            <button
+              onClick={() => setActiveTab('transacciones')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'transacciones' ? 'scale-100' : 'scale-100'}`}
+            >
+              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                <Mail size={20} strokeWidth={activeTab === 'transacciones' ? 2.5 : 2} />
+              </div>
+              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                Trans
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'general' ? 'scale-100' : 'scale-100'}`}
+            >
+              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                <ListChecks size={20} strokeWidth={activeTab === 'general' ? 2.5 : 2} />
+              </div>
+              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                Detalle
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('ahorros')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'ahorros' ? 'scale-100' : 'scale-100'}`}
+            >
+              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                <PiggyBank size={20} strokeWidth={activeTab === 'ahorros' ? 2.5 : 2} />
+              </div>
+              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                Ahorros
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'dashboard' ? 'scale-100' : 'scale-100'}`}
+            >
+              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                <LayoutDashboard size={20} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
+              </div>
+              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                Resumen
+              </span>
+            </button>
+          </div>
         </div>
 
         {!showCategoriasConfig && <>
