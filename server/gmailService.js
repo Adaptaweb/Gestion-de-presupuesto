@@ -88,8 +88,10 @@ async function processEmail(msgId, gmail, userId, results) {
     if (!body) return;
 
     let parsed = await extractWithTemplateSystem(body, headers, userId);
+    console.log(`[GmailService] extractWithTemplateSystem result:`, JSON.stringify({ monto: parsed?.monto, fecha: parsed?.fecha, comercio: parsed?.comercio, is_template: parsed?.is_template }));
 
-    if (!parsed || !parsed.monto || !parsed.fecha) {
+    if (!parsed || !parsed.monto || !parsed.fecha || !parsed.comercio?.trim()) {
+      console.log(`[GmailService] Falling back to parseHTML`);
       parsed = await parseHTML(body, headers, userId);
     }
 
