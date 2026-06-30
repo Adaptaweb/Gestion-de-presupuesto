@@ -5,7 +5,7 @@ import {
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
-  Bell, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon
+  Bell, ArrowUpDown, ArrowUp, ArrowDown
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
@@ -363,16 +363,24 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     return { style: { backgroundColor: val.backgroundColor, color: val.color } };
   };
 
-  const formatDateRange = (range) => {
-    if (!range.from) return '';
-    const opts = { month: 'short', year: 'numeric' };
-    const fromStr = range.from.toLocaleDateString('es-CL', opts);
-    if (!range.to || range.from.toDateString() === range.to.toDateString()) return fromStr;
-    const toStr = range.to.toLocaleDateString('es-CL', opts);
-    return `${fromStr} - ${toStr}`;
+  const dateToInputStr = (d) => d.toISOString().slice(0, 10);
+
+  const formatMonthLabel = (date) =>
+    date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+
+  const goToPrevMonth = () => {
+    const d = new Date(monthDate);
+    d.setMonth(d.getMonth() - 1);
+    setMonthDate(d);
+    setFilterDateRange(getMonthRange(d));
   };
 
-  const dateToInputStr = (d) => d.toISOString().slice(0, 10);
+  const goToNextMonth = () => {
+    const d = new Date(monthDate);
+    d.setMonth(d.getMonth() + 1);
+    setMonthDate(d);
+    setFilterDateRange(getMonthRange(d));
+  };
 
   const catBarStyle = (catName) => {
     const val = CATEGORY_BAR_COLORS[catName] || CATEGORY_BAR_COLORS['Otros'];
@@ -411,18 +419,18 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [authStatus, setAuthStatus] = useState(null);
   const [gmailForwardingAuthorized, setGmailForwardingAuthorized] = useState(null);
   const today = new Date();
-  const defaultDateRange = {
-    from: new Date(today.getFullYear(), today.getMonth(), 1),
-    to: new Date(today.getFullYear(), today.getMonth() + 1, 0),
-  };
-  const [filterDateRange, setFilterDateRange] = useState(defaultDateRange);
+  const getMonthRange = (date) => ({
+    from: new Date(date.getFullYear(), date.getMonth(), 1),
+    to: new Date(date.getFullYear(), date.getMonth() + 1, 0),
+  });
+  const [monthDate, setMonthDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [filterDateRange, setFilterDateRange] = useState(getMonthRange(today));
+  const [pendingDateRange, setPendingDateRange] = useState(null);
   const [filterCat, setFilterCat] = useState('');
   const [filterTipo, setFilterTipo] = useState('');
   const [filterBanco, setFilterBanco] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'fecha', dir: 'desc' });
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const calendarRef = useRef(null);
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
   const [showFilterRulesModal, setShowFilterRulesModal] = useState(false);
@@ -629,6 +637,11 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setFilterTipo('');
     setFilterBanco('');
     setSortConfig({ key: 'fecha', dir: 'desc' });
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    setMonthDate(firstOfMonth);
+    setFilterDateRange(getMonthRange(now));
+    setPendingDateRange(getMonthRange(now));
   };
 
   const activeFilters = [
@@ -1277,49 +1290,19 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       <div className="flex flex-wrap gap-2 items-center justify-between">
         <div className="flex flex-wrap gap-2 items-center">
-          <div className="relative" ref={calendarRef}>
-            <button
-              onClick={() => setShowCalendar(!showCalendar)}
-              className="flex items-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all"
-            >
-              <CalendarIcon size={14} />
-              <span>{formatDateRange(filterDateRange)}</span>
-              {showCalendar ? <ChevronRight size={12} className="rotate-90" /> : <ChevronRight size={12} />}
+          <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-2 py-1.5">
+            <button onClick={goToPrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
+              <ChevronLeft size={16} />
             </button>
-            {showCalendar && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowCalendar(false)} />
-                <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-2">
-                  <Calendar
-                    mode="range"
-                    selected={filterDateRange}
-                    onSelect={(range) => {
-                      if (range?.from) {
-                        const maxDate = new Date(range.from);
-                        maxDate.setMonth(maxDate.getMonth() + 3);
-                        maxDate.setDate(maxDate.getDate() - 1);
-                        const newRange = {
-                          from: range.from,
-                          to: range.to && range.to <= maxDate ? range.to : undefined,
-                        };
-                        setFilterDateRange(newRange);
-                      } else {
-                        setFilterDateRange({ from: undefined, to: undefined });
-                      }
-                      setShowCalendar(false);
-                    }}
-                    numberOfMonths={2}
-                    captionLayout="dropdown"
-                    fromYear={2020}
-                    toYear={new Date().getFullYear() + 1}
-                    className="rounded-lg"
-                  />
-                </div>
-              </>
-            )}
+            <span className="min-w-[120px] text-center text-xs font-bold text-slate-700 dark:text-slate-200 capitalize">
+              {formatMonthLabel(monthDate)}
+            </span>
+            <button onClick={goToNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
+              <ChevronRight size={16} />
+            </button>
           </div>
 
-          <button onClick={() => setShowFilterModal(true)} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all">
+          <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all">
             <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
           </button>
 
@@ -1589,6 +1572,21 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             </div>
             <div className="space-y-4">
               <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Rango de fechas</label>
+                <Calendar
+                  mode="range"
+                  selected={pendingDateRange}
+                  onSelect={(range) => {
+                    if (range?.from) setPendingDateRange(range);
+                  }}
+                  numberOfMonths={1}
+                  captionLayout="dropdown"
+                  fromYear={2020}
+                  toYear={new Date().getFullYear() + 1}
+                  className="rounded-lg mx-auto"
+                />
+              </div>
+              <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Categoría</label>
                 <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200">
                   <option value="">Todas las categorías</option>
@@ -1637,7 +1635,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               )}
               <div className="flex gap-2 pt-2">
                 <button onClick={handleClearFilters} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition-all">Limpiar</button>
-                <button onClick={() => setShowFilterModal(false)} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
+                <button onClick={() => { setFilterDateRange(pendingDateRange); setShowFilterModal(false); }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
                   <Check size={16} /> Aceptar
                 </button>
               </div>
