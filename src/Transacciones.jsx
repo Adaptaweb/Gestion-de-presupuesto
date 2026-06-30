@@ -368,6 +368,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const formatMonthLabel = (date) =>
     date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
+  const MONTHS_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
   const goToPrevMonth = () => {
     const d = new Date(monthDate);
     d.setMonth(d.getMonth() - 1);
@@ -431,6 +433,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [filterBanco, setFilterBanco] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'fecha', dir: 'desc' });
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
   const [showFilterRulesModal, setShowFilterRulesModal] = useState(false);
@@ -1290,16 +1294,57 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       <div className="flex flex-wrap gap-2 items-center justify-between">
         <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-2 py-1.5">
-            <button onClick={goToPrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
-              <ChevronLeft size={16} />
-            </button>
-            <span className="min-w-[120px] text-center text-xs font-bold text-slate-700 dark:text-slate-200 capitalize">
-              {formatMonthLabel(monthDate)}
-            </span>
-            <button onClick={goToNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
-              <ChevronRight size={16} />
-            </button>
+          <div className="relative">
+            <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-2 py-1.5">
+              <button onClick={goToPrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
+                <ChevronLeft size={16} />
+              </button>
+              <button onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }} className="min-w-[120px] text-center text-xs font-bold text-slate-700 dark:text-slate-200 capitalize hover:bg-slate-100 dark:hover:bg-dark-lighter px-2 py-1 rounded-lg transition-all">
+                {formatMonthLabel(monthDate)}
+              </button>
+              <button onClick={goToNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            {showMonthPicker && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
+                <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3 min-w-[220px]">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <button onClick={() => setPickerYear(pickerYear - 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
+                    <button onClick={() => setPickerYear(pickerYear + 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition-all text-slate-500 dark:text-slate-400">
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1">
+                    {MONTHS_SHORT.map((name, i) => {
+                      const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => {
+                            const d = new Date(pickerYear, i, 1);
+                            setMonthDate(d);
+                            setFilterDateRange(getMonthRange(d));
+                            setShowMonthPicker(false);
+                          }}
+                          className={`px-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                            isCurrent
+                              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                              : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
+                          }`}
+                        >
+                          {name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition-all">
