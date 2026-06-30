@@ -238,6 +238,11 @@ export async function extractWithTemplateSystem(html, headers, userId = null) {
 }
 
 export async function saveTemplateFromExtraction(parsed, html, headers, subject, userId) {
+  if (!parsed.comercio || parsed.comercio.trim().length < 2) {
+    console.log(`[TEMPLATE] Skipping save - comercio is empty or invalid: "${parsed.comercio}"`);
+    return null;
+  }
+
   const from = headers?.from || '';
   const fingerprint = generarFingerprint(html, subject);
   const bank = parsed.banco || detectBankFromSender(from);

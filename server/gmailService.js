@@ -141,19 +141,27 @@ async function processEmail(msgId, gmail, userId, results) {
       );
 
       if (parsed.is_template) {
-        await saveTemplateFromExtraction(parsed, body, headers, subject, userId);
+        if (parsed.comercio && parsed.comercio.trim().length >= 2) {
+          await saveTemplateFromExtraction(parsed, body, headers, subject, userId);
+        } else {
+          console.log(`[GmailService] Skipping saveTemplateFromExtraction - comercio empty: "${parsed.comercio}"`);
+        }
       } else {
-        await db.run(
-          `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
-           VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
-           ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
-             count_uso = plantillas_email.count_uso + 1,
-             count_exitoso = plantillas_email.count_exitoso + 1,
-             ultimo_uso = NOW()`,
-          bancoFinal, tipoCorreo, fingerprint, subject,
-          (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
-          body.substring(0, 2000)
-        );
+        if (parsed.comercio && parsed.comercio.trim().length >= 2) {
+          await db.run(
+            `INSERT INTO plantillas_email (banco, tipo_correo, fingerprint_hash, asunto_normalizado, parser_nombre, ejemplo_html, count_uso, count_exitoso, ultimo_uso)
+             VALUES ($1, $2, $3, $4, $5, $6, 1, 1, NOW())
+             ON CONFLICT (banco, fingerprint_hash) DO UPDATE SET
+               count_uso = plantillas_email.count_uso + 1,
+               count_exitoso = plantillas_email.count_exitoso + 1,
+               ultimo_uso = NOW()`,
+            bancoFinal, tipoCorreo, fingerprint, subject,
+            (parsed.confianza || 0) > 0.6 ? 'especializado' : 'generico',
+            body.substring(0, 2000)
+          );
+        } else {
+          console.log(`[GmailService] Skipping plantilla save - comercio empty: "${parsed.comercio}"`);
+        }
       }
     } catch (logErr) {
       console.warn('[GmailService] Error logging to parsing_logs/plantillas:', logErr.message);

@@ -94,7 +94,7 @@ export const SEED_TEMPLATES = [
     extraccion_json: {
       monto: { type: 'regex', pattern: 'Monto transferido[\\s:]*\\$?([0-9.]+)', group: 1 },
       fecha: { type: 'regex', pattern: '(\\d{2})[\\/-](\\d{2})[\\/-](\\d{4})', groups: [3, 2, 1], format: 'YYYY-MM-DD' },
-      comercio: { type: 'regex', pattern: 'nuestro\\s+cliente\\s+([A-ZÁÉÍÓÚÑ\\s]+?)\\s+(?:realiz|efectu|instruy)', group: 1, postprocess: 'simplifyComercio' },
+      comercio: { type: 'regex', pattern: 'nuestro cliente ([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\\s]+?) realiz', group: 1, postprocess: 'simplifyComercio' },
       tipo_transaccion: { type: 'conditional', patterns: [{ match: 'recibida', value: 'ingreso' }, { match: 'abono', value: 'ingreso' }, { match: 'realiz', value: 'ingreso' }, { match: 'instruy', value: 'ingreso' }], default: 'gasto' },
     },
   },
