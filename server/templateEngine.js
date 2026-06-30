@@ -243,17 +243,27 @@ export async function saveTemplateFromExtraction(parsed, html, headers, subject,
   const bank = parsed.banco || detectBankFromSender(from);
   const tipoCorreo = parsed.tipo_movimiento?.toLowerCase() || 'transferencia';
 
-  const existing = await db.get(
+  const existingByFingerprint = await db.get(
     'SELECT id FROM plantillas_email WHERE banco = $1 AND fingerprint_hash = $2',
     bank, fingerprint
   );
 
-  if (existing) {
+  if (existingByFingerprint) {
     await db.run(
       `UPDATE plantillas_email SET count_uso = count_uso + 1, count_exitoso = count_exitoso + 1, ultimo_uso = NOW() WHERE id = $1`,
-      existing.id
+      existingByFingerprint.id
     );
-    return existing.id;
+    return existingByFingerprint.id;
+  }
+
+  const seedTemplate = await db.get(
+    `SELECT id, extraccion_json FROM plantillas_email WHERE banco = $1 AND tipo_correo = $2 AND fingerprint_hash LIKE 'seed:%'`,
+    bank, tipoCorreo
+  );
+
+  if (seedTemplate) {
+    console.log(`[TEMPLATE] Seed template exists for ${bank}/${tipoCorreo} - skipping learning`);
+    return seedTemplate.id;
   }
 
   const fromPattern = `%${from.split('@')[1] || ''}%`;
