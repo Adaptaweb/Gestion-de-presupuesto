@@ -31,6 +31,10 @@ export class SantanderTransferenciaParser extends BaseParser {
       const nombreMatch = bodyText.match(/Nombre\s+(?:del\s+)?destinatario[:\s]?(.*?)(?=\s*Monto|\s*Rut|\s*Banco|$)/i);
       if (nombreMatch) comercioRaw = nombreMatch[1].trim();
     }
+    if (!comercioRaw) {
+      const clienteMatch = bodyText.match(/nuestro cliente\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+(?:realiz[óoa]/i);
+      if (clienteMatch) comercioRaw = clienteMatch[1].trim();
+    }
     const comercio = this.simplifyComercio(comercioRaw || '');
 
     let tipo_transaccion = 'gasto';
