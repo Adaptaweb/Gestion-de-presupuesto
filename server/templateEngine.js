@@ -5,11 +5,26 @@ import { generarFingerprint } from './fingerprint.js';
 const templateCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
 
+function decodeQuotedPrintable(text) {
+  if (!text) return text;
+  try {
+    const decoded = text
+      .replace(/=\r?\n/g, '')
+      .replace(/=([0-9A-Fa-f]{2})/g, (match, hex) => {
+        return Buffer.from(hex, 'hex').toString('utf8');
+      });
+    return decoded;
+  } catch {
+    return text;
+  }
+}
+
 function loadHtml(html) {
   if (typeof html !== 'string') return null;
   try {
     const { load } = require('cheerio');
-    return load(html);
+    const decoded = decodeQuotedPrintable(html);
+    return load(decoded);
   } catch {
     return null;
   }
