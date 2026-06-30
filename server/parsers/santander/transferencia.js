@@ -38,7 +38,7 @@ export class SantanderTransferenciaParser extends BaseParser {
     const comercio = this.simplifyComercio(comercioRaw || '');
 
     let tipo_transaccion = 'gasto';
-    if (/recibida|abono|recibiste|has recibido/i.test(bodyText)) {
+    if (/recibida|abono|recibiste|has recibido|a tu cuenta/i.test(bodyText)) {
       tipo_transaccion = 'ingreso';
     }
 
