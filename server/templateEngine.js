@@ -212,10 +212,11 @@ export async function extractWithTemplateSystem(html, headers, userId = null) {
     for (const row of rows) {
       if (matchFromPattern(from, row.from_pattern)) {
         try {
-          template = {
-            ...row,
-            extraccion_json: typeof row.extraccion_json === 'string' ? JSON.parse(row.extraccion_json) : row.extraccion_json,
-          };
+          const extraccion = typeof row.extraccion_json === 'string' ? JSON.parse(row.extraccion_json) : row.extraccion_json;
+          if (!extraccion || Object.keys(extraccion).length === 0) {
+            continue;
+          }
+          template = { ...row, extraccion_json: extraccion };
           break;
         } catch {
           continue;
