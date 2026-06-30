@@ -32,7 +32,7 @@ export class SantanderTransferenciaParser extends BaseParser {
       if (nombreMatch) comercioRaw = nombreMatch[1].trim();
     }
     if (!comercioRaw) {
-      const clienteMatch = bodyText.match(/nuestro cliente\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+(?:realiz[óoa]/i);
+      const clienteMatch = bodyText.match(/nuestro cliente\s+([A-ZÁÉÍÓÚÑ\s]+?)\s+realiz[óo]?/i);
       if (clienteMatch) comercioRaw = clienteMatch[1].trim();
     }
     const comercio = this.simplifyComercio(comercioRaw || '');
