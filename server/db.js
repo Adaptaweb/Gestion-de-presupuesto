@@ -111,7 +111,7 @@ const DEFAULT_CATEGORIES = [
 
 async function addCasillaColumn() {
   try {
-    await db.run('ALTER TABLE users ADD COLUMN "casilla" TEXT UNIQUE DEFAULT NULL');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "casilla" TEXT UNIQUE DEFAULT NULL');
     console.log('[MIGRATION] casilla column added to users table');
   } catch (e) {
     // columna ya existe, ignorar
@@ -228,7 +228,7 @@ async function reassignOrphanTransactions(userId) {
 
 async function addGmailForwardingAuthorizedColumn() {
   try {
-    await db.run('ALTER TABLE users ADD COLUMN "gmail_forwarding_authorized" BOOLEAN DEFAULT FALSE');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "gmail_forwarding_authorized" BOOLEAN DEFAULT FALSE');
     console.log('[MIGRATION] gmail_forwarding_authorized column added to users table');
   } catch (e) {
     // columna ya existe, ignorar
@@ -269,7 +269,6 @@ async function addPushSubscriptionsTable() {
 
 async function addCreatedAtColumns() {
   const tables = [
-    'users',
     'meses',
     'deudas',
     'gastos_fijos',
@@ -283,20 +282,16 @@ async function addCreatedAtColumns() {
     'abonos',
     'pagos_abonos',
     'transacciones_extraidas',
-    'filtros_correo',
     'config_extraccion',
-    'ahorros_programados',
-    'pagos_ahorros',
   ];
 
   let added = 0;
   for (const table of tables) {
     try {
-      await db.run(`ALTER TABLE "${table}" ADD COLUMN "created_at" TIMESTAMP DEFAULT NOW()`);
+      await db.run(`ALTER TABLE "${table}" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP DEFAULT NOW()`);
       added++;
-      console.log(`[MIGRATION] created_at column added to ${table}`);
     } catch (e) {
-      // column already exists, skip
+      // table doesn't exist or other error, skip
     }
   }
   if (added > 0) {
