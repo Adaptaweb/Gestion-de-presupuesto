@@ -717,7 +717,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       }
       await fetchPendientes();
       fetchTransactions();
-      fetchMonths();
       fetchPendientesCount();
     } catch (e) {
       setStatusMsg({ type: 'error', text: `Error: ${e.message}` });
