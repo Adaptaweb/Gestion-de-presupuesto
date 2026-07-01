@@ -414,6 +414,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
   const [bankTotals, setBankTotals] = useState([]);
+  const [totalIngresos, setTotalIngresos] = useState(0);
+  const [totalGastos, setTotalGastos] = useState(0);
   const [loading, setLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -558,6 +560,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       if (res.ok) {
         setSummary(data.summary || []);
         setBankTotals(data.bankTotals || []);
+        setTotalIngresos(data.total_ingresos || 0);
+        setTotalGastos(data.total_gastos || 0);
       }
     } catch (err) {
       console.error(err);
@@ -1225,6 +1229,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           bankTotalsMap[bank][row.tipo_tarjeta] = { total: row.total, count: row.count };
         }
         const filteredSummary = summary.filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria));
+        const neto = totalIngresos - totalGastos;
         return (
           <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {filteredSummary.length > 0 && (
@@ -1233,23 +1238,29 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 <div className="space-y-0.5 max-h-[100px] overflow-y-auto custom-scrollbar">
                   {(() => {
                     const maxTotal = Math.max(...filteredSummary.map(s => s.total), 1);
-                    return filteredSummary.map(s => (
-                      <div key={s.categoria} className="flex items-center gap-1.5 text-[10px] sm:text-xs leading-tight">
+                    return filteredSummary.map(s => {
+                      const esIngreso = s.tipo === 'ingreso';
+                      const signo = esIngreso ? '+' : '-';
+                      const colorCls = esIngreso ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+                      return (
+                      <div key={s.categoria + '-' + (s.tipo || 'gasto')} className="flex items-center gap-1.5 text-[10px] sm:text-xs leading-tight">
                         <span {...catBadgeStyle(s.categoria)} className={`font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 w-28 sm:w-32 text-left leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${catBadgeStyle(s.categoria).className || ''}`}>{s.categoria}</span>
                         <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden">
                           <div {...catBarStyle(s.categoria)} className={`h-full rounded-full ${catBarStyle(s.categoria).className || ''}`} style={{ width: `${(s.total / maxTotal) * 100}%`, ...(catBarStyle(s.categoria).style || {}) }} />
                         </div>
-                        <span className="font-bold text-slate-600 dark:text-slate-400 flex-shrink-0">{formatCurrency(s.total)}</span>
+                        <span className={`font-bold flex-shrink-0 ${colorCls}`}>{signo}{formatCurrency(s.total)}</span>
                       </div>
-                    ));
+                    )});
                   })()}
 
 
 
                 </div>
-                <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-200">
-                  <span>Total</span>
-                  <span>{formatCurrency(filteredSummary.reduce((acc, s) => acc + s.total, 0))}</span>
+                <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-[10px] sm:text-xs font-black">
+                  <span className="text-slate-700 dark:text-slate-200">Total</span>
+                  <span className={neto > 0 ? 'text-green-600 dark:text-green-400' : neto < 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}>
+                    {neto >= 0 ? '+' : ''}{formatCurrency(Math.abs(neto))}
+                  </span>
                 </div>
               </div>
             )}

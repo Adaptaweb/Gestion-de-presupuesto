@@ -608,16 +608,19 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
 
     const transactions = await db.all(sql, ...txParams);
 
-    const summarySql = 'SELECT categoria, COUNT(*) as count, SUM(monto) as total FROM transacciones_extraidas' + whereClause + " AND (tipo_transaccion IS NULL OR (tipo_transaccion != 'interno' AND tipo_transaccion != 'no_es_gasto' AND tipo_transaccion != 'no_es_ingreso')) AND categoria NOT IN ('Interno', 'No es Gasto', 'No es Ingreso') GROUP BY categoria ORDER BY total DESC";
+    const summarySql = "SELECT categoria, CASE WHEN tipo_transaccion = 'ingreso' THEN 'ingreso' ELSE 'gasto' END as tipo, COUNT(*) as count, SUM(monto) as total FROM transacciones_extraidas" + whereClause + " AND (tipo_transaccion IS NULL OR (tipo_transaccion != 'interno' AND tipo_transaccion != 'no_es_gasto' AND tipo_transaccion != 'no_es_ingreso')) AND categoria NOT IN ('Interno', 'No es Gasto', 'No es Ingreso') GROUP BY categoria, CASE WHEN tipo_transaccion = 'ingreso' THEN 'ingreso' ELSE 'gasto' END ORDER BY total DESC";
     const summary = await db.all(summarySql, ...filterValues);
 
     const bankTotalsSql = "SELECT banco, tipo_tarjeta, COUNT(*) as count, SUM(monto) as total FROM transacciones_extraidas" + whereClause + " AND tipo_tarjeta != '' AND (tipo_transaccion IS NULL OR (tipo_transaccion != 'interno' AND tipo_transaccion != 'no_es_gasto' AND tipo_transaccion != 'no_es_ingreso')) AND categoria NOT IN ('Interno', 'No es Gasto', 'No es Ingreso') GROUP BY banco, tipo_tarjeta ORDER BY total DESC";
     const bankTotalsRows = await db.all(bankTotalsSql, ...filterValues);
 
+    const totalIngresosResult = await db.get("SELECT COALESCE(SUM(monto), 0) as total FROM transacciones_extraidas" + whereClause + " AND tipo_transaccion = 'ingreso' AND categoria NOT IN ('Interno', 'No es Gasto', 'No es Ingreso')", ...filterValues);
+    const totalGastosResult = await db.get("SELECT COALESCE(SUM(monto), 0) as total FROM transacciones_extraidas" + whereClause + " AND (tipo_transaccion IS NULL OR tipo_transaccion = 'gasto') AND categoria NOT IN ('Interno', 'No es Gasto', 'No es Ingreso')", ...filterValues);
+
     const pendientesResult = await db.get('SELECT COUNT(*) as count FROM transacciones_extraidas WHERE user_id = ? AND deleted_at IS NULL AND (revisado = FALSE OR revisado IS NULL)', userId);
     const pendientes_count = pendientesResult.count;
 
-    const result = { transactions, summary, bankTotals: bankTotalsRows, total, pendientes_count, lastCheck: getLastCheckTime() };
+    const result = { transactions, summary, bankTotals: bankTotalsRows, total, pendientes_count, lastCheck: getLastCheckTime(), total_ingresos: totalIngresosResult.total, total_gastos: totalGastosResult.total };
     cache.set(cacheKey, result, 30);
     res.json(result);
   } catch (error) {
