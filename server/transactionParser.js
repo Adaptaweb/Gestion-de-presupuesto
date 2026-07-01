@@ -270,6 +270,15 @@ async function parseHTML(html, headers = {}, userId = null) {
     const dateMatch = bodyText.match(/(\d{2})[\/-](\d{2})[\/-](\d{4})/);
     if (dateMatch) fecha = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
   }
+  if (!fecha) {
+    const meses = { enero:'01', febrero:'02', marzo:'03', abril:'04', mayo:'05', junio:'06', julio:'07', agosto:'08', septiembre:'09', octubre:'10', noviembre:'11', diciembre:'12' };
+    const monthPattern = Object.keys(meses).join('|');
+    const esDate = bodyText.match(new RegExp(`(\\d{1,2})\\s+de\\s+(${monthPattern})\\s+de\\s+(\\d{4})`, 'i'));
+    if (esDate) {
+      const mes = meses[esDate[2].toLowerCase()];
+      fecha = `${esDate[3]}-${mes}-${esDate[1].padStart(2, '0')}`;
+    }
+  }
 
   if (usedTable && !comercio && !hasUsd) {
     const lines = bodyText.split('\n').map(l => l.trim()).filter(Boolean);
