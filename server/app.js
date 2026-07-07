@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns, runOnce } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
@@ -25,13 +25,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-addCasillaColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
-addGmailForwardingAuthorizedColumn().catch(e => console.error('[MIGRATION] Error:', e.message));
-addPushSubscriptionsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
-addCreatedAtColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
-addParsingLogsTable().catch(e => console.error('[MIGRATION] Error:', e.message));
-addPlantillasEmailTable().catch(e => console.error('[MIGRATION] Error:', e.message));
-migratePlantillasEmailColumns().catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('add-casilla-column', addCasillaColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('add-gmail-forwarding-authorized', addGmailForwardingAuthorizedColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('add-push-subscriptions', addPushSubscriptionsTable).catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('add-created-at-columns', addCreatedAtColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('add-parsing-logs', addParsingLogsTable).catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('add-plantillas-email-table', addPlantillasEmailTable).catch(e => console.error('[MIGRATION] Error:', e.message));
+runOnce('migrate-plantillas-email-columns', migratePlantillasEmailColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
 setTimeout(() => seedTemplates().catch(e => console.error('[TEMPLATE] Seed error:', e.message)), 3000);
 
 const authenticateToken = (req, res, next) => {
@@ -767,7 +767,9 @@ app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
 app.get('/api/transacciones/revisar/status/:jobId', authenticateToken, async (req, res) => {
   const job = await getJob(req.params.jobId);
   if (!job) return res.status(404).json({ error: 'Job no encontrado' });
-  res.json({ status: job.status, result: job.result, error: job.error });
+  if (job.status === 'done') return res.json({ status: 'completed', result: job.result });
+  if (job.status === 'error') return res.json({ status: 'failed', error: job.error });
+  res.json({ status: job.status });
 });
 
 app.post('/api/transacciones/reprocesar', authenticateToken, async (req, res) => {
@@ -930,7 +932,11 @@ app.post('/api/webhook/email', async (req, res) => {
     cache.del(`tx:meses:${actualUserId}`);
     cache.delByPattern(`tx:pendientes:${actualUserId}`);
 
-    sendPushToUser(actualUserId, 'Nueva transacción detectada',
+    const yaExisteWebhook = await db.get(
+      'SELECT 1 FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2',
+      emailId, actualUserId
+    );
+    if (!yaExisteWebhook) sendPushToUser(actualUserId, 'Nueva transacción detectada',
       `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
       '/'
     ).catch(err => console.error(`[Webhook] Push error: ${err.message}`));

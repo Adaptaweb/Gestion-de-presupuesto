@@ -115,6 +115,11 @@ async function processEmail(msgId, gmail, userId, results) {
     const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const bancoFinal = parsed.banco || 'Otros';
 
+    const esNuevo = !(await db.get(
+      'SELECT 1 FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2',
+      emailId, userId
+    ));
+
     await db.run(
       `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13)
@@ -169,13 +174,15 @@ async function processEmail(msgId, gmail, userId, results) {
       console.warn('[GmailService] Error logging to parsing_logs/plantillas:', logErr.message);
     }
 
-    results.new++;
-    results.transactions.push(parsed);
+    if (esNuevo) {
+      results.new++;
+      results.transactions.push(parsed);
 
-    sendPushToUser(userId, 'Nueva transacción detectada',
-      `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
-      '/'
-    ).catch(err => console.error(`[GmailService] Push error: ${err.message}`));
+      sendPushToUser(userId, 'Nueva transacción detectada',
+        `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
+        '/'
+      ).catch(err => console.error(`[GmailService] Push error: ${err.message}`));
+    }
   } catch (msgErr) {
     results.errors++;
     console.error('[GmailService] Error processing message:', msgErr.message);

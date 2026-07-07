@@ -709,13 +709,18 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         await new Promise(r => setTimeout(r, 2000));
         const statusRes = await fetch(`/api/transacciones/revisar/status/${jobId}`, { headers: getHeaders() });
         const status = await statusRes.json();
-        if (status.status === 'completed') {
+        if (status.status === 'completed' || status.status === 'done') {
           const result = status.result || {};
+          if (result.needsReauth) {
+            setAuthStatus(false);
+            setStatusMsg({ type: 'error', text: 'Token de Gmail expirado. Ve a Configuración → Gmail para re-autenticar.' });
+            break;
+          }
           const newTx = result.new || 0;
           setStatusMsg({ type: 'success', text: `Revisión completada: ${newTx} nuevas transacciones` });
           break;
         }
-        if (status.status === 'failed') {
+        if (status.status === 'failed' || status.status === 'error') {
           throw new Error(status.error || 'Error al revisar correos');
         }
       }
