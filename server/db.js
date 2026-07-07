@@ -307,8 +307,8 @@ export async function runOnce(name, fn) {
     )`);
     const row = await db.get('SELECT 1 FROM _migrations WHERE name = $1', name);
     if (row) return;
+    await db.run('INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT DO NOTHING', name);
     await fn();
-    await db.run('INSERT INTO _migrations (name) VALUES ($1)', name);
     console.log(`[runOnce] ${name} applied`);
   } catch (e) {
     if (!e.message?.includes('duplicate key') && !e.message?.includes('unique')) {

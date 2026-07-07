@@ -9,7 +9,7 @@ import { detectBankFromSender } from './bankMapping.js';
 
 async function fetchLatestTransactions(userId) {
   if (!(await hasValidTokens(userId))) {
-    return { success: false, error: 'Gmail no autenticado. Ejecuta primero la autenticación OAuth.' };
+    return { success: false, needsReauth: true, message: 'Token de Gmail expirado o no autenticado. Ve a Configuración → Gmail para re-autenticar.', error: 'Gmail no autenticado' };
   }
 
   const results = { fetched: 0, new: 0, errors: 0, transactions: [] };

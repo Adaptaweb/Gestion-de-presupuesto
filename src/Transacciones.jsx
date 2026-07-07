@@ -713,7 +713,11 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           const result = status.result || {};
           if (result.needsReauth) {
             setAuthStatus(false);
-            setStatusMsg({ type: 'error', text: 'Token de Gmail expirado. Ve a Configuración → Gmail para re-autenticar.' });
+            setStatusMsg({ type: 'error', text: result.message || 'Token de Gmail expirado. Ve a Configuración → Gmail para re-autenticar.' });
+            break;
+          }
+          if (result.error) {
+            setStatusMsg({ type: 'error', text: result.message || result.error });
             break;
           }
           const newTx = result.new || 0;
