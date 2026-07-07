@@ -228,6 +228,20 @@ async function parseHTML(html, headers = {}, userId = null) {
     usedTable = true;
 
     let montoRaw = extractTableValue($, tableRows, 'monto');
+    if (hasUsd && montoRaw && /USD?\$/.test(montoRaw)) {
+      const clpRow = tableRows.find(row => {
+        const cells = $(row).children('td');
+        const firstText = cells.first().text().trim().toLowerCase();
+        if (firstText.includes('monto')) {
+          const val = cells.eq(1).text().trim();
+          return val && !/USD?\$/.test(val);
+        }
+        return false;
+      });
+      if (clpRow) {
+        montoRaw = $(clpRow).children('td').eq(1).text().trim();
+      }
+    }
     monto = parseMonto(montoRaw);
 
     const clpRaw = extractTableValue($, tableRows, 'monto clp');
@@ -245,6 +259,14 @@ async function parseHTML(html, headers = {}, userId = null) {
     if (!comercio && tipo_movimiento === 'Transferencia') {
       const nombreRaw = extractTableValue($, tableRows, 'nombre');
       if (nombreRaw) comercio = simplifyComercio(nombreRaw);
+    }
+  }
+
+  if (hasUsd && monto && monto < 500) {
+    const clpData = parseClpText(bodyText);
+    if (clpData.monto && clpData.monto >= 500) {
+      monto = clpData.monto;
+      if (!comercio && clpData.comercio) comercio = simplifyComercio(clpData.comercio);
     }
   }
 
