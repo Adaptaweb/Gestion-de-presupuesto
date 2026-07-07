@@ -188,7 +188,7 @@ const ReviewCard = ({
             );
           })()}
         </div>
-
+   
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
             <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
