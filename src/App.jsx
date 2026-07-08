@@ -3544,7 +3544,19 @@ const App = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
 
+  const resolveViewFromPath = (path) => {
+    if (path === '/terminos') return 'terminos';
+    if (path === '/privacidad') return 'privacidad';
+    return null;
+  };
+
   useEffect(() => {
+    const pathView = resolveViewFromPath(window.location.pathname);
+    if (pathView) {
+      setCurrentView(pathView);
+      return;
+    }
+
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
 
@@ -3584,6 +3596,17 @@ const App = () => {
     }
   }, [currentView]);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathView = resolveViewFromPath(window.location.pathname);
+      if (pathView) {
+        setCurrentView(pathView);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const handleLogin = (userData) => {
     setUser(userData);
     setToken(localStorage.getItem('token'));
@@ -3596,6 +3619,25 @@ const App = () => {
     setUser(null);
     setToken(null);
     setCurrentView('login');
+  };
+
+  const handleOpenTerminos = () => {
+    window.history.pushState({ view: 'terminos' }, '', '/terminos');
+    setCurrentView('terminos');
+  };
+
+  const handleOpenPrivacidad = () => {
+    window.history.pushState({ view: 'privacidad' }, '', '/privacidad');
+    setCurrentView('privacidad');
+  };
+
+  const handleBackFromLegal = () => {
+    if (window.history.state?.view === 'terminos' || window.history.state?.view === 'privacidad') {
+      window.history.back();
+    } else {
+      window.history.replaceState({}, '', '/');
+      setCurrentView(user ? 'dashboard' : 'login');
+    }
   };
 
   if (currentView === 'loading') {
@@ -3611,8 +3653,8 @@ const App = () => {
       <Login
         onLogin={handleLogin}
         onGoToRegister={() => setCurrentView('register')}
-        onOpenTerminos={() => setCurrentView('terminos')}
-        onOpenPrivacidad={() => setCurrentView('privacidad')}
+        onOpenTerminos={handleOpenTerminos}
+        onOpenPrivacidad={handleOpenPrivacidad}
       />
     );
   }
@@ -3622,8 +3664,8 @@ const App = () => {
       <Register
         onRegister={handleLogin}
         onGoToLogin={() => setCurrentView('login')}
-        onOpenTerminos={() => setCurrentView('terminos')}
-        onOpenPrivacidad={() => setCurrentView('privacidad')}
+        onOpenTerminos={handleOpenTerminos}
+        onOpenPrivacidad={handleOpenPrivacidad}
       />
     );
   }
@@ -3639,13 +3681,13 @@ const App = () => {
 
   if (currentView === 'terminos') {
     return (
-      <TerminosCondiciones onBack={() => setCurrentView(user ? 'dashboard' : 'login')} />
+      <TerminosCondiciones onBack={handleBackFromLegal} />
     );
   }
 
   if (currentView === 'privacidad') {
     return (
-      <PoliticaPrivacidad onBack={() => setCurrentView(user ? 'dashboard' : 'login')} />
+      <PoliticaPrivacidad onBack={handleBackFromLegal} />
     );
   }
 
@@ -3656,8 +3698,8 @@ const App = () => {
         token={token}
         onLogout={handleLogout}
         onOpenAdmin={() => setCurrentView('admin')}
-        onOpenTerminos={() => setCurrentView('terminos')}
-        onOpenPrivacidad={() => setCurrentView('privacidad')}
+        onOpenTerminos={handleOpenTerminos}
+        onOpenPrivacidad={handleOpenPrivacidad}
         onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
         isPushSubscribed={push.isSubscribed}
         isPushLoading={push.loading}
