@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import Landing from './landing/Landing.jsx';
 import TerminosCondiciones from './components/TerminosCondiciones';
 import PoliticaPrivacidad from './components/PoliticaPrivacidad';
 import Footer from './components/Footer';
@@ -3536,29 +3538,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTerminos, onOpenP
 };
 
 const App = () => {
-  const [currentView, setCurrentView] = useState('loading');
+  const navigate = useNavigate();
+  const [authReady, setAuthReady] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const push = usePushNotifications(token);
   const install = useInstallPrompt();
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
-  const userRef = useRef(user);
-  userRef.current = user;
-
-  const resolveViewFromPath = (path) => {
-    if (path === '/terminos') return 'terminos';
-    if (path === '/privacidad') return 'privacidad';
-    return null;
-  };
 
   useEffect(() => {
-    const pathView = resolveViewFromPath(window.location.pathname);
-    if (pathView) {
-      setCurrentView(pathView);
-      return;
-    }
-
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
 
@@ -3573,49 +3562,43 @@ const App = () => {
         .then(data => {
           setUser(data.user);
           setToken(storedToken);
-          setCurrentView('dashboard');
+          setAuthReady(true);
         })
         .catch(() => {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          setCurrentView('login');
+          setAuthReady(true);
         });
     } else {
-      setCurrentView('login');
+      setAuthReady(true);
     }
   }, []);
 
   useEffect(() => {
-    if (currentView !== 'loading') {
-      const timer = setTimeout(() => {
-        const el = document.getElementById('splash');
-        if (el) {
+    if (authReady) {
+      const el = document.getElementById('splash');
+      if (el) {
+        const timer = setTimeout(() => {
           el.style.opacity = '0';
           setTimeout(() => el.remove(), 500);
-        }
-      }, 3000);
-      return () => clearTimeout(timer);
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [currentView]);
+  }, [authReady]);
 
   useEffect(() => {
-    const handlePopState = () => {
-      const pathView = resolveViewFromPath(window.location.pathname);
-      if (pathView) {
-        setCurrentView(pathView);
-      } else {
-        const u = userRef.current;
-        setCurrentView(u ? 'dashboard' : 'login');
+    if (authReady && user) {
+      const publicPaths = ['/login', '/register'];
+      if (publicPaths.includes(window.location.pathname)) {
+        navigate('/app', { replace: true });
       }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    }
+  }, [user, authReady]);
 
   const handleLogin = (userData) => {
     setUser(userData);
     setToken(localStorage.getItem('token'));
-    setCurrentView('dashboard');
   };
 
   const handleLogout = () => {
@@ -3623,109 +3606,68 @@ const App = () => {
     localStorage.removeItem('user');
     setUser(null);
     setToken(null);
-    setCurrentView('login');
+    navigate('/login', { replace: true });
   };
 
-  const handleOpenTerminos = () => {
-    window.history.pushState({ view: 'terminos' }, '', '/terminos');
-    setCurrentView('terminos');
-  };
+  const handleOpenTerminos = () => navigate('/terminos');
+  const handleOpenPrivacidad = () => navigate('/privacidad');
 
-  const handleOpenPrivacidad = () => {
-    window.history.pushState({ view: 'privacidad' }, '', '/privacidad');
-    setCurrentView('privacidad');
-  };
-
-  const handleBackFromLegal = () => {
-    if (window.history.state?.view === 'terminos' || window.history.state?.view === 'privacidad') {
-      window.history.back();
-    } else {
-      window.history.replaceState({}, '', '/');
-      setCurrentView(user ? 'dashboard' : 'login');
-    }
-  };
-
-  if (currentView === 'loading') {
-    return (
-        <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
-        <Loader2 className="animate-spin text-kk-primary" size={40} />
-      </div>
-    );
-  }
-
-  if (currentView === 'login') {
-    return (
-      <Login
-        onLogin={handleLogin}
-        onGoToRegister={() => setCurrentView('register')}
-        onOpenTerminos={handleOpenTerminos}
-        onOpenPrivacidad={handleOpenPrivacidad}
-      />
-    );
-  }
-
-  if (currentView === 'register') {
-    return (
-      <Register
-        onRegister={handleLogin}
-        onGoToLogin={() => setCurrentView('login')}
-        onOpenTerminos={handleOpenTerminos}
-        onOpenPrivacidad={handleOpenPrivacidad}
-      />
-    );
-  }
-
-  if (currentView === 'admin') {
-    return (
-      <AdminPanel
-        token={token}
-        onBack={() => setCurrentView('dashboard')}
-      />
-    );
-  }
-
-  if (currentView === 'terminos') {
-    return (
-      <TerminosCondiciones onBack={handleBackFromLegal} />
-    );
-  }
-
-  if (currentView === 'privacidad') {
-    return (
-      <PoliticaPrivacidad onBack={handleBackFromLegal} />
-    );
-  }
+  const LoadingSpinner = () => (
+    <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
+      <Loader2 className="animate-spin text-kk-primary" size={40} />
+    </div>
+  );
 
   return (
-    <>
-      <Dashboard
-        user={user}
-        token={token}
-        onLogout={handleLogout}
-        onOpenAdmin={() => setCurrentView('admin')}
-        onOpenTerminos={handleOpenTerminos}
-        onOpenPrivacidad={handleOpenPrivacidad}
-        onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
-        isPushSubscribed={push.isSubscribed}
-        isPushLoading={push.loading}
-        onToggleNotifications={() => {
-          if (push.isSubscribed) {
-            push.unsubscribe();
-          } else {
-            push.subscribe();
-          }
-        }}
-        isInstallable={install.isInstallable}
-        onInstall={install.install}
-      />
-      {showTutorial && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90vh] max-h-[900px] shadow-2xl overflow-hidden">
-            <TutorialFlow user={user} onClose={() => setShowTutorial(false)} hasMailboxConfigured={tutorialHasMailbox} />
-          </div>
-        </div>
-      )}
-    </>
+    <Routes>
+      <Route path="/" element={
+        <Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />
+      } />
+      <Route path="/login" element={
+        user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} onGoToRegister={() => navigate('/register')} />
+      } />
+      <Route path="/register" element={
+        user ? <Navigate to="/app" replace /> : <Register onRegister={handleLogin} onGoToLogin={() => navigate('/login')} />
+      } />
+      <Route path="/terminos" element={<TerminosCondiciones />} />
+      <Route path="/privacidad" element={<PoliticaPrivacidad />} />
+      <Route path="/admin" element={
+        !authReady ? <LoadingSpinner /> :
+        user ? <AdminPanel token={token} onBack={() => navigate('/app')} /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/app" element={
+        !authReady ? <LoadingSpinner /> :
+        user ? (
+          <>
+            <Dashboard
+              user={user}
+              token={token}
+              onLogout={handleLogout}
+              onOpenAdmin={() => navigate('/admin')}
+              onOpenTerminos={handleOpenTerminos}
+              onOpenPrivacidad={handleOpenPrivacidad}
+              onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
+              isPushSubscribed={push.isSubscribed}
+              isPushLoading={push.loading}
+              onToggleNotifications={() => {
+                if (push.isSubscribed) push.unsubscribe();
+                else push.subscribe();
+              }}
+              isInstallable={install.isInstallable}
+              onInstall={install.install}
+            />
+            {showTutorial && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90vh] max-h-[900px] shadow-2xl overflow-hidden">
+                  <TutorialFlow user={user} onClose={() => setShowTutorial(false)} hasMailboxConfigured={tutorialHasMailbox} />
+                </div>
+              </div>
+            )}
+          </>
+        ) : <Navigate to="/login" replace />
+      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
