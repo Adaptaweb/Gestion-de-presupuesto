@@ -3589,7 +3589,7 @@ const App = () => {
 
   useEffect(() => {
     if (authReady && user) {
-      const publicPaths = ['/login', '/register'];
+      const publicPaths = ['/', '/login', '/register'];
       if (publicPaths.includes(window.location.pathname)) {
         navigate('/app', { replace: true });
       }
