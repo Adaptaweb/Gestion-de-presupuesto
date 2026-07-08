@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 
 const Section = ({ number, title, children }) => (
@@ -15,12 +16,13 @@ const Section = ({ number, title, children }) => (
   </div>
 );
 
-const PoliticaPrivacidad = ({ onBack }) => {
+const PoliticaPrivacidad = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-kk-background dark:bg-dark-darker font-sans transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <button
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-kk-primary hover:text-kk-dark dark:hover:text-kk-secondary font-black mb-8 transition-colors"
         >
           <ArrowLeft size={20} />
@@ -179,12 +181,12 @@ const PoliticaPrivacidad = ({ onBack }) => {
         </div>
 
         <div className="text-center mt-8">
-          <button
-            onClick={onBack}
+          <Link
+            to="/"
             className="text-sm text-slate-400 dark:text-slate-500 hover:text-kk-primary font-medium transition-colors"
           >
             ← Volver a la aplicación
-          </button>
+          </Link>
         </div>
       </div>
     </div>

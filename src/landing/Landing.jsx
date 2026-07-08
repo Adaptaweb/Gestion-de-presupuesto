@@ -71,7 +71,7 @@ const Landing = ({ onLogin, onRegister }) => {
         <CTASection onRegister={onRegister} />
       </main>
 
-      <LandingFooter />
+      <LandingFooter isDarkMode={isDarkMode} />
     </div>
   );
 };

@@ -10,6 +10,7 @@ export default {
       fontFamily: {
         sans: ['Manrope Variable', 'Manrope', 'sans-serif'],
         kk: ['Manrope', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
       },
       colors: {
         kk: {
