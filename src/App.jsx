@@ -606,7 +606,7 @@ const getAhorroBankInfo = (bankName) => {
   return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
 };
 
-const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTerminos, onOpenPrivacidad, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall }) => {
+const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -3531,7 +3531,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTerminos, onOpenP
           isDeleting={isDeleting}
         />
       </div>
-      <Footer onOpenTerminos={onOpenTerminos} onOpenPrivacidad={onOpenPrivacidad} />
+      <Footer />
     </div>
     </div>
   );
@@ -3609,9 +3609,6 @@ const App = () => {
     navigate('/login', { replace: true });
   };
 
-  const handleOpenTerminos = () => navigate('/terminos');
-  const handleOpenPrivacidad = () => navigate('/privacidad');
-
   const LoadingSpinner = () => (
     <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
       <Loader2 className="animate-spin text-kk-primary" size={40} />
@@ -3644,8 +3641,6 @@ const App = () => {
               token={token}
               onLogout={handleLogout}
               onOpenAdmin={() => navigate('/admin')}
-              onOpenTerminos={handleOpenTerminos}
-              onOpenPrivacidad={handleOpenPrivacidad}
               onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
               isPushSubscribed={push.isSubscribed}
               isPushLoading={push.loading}

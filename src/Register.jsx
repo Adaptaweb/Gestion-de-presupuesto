@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
-import LandingFooter from './components/LandingFooter';
+import Footer from './components/Footer';
 
 const Register = ({ onRegister, onGoToLogin }) => {
   const [name, setName] = useState('');
@@ -150,7 +150,7 @@ const Register = ({ onRegister, onGoToLogin }) => {
           </div>
         </div>
       </div>
-      <LandingFooter />
+      <Footer />
     </div>
   );
 };

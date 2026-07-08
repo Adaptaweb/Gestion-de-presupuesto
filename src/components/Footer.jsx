@@ -1,7 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FileText, Shield } from 'lucide-react';
 
-const Footer = ({ onOpenTerminos, onOpenPrivacidad }) => {
+const Footer = () => {
   return (
     <footer className="border-t border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-dark-normal/50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -13,24 +14,20 @@ const Footer = ({ onOpenTerminos, onOpenPrivacidad }) => {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            {onOpenTerminos && (
-              <button
-                onClick={onOpenTerminos}
-                className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-kk-primary dark:hover:text-kk-secondary font-medium transition-colors"
-              >
-                <FileText size={14} />
-                Términos y Condiciones
-              </button>
-            )}
-            {onOpenPrivacidad && (
-              <button
-                onClick={onOpenPrivacidad}
-                className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-kk-primary dark:hover:text-kk-secondary font-medium transition-colors"
-              >
-                <Shield size={14} />
-                Política de Privacidad
-              </button>
-            )}
+            <Link
+              to="/terminos"
+              className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-kk-primary dark:hover:text-kk-secondary font-medium transition-colors"
+            >
+              <FileText size={14} />
+              Términos y Condiciones
+            </Link>
+            <Link
+              to="/privacidad"
+              className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-kk-primary dark:hover:text-kk-secondary font-medium transition-colors"
+            >
+              <Shield size={14} />
+              Política de Privacidad
+            </Link>
           </div>
         </div>
       </div>
