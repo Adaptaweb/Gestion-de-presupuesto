@@ -3543,6 +3543,8 @@ const App = () => {
   const install = useInstallPrompt();
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   const resolveViewFromPath = (path) => {
     if (path === '/terminos') return 'terminos';
@@ -3601,6 +3603,9 @@ const App = () => {
       const pathView = resolveViewFromPath(window.location.pathname);
       if (pathView) {
         setCurrentView(pathView);
+      } else {
+        const u = userRef.current;
+        setCurrentView(u ? 'dashboard' : 'login');
       }
     };
     window.addEventListener('popstate', handlePopState);
