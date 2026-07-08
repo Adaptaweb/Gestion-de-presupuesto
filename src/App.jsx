@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import TerminosCondiciones from './components/TerminosCondiciones';
+import PoliticaPrivacidad from './components/PoliticaPrivacidad';
+import Footer from './components/Footer';
 import {
   TrendingDown,
   Plus,
@@ -601,7 +604,7 @@ const getAhorroBankInfo = (bankName) => {
   return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
 };
 
-const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall }) => {
+const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTerminos, onOpenPrivacidad, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -3526,6 +3529,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           isDeleting={isDeleting}
         />
       </div>
+      <Footer onOpenTerminos={onOpenTerminos} onOpenPrivacidad={onOpenPrivacidad} />
     </div>
     </div>
   );
@@ -3607,6 +3611,8 @@ const App = () => {
       <Login
         onLogin={handleLogin}
         onGoToRegister={() => setCurrentView('register')}
+        onOpenTerminos={() => setCurrentView('terminos')}
+        onOpenPrivacidad={() => setCurrentView('privacidad')}
       />
     );
   }
@@ -3616,6 +3622,8 @@ const App = () => {
       <Register
         onRegister={handleLogin}
         onGoToLogin={() => setCurrentView('login')}
+        onOpenTerminos={() => setCurrentView('terminos')}
+        onOpenPrivacidad={() => setCurrentView('privacidad')}
       />
     );
   }
@@ -3629,6 +3637,18 @@ const App = () => {
     );
   }
 
+  if (currentView === 'terminos') {
+    return (
+      <TerminosCondiciones onBack={() => setCurrentView(user ? 'dashboard' : 'login')} />
+    );
+  }
+
+  if (currentView === 'privacidad') {
+    return (
+      <PoliticaPrivacidad onBack={() => setCurrentView(user ? 'dashboard' : 'login')} />
+    );
+  }
+
   return (
     <>
       <Dashboard
@@ -3636,6 +3656,8 @@ const App = () => {
         token={token}
         onLogout={handleLogout}
         onOpenAdmin={() => setCurrentView('admin')}
+        onOpenTerminos={() => setCurrentView('terminos')}
+        onOpenPrivacidad={() => setCurrentView('privacidad')}
         onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
         isPushSubscribed={push.isSubscribed}
         isPushLoading={push.loading}

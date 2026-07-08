@@ -1,0 +1,41 @@
+import React from 'react';
+import { FileText, Shield } from 'lucide-react';
+
+const Footer = ({ onOpenTerminos, onOpenPrivacidad }) => {
+  return (
+    <footer className="border-t border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-dark-normal/50 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="h-6 w-auto" />
+            <span className="text-sm text-slate-400 dark:text-slate-500 font-medium">
+              © {new Date().getFullYear()} Kuentas Klaras. Todos los derechos reservados.
+            </span>
+          </div>
+          <div className="flex items-center gap-6">
+            {onOpenTerminos && (
+              <button
+                onClick={onOpenTerminos}
+                className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-kk-primary dark:hover:text-kk-secondary font-medium transition-colors"
+              >
+                <FileText size={14} />
+                Términos y Condiciones
+              </button>
+            )}
+            {onOpenPrivacidad && (
+              <button
+                onClick={onOpenPrivacidad}
+                className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-kk-primary dark:hover:text-kk-secondary font-medium transition-colors"
+              >
+                <Shield size={14} />
+                Política de Privacidad
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
