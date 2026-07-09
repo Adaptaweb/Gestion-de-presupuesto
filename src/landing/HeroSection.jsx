@@ -108,7 +108,7 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode }) => {
                 <div className="w-[341px] h-[728px] bg-gradient-to-b from-slate-900 to-slate-800 dark:from-dark-normal dark:to-dark-lighter rounded-[3rem] border-4 border-slate-700 dark:border-dark-lightest shadow-2xl overflow-hidden">
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 dark:bg-dark-darker rounded-b-2xl z-10" />
                   <img
-                    src={isDarkMode ? '/landing/hero-dashboard-dark.png' : '/landing/hero-dashboard-white.png'}
+                    src={isDarkMode ? '/landing/hero-dashboard-dark.webp' : '/landing/hero-dashboard-white.webp'}
                     alt="Dashboard Kuentas Klaras"
                     className="w-full h-full object-cover"
                   />

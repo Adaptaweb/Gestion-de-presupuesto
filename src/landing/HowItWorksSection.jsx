@@ -9,8 +9,8 @@ const steps = [
     title: 'Reenvías tus correos',
     description:
       'Configuras una regla de reenvío desde tu correo del banco a tu casilla Kuentas Klaras. Te ayudamos paso a paso y no toma más de 5 minutos.',
-    image: '/landing/how-it-works-1.png',
-    imageDark: '/landing/how-it-works-1-dark.png',
+    image: '/landing/how-it-works-1.webp',
+    imageDark: '/landing/how-it-works-1-dark.webp',
     gradient: 'from-emerald-400 to-teal-500',
   },
   {
@@ -19,8 +19,8 @@ const steps = [
     title: 'La IA clasifica automáticamente',
     description:
       'Nuestra inteligencia artificial reconoce cada transacción y la clasifica en la categoría correcta. Mientras más la usas, más precisa se vuelve.',
-    image: '/landing/how-it-works-2.png',
-    imageDark: '/landing/how-it-works-2-dark.png',
+    image: '/landing/how-it-works-2.webp',
+    imageDark: '/landing/how-it-works-2-dark.webp',
     gradient: 'from-violet-400 to-purple-500',
   },
   {
@@ -29,8 +29,8 @@ const steps = [
     title: 'Tus cuentas claras, siempre',
     description:
       'Dashboards inteligentes para entender tu plata de un vistazo. Gastos, ingresos, deudas y ahorros organizados y bajo control.',
-    image: '/landing/how-it-works-3.png',
-    imageDark: '/landing/how-it-works-3-dark.png',
+    image: '/landing/how-it-works-3.webp',
+    imageDark: '/landing/how-it-works-3-dark.webp',
     gradient: 'from-amber-400 to-orange-500',
     isTall: true,
   },
