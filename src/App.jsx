@@ -606,7 +606,7 @@ const getAhorroBankInfo = (bankName) => {
   return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
 };
 
-const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall }) => {
+const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall, onDashboardReady }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -711,10 +711,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         }
         if (data.suscripciones && data.suscripciones.length > 0) setSuscripciones(data.suscripciones);
         setLoadingData(false);
+        onDashboardReady?.();
       })
       .catch(err => {
         console.error('Error loading DB', err);
         setLoadingData(false);
+        onDashboardReady?.();
       });
   }, []);
 
@@ -3546,6 +3548,7 @@ const App = () => {
   const install = useInstallPrompt();
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
+  const [dashboardReady, setDashboardReady] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -3578,19 +3581,16 @@ const App = () => {
     if (authReady) {
       const el = document.getElementById('splash');
       if (el) {
-        if (user) {
-          const timer = setTimeout(() => {
-            el.style.opacity = '0';
-            setTimeout(() => el.remove(), 500);
-          }, 3000);
-          return () => clearTimeout(timer);
-        } else {
+        if (user && dashboardReady) {
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 500);
+        } else if (!user) {
           el.style.opacity = '0';
           setTimeout(() => el.remove(), 500);
         }
       }
     }
-  }, [authReady, user]);
+  }, [authReady, user, dashboardReady]);
 
   useEffect(() => {
     if (authReady && user) {
@@ -3611,6 +3611,7 @@ const App = () => {
     localStorage.removeItem('user');
     setUser(null);
     setToken(null);
+    setDashboardReady(false);
     navigate('/login', { replace: true });
   };
 
@@ -3655,6 +3656,7 @@ const App = () => {
               }}
               isInstallable={install.isInstallable}
               onInstall={install.install}
+              onDashboardReady={() => setDashboardReady(true)}
             />
             {showTutorial && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
