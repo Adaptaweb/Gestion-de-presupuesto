@@ -3624,6 +3624,8 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={
+        !authReady ? null :
+        user ? <Navigate to="/app" replace /> :
         <Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />
       } />
       <Route path="/login" element={
