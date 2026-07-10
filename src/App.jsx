@@ -119,6 +119,7 @@ import {
   Calendar,
   Activity
 } from 'lucide-react';
+
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
@@ -3614,6 +3615,15 @@ const App = () => {
     }
   }, [user, authReady]);
 
+  const [googleClientId, setGoogleClientId] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/auth/config')
+      .then(res => res.json())
+      .then(data => setGoogleClientId(data.googleClientId))
+      .catch(() => {});
+  }, []);
+
   const handleLogin = (userData) => {
     setUser(userData);
     setToken(localStorage.getItem('token'));
@@ -3642,10 +3652,10 @@ const App = () => {
         <Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />
       } />
       <Route path="/login" element={
-        user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} onGoToRegister={() => navigate('/register')} isDarkMode={isDarkMode} />
+        user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} onGoToRegister={() => navigate('/register')} isDarkMode={isDarkMode} googleClientId={googleClientId} />
       } />
       <Route path="/register" element={
-        user ? <Navigate to="/app" replace /> : <Register onRegister={handleLogin} onGoToLogin={() => navigate('/login')} isDarkMode={isDarkMode} />
+        user ? <Navigate to="/app" replace /> : <Register onRegister={handleLogin} onGoToLogin={() => navigate('/login')} isDarkMode={isDarkMode} googleClientId={googleClientId} />
       } />
       <Route path="/terminos" element={<TerminosCondiciones />} />
       <Route path="/privacidad" element={<PoliticaPrivacidad />} />

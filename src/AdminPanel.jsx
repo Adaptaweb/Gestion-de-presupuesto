@@ -10,7 +10,7 @@ const AdminPanel = ({ onBack, token }) => {
   const [newPassword, setNewPassword] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
+  const [newUser, setNewUser] = useState({ nombre: '', apellido: '', email: '', password: '', role: 'user' });
   const [showPassword, setShowPassword] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -110,8 +110,9 @@ const AdminPanel = ({ onBack, token }) => {
   };
 
   const handleResetPassword = async (userId) => {
-    if (!newPassword || newPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!newPassword || !PASSWORD_REGEX.test(newPassword)) {
+      setError('La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula, número y un caracter especial');
       return;
     }
     setActionLoading(true);
@@ -140,12 +141,13 @@ const AdminPanel = ({ onBack, token }) => {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    if (!newUser.name || !newUser.email || !newUser.password) {
+    const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!newUser.nombre || !newUser.email || !newUser.password) {
       setError('Todos los campos son requeridos');
       return;
     }
-    if (newUser.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (!PASSWORD_REGEX.test(newUser.password)) {
+      setError('La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula, número y un caracter especial');
       return;
     }
     setActionLoading(true);
@@ -160,7 +162,7 @@ const AdminPanel = ({ onBack, token }) => {
       });
       if (res.ok) {
         setShowCreateModal(false);
-        setNewUser({ name: '', email: '', password: '', role: 'user' });
+        setNewUser({ nombre: '', apellido: '', email: '', password: '', role: 'user' });
         setShowPassword(false);
         fetchUsers();
       } else {
@@ -246,7 +248,7 @@ const AdminPanel = ({ onBack, token }) => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-800 dark:text-slate-200">{user.name}</span>
+                        <span className="font-black text-slate-800 dark:text-slate-200">{user.nombre ? `${user.nombre} ${user.apellido || ''}`.trim() : user.name}</span>
                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
                           user.role === 'admin'
                             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
@@ -311,7 +313,7 @@ const AdminPanel = ({ onBack, token }) => {
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Nueva contraseña (min 6 caracteres)"
+                        placeholder="Nueva contraseña (min 8 caracteres)"
                         className="flex-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lightest rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-indigo-500 dark:text-slate-200"
                       />
                       <div className="flex gap-2">
@@ -344,20 +346,31 @@ const AdminPanel = ({ onBack, token }) => {
               <h3 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
                 <UserPlus className="text-indigo-600" size={24} /> Nuevo Usuario
               </h3>
-              <button onClick={() => { setShowCreateModal(false); setNewUser({ name: '', email: '', password: '', role: 'user' }); setShowPassword(false); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+              <button onClick={() => { setShowCreateModal(false); setNewUser({ nombre: '', apellido: '', email: '', password: '', role: 'user' }); setShowPassword(false); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleCreateUser} className="space-y-4">
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
-                <input
-                  required
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
-                  placeholder="Nombre completo"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
+                  <input
+                    required
+                    value={newUser.nombre}
+                    onChange={(e) => setNewUser({ ...newUser, nombre: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                    placeholder="Juan"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Apellido</label>
+                  <input
+                    value={newUser.apellido}
+                    onChange={(e) => setNewUser({ ...newUser, apellido: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                    placeholder="Pérez"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Correo electrónico</label>
@@ -379,7 +392,7 @@ const AdminPanel = ({ onBack, token }) => {
                     value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pr-12 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                   />
                   <button
                     type="button"

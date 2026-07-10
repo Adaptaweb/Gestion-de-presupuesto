@@ -1,15 +1,39 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Loader2, CheckCircle } from 'lucide-react';
 import Footer from './components/Footer';
 
-const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
-  const [name, setName] = useState('');
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
+
+  const evaluatePassword = (pass) => {
+    let score = 0;
+    if (pass.length >= 8) score++;
+    if (/[a-z]/.test(pass)) score++;
+    if (/[A-Z]/.test(pass)) score++;
+    if (/\d/.test(pass)) score++;
+    if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) score++;
+
+    if (score < 2) return { score, label: 'Débil', color: 'bg-rose-500' };
+    if (score < 4) return { score, label: 'Media', color: 'bg-amber-500' };
+    return { score, label: 'Fuerte', color: 'bg-emerald-500' };
+  };
+
+  const handlePasswordChange = (e) => {
+    const pass = e.target.value;
+    setPassword(pass);
+    setPasswordStrength(evaluatePassword(pass));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,8 +44,8 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (!PASSWORD_REGEX.test(password)) {
+      setError('La contraseña debe tener al menos 8 caracteres, incluir mayúscula, minúscula, número y un caracter especial');
       return;
     }
 
@@ -31,7 +55,7 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ nombre, apellido, email, password })
       });
       const data = await res.json();
 
@@ -40,15 +64,43 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
         return;
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      onRegister(data.user);
+      setSuccess(true);
     } catch (err) {
       setError('Error de conexión');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className={`min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+        <section className="relative flex-1 flex items-center justify-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="w-full max-w-md text-center">
+              <div className="bg-white dark:bg-dark-normal rounded-[2rem] shadow-kk-md shadow-[#2DBC8B]/10 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter p-8">
+                <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={32} />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">¡Casi listo!</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium mb-6">
+                  Te hemos enviado un email de verificación a <strong className="text-kk-primary">{email}</strong>.
+                  Revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+                </p>
+                <button
+                  onClick={onGoToLogin}
+                  className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all"
+                >
+                  Ir a iniciar sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
@@ -74,18 +126,34 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
                   </div>
                 )}
 
-                <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
-                      placeholder="Tu nombre"
-                    />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        type="text"
+                        required
+                        value={nombre}
+                        onChange={(e) => setNombre(e.target.value)}
+                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                        placeholder="Juan"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Apellido</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        type="text"
+                        required
+                        value={apellido}
+                        onChange={(e) => setApellido(e.target.value)}
+                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                        placeholder="Pérez"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -112,11 +180,30 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
                       type="password"
                       required
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={handlePasswordChange}
                       className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
-                      placeholder="Mínimo 6 caracteres"
+                      placeholder="Mínimo 8 caracteres"
                     />
                   </div>
+                  {password && (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-1.5 flex-1 rounded-full ${
+                              i <= passwordStrength.score
+                                ? passwordStrength.color
+                                : 'bg-slate-200 dark:bg-dark-lighter'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className={`text-xs font-bold ${passwordStrength.color.replace('bg-', 'text-')}`}>
+                        {passwordStrength.label}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -161,4 +248,3 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
 };
 
 export default Register;
-

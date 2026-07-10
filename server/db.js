@@ -341,6 +341,35 @@ async function addParsingLogsTable() {
   }
 }
 
+async function addAuthColumns() {
+  try {
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "nombre" TEXT');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "apellido" TEXT');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "email_verified" BOOLEAN DEFAULT FALSE');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "verification_token" TEXT');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "google_id" TEXT');
+    await db.run('ALTER TABLE users ADD COLUMN IF NOT EXISTS "deleted_at" TIMESTAMPTZ DEFAULT NULL');
+    console.log('[MIGRATION] Auth columns added to users table');
+  } catch (e) {
+    if (!e.message.includes('timeout')) console.error('[MIGRATION] addAuthColumns:', e.message);
+  }
+
+  try {
+    const users = await db.all('SELECT id, name, email FROM users WHERE nombre IS NULL');
+    for (const user of users) {
+      const parts = (user.name || '').trim().split(/\s+/);
+      const nombre = parts[0] || user.email.split('@')[0];
+      const apellido = parts.slice(1).join(' ') || '';
+      await db.run('UPDATE users SET nombre = ?, apellido = ?, email_verified = TRUE WHERE id = ?', nombre, apellido, user.id);
+    }
+    if (users.length > 0) {
+      console.log(`[MIGRATION] Backfilled ${users.length} user(s) with nombre/apellido/email_verified`);
+    }
+  } catch (e) {
+    console.error('[MIGRATION] Error backfilling auth columns:', e.message);
+  }
+}
+
 async function addPlantillasEmailTable() {
   try {
     await db.run(`CREATE TABLE IF NOT EXISTS plantillas_email (
@@ -384,5 +413,5 @@ async function migratePlantillasEmailColumns() {
   }
 }
 
-export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns };
+export { DEFAULT_CATEGORIES, ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addAuthColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns };
 export default db;
