@@ -28,7 +28,7 @@
 
 @layer base {
   :root {
-    --font-sans: 'Manrope Variable', sans-serif;
+    --font-sans: 'Poppins', sans-serif;
     --font-heading: var(--font-sans);
 
     --kk-primary: #2DBC8B;
@@ -121,7 +121,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Manrope Variable', 'Manrope', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
   html {
     @apply font-sans;
