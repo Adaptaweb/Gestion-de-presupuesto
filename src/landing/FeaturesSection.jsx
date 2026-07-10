@@ -65,7 +65,7 @@ const FeaturesSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-primary dark:text-white mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-primary dark:text-white mb-4">
             Todo lo que necesitas para{' '}
             <span className="text-kk-primary">controlar tu plata</span>
           </h2>

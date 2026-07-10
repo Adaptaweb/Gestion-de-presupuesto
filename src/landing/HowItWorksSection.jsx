@@ -52,7 +52,7 @@ const StepContent = ({ step, index, isDarkMode }) => {
     >
       <div className="flex-1 max-w-lg">
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-5xl font-black text-kk-primary/20 dark:text-kk-primary/10" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <span className="text-5xl font-black text-kk-primary/20 dark:text-kk-primary/10">
             {step.number}
           </span>
           <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${step.gradient} text-white shadow-lg`}>
@@ -61,7 +61,6 @@ const StepContent = ({ step, index, isDarkMode }) => {
         </div>
         <h3
           className="text-2xl sm:text-3xl font-black text-kk-primary dark:text-white mb-4"
-          style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           {step.title}
         </h3>
@@ -114,7 +113,7 @@ const HowItWorksSection = ({ isDarkMode }) => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-primary dark:text-white mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-primary dark:text-white mb-4">
             Cómo funciona
           </h2>
           <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">

@@ -27,7 +27,6 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-kk-primary dark:text-white mb-6"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Tus finanzas{' '}
               <span className="text-kk-primary">claras</span>

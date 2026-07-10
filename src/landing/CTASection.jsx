@@ -20,7 +20,6 @@ const CTASection = ({ onRegister }) => {
       >
         <h2
           className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-6 leading-tight"
-          style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           Empieza a tener{' '}
           <span className="text-kk-light">cuentas claras</span> hoy.

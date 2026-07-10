@@ -8,9 +8,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope Variable', 'Manrope', 'sans-serif'],
-        kk: ['Manrope', 'sans-serif'],
-        heading: ['Poppins', 'sans-serif'],
+        sans: ['Poppins', 'sans-serif'],
+        manrope: ['Manrope Variable', 'Manrope', 'sans-serif'],
       },
       colors: {
         kk: {
