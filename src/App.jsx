@@ -125,6 +125,8 @@ import Register from './Register.jsx';
 import AdminPanel from './AdminPanel.jsx';
 import TutorialFlow from './components/TutorialFlow.jsx';
 import Transacciones from './Transacciones.jsx';
+import ConfigModal from './components/ConfigModal.jsx';
+import FilterRulesModal from './components/FilterRulesModal.jsx';
 import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
@@ -2755,12 +2757,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             getCatIconColor={getCatIconColor}
             getCatText={getCatText}
             onOpenTutorial={onOpenTutorial}
-            showConfigModal={showConfigModal}
-            setShowConfigModal={setShowConfigModal}
-            showFilterRulesModal={showFilterRulesModal}
-            setShowFilterRulesModal={setShowFilterRulesModal}
           />
-        </div></>}
+        </div>
+
+        <ConfigModal
+          isOpen={showConfigModal}
+          onClose={() => setShowConfigModal(false)}
+          token={token}
+          theme={theme}
+          onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
+        />
+        <FilterRulesModal
+          isOpen={showFilterRulesModal}
+          onClose={() => setShowFilterRulesModal(false)}
+          token={token}
+          theme={theme}
+        /></>}
 
         {showCategoriasConfig && (
         <CategoriasConfig

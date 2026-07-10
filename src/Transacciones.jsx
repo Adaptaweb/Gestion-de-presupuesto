@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Mail, RefreshCw, Trash2, ExternalLink, Loader2, Inbox, Filter,
-  Settings2, Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
+  Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
@@ -338,7 +338,7 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, showConfigModal, setShowConfigModal, showFilterRulesModal, setShowFilterRulesModal }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -438,14 +438,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
   const [statusMsg, setStatusMsg] = useState(null);
-  const [filters, setFilters] = useState([]);
 
   const [showManualEntry, setShowManualEntry] = useState(false);
-  const [newFilterRemitente, setNewFilterRemitente] = useState('');
-  const [newFilterAsunto, setNewFilterAsunto] = useState('');
-  const [bulkRemitentes, setBulkRemitentes] = useState('');
-  const [diasAtras, setDiasAtras] = useState(3);
-  const [configLoaded, setConfigLoaded] = useState(false);
 
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -601,25 +595,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     }
   }, [getHeaders, filterDateRange, filterCat, filterTipo, filterBanco, sortConfig, page]);
 
-  const fetchFilters = useCallback(async () => {
-    try {
-      const res = await fetch('/api/filtros', { headers: getHeaders() });
-      const data = await res.json();
-      if (res.ok) setFilters(data.filters || []);
-    } catch (e) { console.error(e); }
-  }, [getHeaders]);
-
-  const fetchConfig = useCallback(async () => {
-    try {
-      const res = await fetch('/api/config-extraccion', { headers: getHeaders() });
-      const data = await res.json();
-      if (res.ok && data.dias_atras) {
-        setDiasAtras(data.dias_atras);
-        setConfigLoaded(true);
-      }
-    } catch (e) { console.error(e); }
-  }, [getHeaders]);
-
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/transacciones/status', { headers: getHeaders() });
@@ -656,24 +631,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     { key: 'filterTipo', label: `Tipo: ${filterTipo}`, value: filterTipo, clear: () => setFilterTipo('') },
     { key: 'filterBanco', label: `Banco: ${filterBanco}`, value: filterBanco, clear: () => setFilterBanco('') },
   ].filter(f => f.value);
-
-  const handleGmailAuth = useCallback(async () => {
-    try {
-      const res = await fetch('/api/transacciones/auth-url', { headers: getHeaders() });
-      const data = await res.json();
-      if (data.url) {
-        const w = window.open(data.url, '_blank');
-        if (!w) {
-          window.location.href = data.url;
-        }
-      }
-    } catch (e) {
-      setStatusMsg({ type: 'error', text: 'Error al conectar con Gmail' });
-      setTimeout(() => setStatusMsg(null), 4000);
-    }
-  }, [getHeaders]);
-
-
 
   const fetchPendientesCount = useCallback(async () => {
     try {
@@ -848,66 +805,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         return Promise.resolve();
       }
     });
-  };
-
-  const handleBulkReplace = async () => {
-    const remitentes = bulkRemitentes
-      .split(/[\s,;]+/)
-      .map(r => r.replace(/^OR\s*/i, '').trim())
-      .filter(r => r.includes('@'));
-    if (remitentes.length === 0) return;
-    try {
-      const res = await fetch('/api/filtros/replace', {
-        method: 'POST', headers: getHeaders(),
-        body: JSON.stringify({ remitentes })
-      });
-      if (res.ok) {
-        setBulkRemitentes('');
-        fetchFilters();
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  const handleCreateFilter = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/filtros', {
-        method: 'POST', headers: getHeaders(),
-        body: JSON.stringify({ remitente: newFilterRemitente, asunto: newFilterAsunto })
-      });
-      if (res.ok) {
-        setNewFilterRemitente('');
-        setNewFilterAsunto('');
-        fetchFilters();
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  const handleDeleteFilter = async (id) => {
-    const filterToDelete = filters.find(f => f.id === id);
-    await confirmDelete({
-      title: '¿Eliminar filtro?',
-      itemName: filterToDelete ? filterToDelete.remitente : 'este filtro',
-      itemType: 'filtro',
-      message: 'Ya no se filtrarán emails de este remitente.',
-      onConfirm: async () => {
-        try {
-          const res = await fetch(`/api/filtros/${id}`, { method: 'DELETE', headers: getHeaders() });
-          if (res.ok) fetchFilters();
-        } catch (err) { console.error(err); }
-        return Promise.resolve();
-      }
-    });
-  };
-
-  const handleSaveConfig = async () => {
-    try {
-      const res = await fetch('/api/config-extraccion', {
-        method: 'PUT', headers: getHeaders(),
-        body: JSON.stringify({ dias_atras: diasAtras })
-      });
-      if (!res.ok) console.error('Error guardando config');
-    } catch (err) { console.error(err); }
   };
 
   const handleEditTx = (tx) => {
@@ -1535,7 +1432,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </p>
       )}
 
-      {!showConfigModal && !showFilterModal && !showFilterRulesModal && !showEditModal && !showReview && !showManualEntry && (
+      {!showFilterModal && !showEditModal && !showReview && !showManualEntry && (
         <button
           onClick={() => setShowManualEntry(true)}
           className={`fixed bottom-20 md:bottom-6 right-6 lg:bottom-8 lg:right-8 z-[60] ${theme.btnPrimary} text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${theme.shadowBtn}`}
@@ -1696,111 +1593,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   <Check size={16} /> Aceptar
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filter Rules Modal */}
-      {showFilterRulesModal && (
-        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                <Settings2 className={theme.tabText} size={20} /> Reglas de filtrado
-              </h3>
-              <button onClick={() => setShowFilterRulesModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Gmail buscara correos de estos remitentes (sin filtrar por asunto). Se respeta el limite de dias hacia atras.
-            </p>
-            <div className="mb-4 p-3 sm:p-4 bg-slate-50 dark:bg-dark-lighter rounded-xl">
-              <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Dias hacia atras</label>
-              <div className="flex items-center gap-2">
-                <input type="number" min="1" max="999" value={diasAtras} onChange={e => setDiasAtras(parseInt(e.target.value) || 3)} className="flex-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
-                <button type="button" onClick={handleSaveConfig} className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all flex-shrink-0">Guardar</button>
-              </div>
-              <p className="text-[10px] text-slate-400 mt-1.5">Cuantos dias hacia atras revisar en Gmail (max. 999)</p>
-            </div>
-            <div className="mb-4 p-3 sm:p-4 bg-slate-50 dark:bg-dark-lighter rounded-xl">
-              <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Carga masiva</label>
-              <textarea
-                value={bulkRemitentes}
-                onChange={e => setBulkRemitentes(e.target.value)}
-                placeholder={["reply@info.bice.cl", "biceinforma@bancobice.cl", "serviciodetransferencias@bancochile.cl"].join('\n')}
-                rows={4}
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-xs font-mono outline-none focus:border-blue-500 transition-all dark:text-slate-200 mb-2"
-              />
-              <div className="flex items-center gap-2 text-[10px] text-slate-400 mb-2">
-                <span>Pega uno por linea, separados por espacio, coma, punto y coma u <span className="font-mono">OR</span></span>
-              </div>
-              <button type="button" onClick={handleBulkReplace} className="flex items-center justify-center gap-2 w-full bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all">
-                <Plus size={14} /> Reemplazar todo
-              </button>
-            </div>
-            <form onSubmit={handleCreateFilter} className="space-y-3 mb-6 p-3 sm:p-4 bg-slate-50 dark:bg-dark-lighter rounded-xl">
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Remitente *</label>
-                <input required value={newFilterRemitente} onChange={e => setNewFilterRemitente(e.target.value)} placeholder="contacto@bci.cl" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Asunto (opcional)</label>
-                <input value={newFilterAsunto} onChange={e => setNewFilterAsunto(e.target.value)} placeholder="Notificacion de uso de tu tarjeta de debito" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
-              </div>
-              <button type="submit" className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
-                <Plus size={16} /> Agregar regla
-              </button>
-            </form>
-            <div className="space-y-2">
-              {filters.length === 0 ? (
-                <p className="text-xs text-slate-400 dark:text-slate-500 text-center py-4">Sin reglas configuradas. Se usaran los dominios bancarios por defecto.</p>
-              ) : (
-                filters.map(f => (
-                  <div key={f.id} className="flex items-center justify-between bg-slate-50 dark:bg-dark-lighter rounded-xl px-3 py-2.5 border border-slate-100 dark:border-dark-lightest">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{f.remitente}</p>
-                      {f.asunto && <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{f.asunto}</p>}
-                    </div>
-                    <button onClick={() => handleDeleteFilter(f.id)} className="ml-2 p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0" title="Eliminar regla"><Trash2 size={14} /></button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Config Modal */}
-      {showConfigModal && (
-        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                <Settings2 className={theme.tabText} size={20} /> Configuración
-              </h3>
-              <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
-            </div>
-
-            <div className="mb-6 p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
-              <label className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-2 block">Conexión Gmail</label>
-              <div className="flex items-center gap-2 mb-3">
-                <div className={`w-2 h-2 rounded-full ${authStatus ? 'bg-emerald-500' : 'bg-red-400'}`} />
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                  {authStatus ? 'Conectado' : 'No conectado'}
-                </span>
-              </div>
-              <button onClick={handleGmailAuth} className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all">
-                <ExternalLink size={16} /> {authStatus ? 'Reconectar Gmail' : 'Conectar Gmail'}
-              </button>
-            </div>
-            <div className="mb-6 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-              <label className="text-[10px] font-black uppercase text-blue-500 dark:text-blue-400 mb-2 block">Reenvío automático</label>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
-                Configura un filtro en Gmail para reenviar las notificaciones bancarias automáticamente.
-              </p>
-              <button onClick={() => onOpenTutorial(authStatus)} className={`flex items-center justify-center gap-2 w-full ${theme.btnPrimary} text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all`}>
-                <ExternalLink size={16} /> Ver tutorial paso a paso
-              </button>
             </div>
           </div>
         </div>
