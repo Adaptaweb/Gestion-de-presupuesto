@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, useInView } from 'motion/react';
+import { motion, useInView, LayoutGroup } from 'motion/react';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
 import HowItWorksSection from './HowItWorksSection';
@@ -35,6 +35,7 @@ const Landing = ({ onLogin, onRegister }) => {
 
   return (
     <div className={`min-h-screen bg-white dark:bg-dark-darker font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+      <LayoutGroup>
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'bg-white/80 dark:bg-dark-darker/80 backdrop-blur-lg border-b border-slate-100 dark:border-dark-lighter'
@@ -45,9 +46,7 @@ const Landing = ({ onLogin, onRegister }) => {
             <div className="flex items-center gap-2">
               {scrolled && (
                 <motion.img
-                  initial={{ opacity: 0, y: -8, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  layoutId="main-logo"
                   src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'}
                   alt="Kuentas Klaras"
                   className="h-8 w-auto"
@@ -87,6 +86,7 @@ const Landing = ({ onLogin, onRegister }) => {
       </main>
 
       <LandingFooter isDarkMode={isDarkMode} />
+      </LayoutGroup>
     </div>
   );
 };

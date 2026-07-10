@@ -13,16 +13,15 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="max-w-xl">
-            <div ref={sentinelRef}>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={scrolled ? { opacity: 0, y: -20, scale: 0.8 } : { opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 mb-8"
-              >
-                <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
-              </motion.div>
-            </div>
+            {!scrolled && (
+              <motion.img
+                layoutId="main-logo"
+                src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'}
+                alt="Kuentas Klaras"
+                className="h-12 w-auto mb-8"
+              />
+            )}
+            <div ref={sentinelRef} />
 
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
