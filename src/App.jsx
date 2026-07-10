@@ -3629,10 +3629,10 @@ const App = () => {
         <Landing onLogin={() => navigate('/login')} onRegister={() => navigate('/register')} />
       } />
       <Route path="/login" element={
-        user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} onGoToRegister={() => navigate('/register')} />
+        user ? <Navigate to="/app" replace /> : <Login onLogin={handleLogin} onGoToRegister={() => navigate('/register')} isDarkMode={isDarkMode} />
       } />
       <Route path="/register" element={
-        user ? <Navigate to="/app" replace /> : <Register onRegister={handleLogin} onGoToLogin={() => navigate('/login')} />
+        user ? <Navigate to="/app" replace /> : <Register onRegister={handleLogin} onGoToLogin={() => navigate('/login')} isDarkMode={isDarkMode} />
       } />
       <Route path="/terminos" element={<TerminosCondiciones />} />
       <Route path="/privacidad" element={<PoliticaPrivacidad />} />

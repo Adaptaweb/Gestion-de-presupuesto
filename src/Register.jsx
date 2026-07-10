@@ -51,7 +51,7 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300">
+    <div className={`min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
