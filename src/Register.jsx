@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Lock, User, Loader2, CheckCircle } from 'lucide-react';
 import Footer from './components/Footer';
@@ -15,6 +15,69 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
+  const googleBtnRef = useRef(null);
+  const initializedRef = useRef(false);
+
+  const handleGoogleCredential = async (credential) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Error al registrarse con Google');
+        return;
+      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      onRegister(data.user);
+    } catch (err) {
+      setError('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!googleClientId || initializedRef.current) return;
+
+    const initGoogle = () => {
+      if (!window.google?.accounts?.id) return;
+      initializedRef.current = true;
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response) => handleGoogleCredential(response.credential),
+      });
+      if (googleBtnRef.current) {
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          type: 'standard',
+          shape: 'pill',
+          theme: 'outline',
+          text: 'continue_with',
+          size: 'large',
+          width: googleBtnRef.current.offsetWidth || 340,
+        });
+      }
+    };
+
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initGoogle;
+      document.head.appendChild(script);
+      return () => {
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+    }
+
+    initGoogle();
+  }, [googleClientId]);
 
   const evaluatePassword = (pass) => {
     let score = 0;
@@ -228,6 +291,20 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                 >
                   {loading ? <Loader2 className="animate-spin" size={20} /> : 'Crear Cuenta'}
                 </button>
+
+                {googleClientId && (
+                  <>
+                    <div className="relative my-6">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-200 dark:border-dark-lighter"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs">
+                        <span className="bg-white dark:bg-dark-normal px-3 text-slate-400 font-black uppercase">O regístrate con</span>
+                      </div>
+                    </div>
+                    <div ref={googleBtnRef} className="flex justify-center w-full min-h-[40px]"></div>
+                  </>
+                )}
               </form>
 
               <div className="mt-6 text-center">
