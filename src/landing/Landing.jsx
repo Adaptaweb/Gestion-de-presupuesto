@@ -36,11 +36,11 @@ const Landing = ({ onLogin, onRegister }) => {
   return (
     <div className={`min-h-screen bg-white dark:bg-dark-darker font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <LayoutGroup>
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b ${
         scrolled
-          ? 'bg-white/80 dark:bg-dark-darker/80 backdrop-blur-lg border-b border-slate-100 dark:border-dark-lighter'
-          : 'bg-transparent border-none'
-      }`}>
+          ? 'bg-white/80 dark:bg-dark-darker/80 border-slate-100 dark:border-dark-lighter'
+          : 'bg-white/0 dark:bg-dark-darker/0 border-transparent'
+      } transition-all duration-500`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
