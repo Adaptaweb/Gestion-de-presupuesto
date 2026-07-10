@@ -52,103 +52,109 @@ const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
 
   return (
     <div className={`min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-block mb-4">
-              <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
+      <section className="relative flex-1 flex items-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-kk-secondary/10 dark:bg-kk-secondary/5 rounded-full blur-3xl" />
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4 relative z-10">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <div className="inline-block mb-4">
+                <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Crea tu cuenta gratuita</p>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Crea tu cuenta gratuita</p>
-          </div>
 
-          <div className="bg-white dark:bg-dark-normal rounded-[2rem] shadow-kk-md shadow-[#2DBC8B]/10 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter p-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-xl text-sm font-bold">
-                  {error}
+            <div className="bg-white dark:bg-dark-normal rounded-[2rem] shadow-kk-md shadow-[#2DBC8B]/10 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter p-8">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-xl text-sm font-bold">
+                    {error}
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      placeholder="Tu nombre"
+                    />
+                  </div>
                 </div>
-              )}
 
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
-                    placeholder="Tu nombre"
-                  />
+                <div>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Correo electrónico</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Correo electrónico</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
-                    placeholder="tu@email.com"
-                  />
+                <div>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Contraseña</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Contraseña</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
-                    placeholder="Mínimo 6 caracteres"
-                  />
+                <div>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Confirmar Contraseña</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      placeholder="Repite tu contraseña"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Confirmar Contraseña</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
-                    placeholder="Repite tu contraseña"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Crear Cuenta'}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-                ¿Ya tienes cuenta?{' '}
-                <button onClick={onGoToLogin} className="text-kk-primary dark:text-kk-secondary font-black hover:underline">
-                  Inicia sesión
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : 'Crear Cuenta'}
                 </button>
-              </p>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                  ¿Ya tienes cuenta?{' '}
+                  <button onClick={onGoToLogin} className="text-kk-primary dark:text-kk-secondary font-black hover:underline">
+                    Inicia sesión
+                  </button>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
       <Footer />
     </div>
   );
