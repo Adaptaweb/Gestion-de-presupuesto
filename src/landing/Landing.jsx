@@ -9,19 +9,19 @@ import LandingFooter from '../components/LandingFooter';
 
 const Landing = ({ onLogin, onRegister }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('kk-theme');
+    const stored = localStorage.getItem('theme');
     if (stored) return stored === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
-    localStorage.setItem('kk-theme', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e) => {
-      if (!localStorage.getItem('kk-theme')) {
+      if (!localStorage.getItem('theme')) {
         setIsDarkMode(e.matches);
       }
     };

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Landing from './landing/Landing.jsx';
 import TerminosCondiciones from './components/TerminosCondiciones';
 import PoliticaPrivacidad from './components/PoliticaPrivacidad';
@@ -3541,6 +3541,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
 const App = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [authReady, setAuthReady] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -3550,10 +3551,17 @@ const App = () => {
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('kk-theme');
+    const stored = localStorage.getItem('theme');
     if (stored) return stored === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme');
+    if (stored !== null) {
+      setIsDarkMode(stored === 'dark');
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
