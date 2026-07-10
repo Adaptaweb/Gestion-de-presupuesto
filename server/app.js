@@ -53,19 +53,139 @@ function buildWelcomeEmail(nombre, loginUrl) {
     <!DOCTYPE html>
     <html><head><meta charset="utf-8"></head>
     <body style="margin:0;padding:0;background:#f8fffc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
-      <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 16px">
-        <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;padding:40px 32px;box-shadow:0 4px 20px rgba(0,0,0,0.05)">
-          <tr><td align="center" style="padding-bottom:24px">
-            <img src="https://gastos.adaptaweb.cl/logo.svg" alt="Kuentas Klaras" width="64" height="64" style="display:block;margin:0 auto">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:0">
+
+        <!-- Header banner -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9">
+          <tr><td align="center" style="padding:24px 16px">
+            <img src="https://gastos.adaptaweb.cl/logo.svg" alt="Kuentas Klaras" height="40" style="display:block">
           </td></tr>
-          <tr><td align="center" style="padding-bottom:8px"><h1 style="margin:0;font-size:22px;font-weight:900;color:#1e293b">Cuenta verificada</h1></td></tr>
-          <tr><td align="center" style="padding-bottom:8px"><p style="margin:0;font-size:15px;color:#64748b;line-height:1.5">Hola <strong>${nombre}</strong>, tu cuenta ha sido verificada exitosamente.</p></td></tr>
-          <tr><td align="center" style="padding-bottom:24px"><p style="margin:0;font-size:14px;color:#64748b;line-height:1.6">Puedes iniciar sesión con:<br>✉️ Tu correo electrónico<br>🅖 Tu cuenta de Google</p></td></tr>
-          <tr><td align="center" style="padding-bottom:24px">
-            <a href="${loginUrl}" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:800;font-size:15px">INICIAR SESIÓN</a>
-          </td></tr>
-          <tr><td align="center" style="padding-top:24px;border-top:1px solid #e2e8f0;margin-top:24px"><p style="margin:0;font-size:12px;color:#cbd5e1">Kuentas Klaras — Tus finanzas claras, bajo control</p></td></tr>
         </table>
+
+        <!-- Main card -->
+        <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:0 0 16px 16px;padding:40px 32px;max-width:480px">
+
+          <!-- Hero -->
+          <tr><td style="padding-bottom:8px">
+            <h1 style="margin:0;font-size:24px;font-weight:900;color:#1e293b">Hola ${nombre} 👋</h1>
+          </td></tr>
+          <tr><td style="padding-bottom:32px">
+            <p style="margin:0;font-size:15px;color:#64748b;line-height:1.6">Bienvenido a <strong>Kuentas Klaras</strong>. Estamos aquí para ayudarte a tomar el control de tus finanzas de forma simple y sin complicaciones.</p>
+          </td></tr>
+
+          <!-- How it works -->
+          <tr><td style="padding-bottom:24px">
+            <h2 style="margin:0 0 20px;font-size:13px;font-weight:800;color:#059669;text-transform:uppercase;letter-spacing:1px">Cómo funciona</h2>
+
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+              <tr>
+                <td width="36" valign="top" style="padding:0">
+                  <table width="28" height="28" cellpadding="0" cellspacing="0" style="background:#059669;border-radius:14px">
+                    <tr><td align="center" valign="middle" style="font-size:14px;font-weight:800;color:#ffffff;line-height:28px">1</td></tr>
+                  </table>
+                </td>
+                <td style="padding-left:12px">
+                  <p style="margin:0;font-size:14px;color:#1e293b;font-weight:600">Crea tus categorías</p>
+                  <p style="margin:4px 0 0;font-size:13px;color:#64748b;line-height:1.5">Define presupuestos mensuales y organiza tus gastos como tú quieras.</p>
+                </td>
+              </tr>
+            </table>
+
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:20px">
+              <tr>
+                <td width="36" valign="top" style="padding:0">
+                  <table width="28" height="28" cellpadding="0" cellspacing="0" style="background:#059669;border-radius:14px">
+                    <tr><td align="center" valign="middle" style="font-size:14px;font-weight:800;color:#ffffff;line-height:28px">2</td></tr>
+                  </table>
+                </td>
+                <td style="padding-left:12px">
+                  <p style="margin:0;font-size:14px;color:#1e293b;font-weight:600">Reenvía tus correos</p>
+                  <p style="margin:4px 0 0;font-size:13px;color:#64748b;line-height:1.5">Recibes una notificación del banco y la reenvías a tu casilla Kuentas Klaras.</p>
+                </td>
+              </tr>
+            </table>
+
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="36" valign="top" style="padding:0">
+                  <table width="28" height="28" cellpadding="0" cellspacing="0" style="background:#059669;border-radius:14px">
+                    <tr><td align="center" valign="middle" style="font-size:14px;font-weight:800;color:#ffffff;line-height:28px">3</td></tr>
+                  </table>
+                </td>
+                <td style="padding-left:12px">
+                  <p style="margin:0;font-size:14px;color:#1e293b;font-weight:600">Ve todo en tu tablero</p>
+                  <p style="margin:4px 0 0;font-size:13px;color:#64748b;line-height:1.5">IA clasifica tus gastos automáticamente. Revisa tu dashboard y mantén el control.</p>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+
+          <!-- Features -->
+          <tr><td style="padding:24px 0;border-top:1px solid #e2e8f0">
+            <h2 style="margin:0 0 16px;font-size:13px;font-weight:800;color:#059669;text-transform:uppercase;letter-spacing:1px">Lo que obtienes</h2>
+
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:10px">
+              <tr>
+                <td width="20" valign="top" style="font-size:14px;color:#059669;line-height:1.5">✓</td>
+                <td style="padding-left:8px;font-size:14px;color:#475569;line-height:1.5">Todos los bancos de Chile compatibles</td>
+              </tr>
+            </table>
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:10px">
+              <tr>
+                <td width="20" valign="top" style="font-size:14px;color:#059669;line-height:1.5">✓</td>
+                <td style="padding-left:8px;font-size:14px;color:#475569;line-height:1.5">Categorización inteligente con IA</td>
+              </tr>
+            </table>
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:10px">
+              <tr>
+                <td width="20" valign="top" style="font-size:14px;color:#059669;line-height:1.5">✓</td>
+                <td style="padding-left:8px;font-size:14px;color:#475569;line-height:1.5">Presupuestos compartidos con tu pareja o equipo</td>
+              </tr>
+            </table>
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="20" valign="top" style="font-size:14px;color:#059669;line-height:1.5">✓</td>
+                <td style="padding-left:8px;font-size:14px;color:#475569;line-height:1.5">Gráficos y reportes para ver dónde va tu dinero</td>
+              </tr>
+            </table>
+          </td></tr>
+
+          <!-- Privacy -->
+          <tr><td style="padding:24px 0;border-top:1px solid #e2e8f0">
+            <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:10px;padding:16px 20px;width:100%">
+              <tr><td style="font-size:13px;color:#166534;line-height:1.5">
+                <strong style="font-size:14px">🔒 Tus datos seguros</strong><br>
+                Solo reenvías correos que ya recibes. Nunca compartes claves bancarias ni accedemos a tus cuentas. Tu información viaja cifrada y solo tú la ves.
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <!-- CTA -->
+          <tr><td align="center" style="padding:24px 0 0">
+            <a href="${loginUrl}" style="display:inline-block;background:#059669;color:#ffffff;padding:16px 40px;border-radius:12px;text-decoration:none;font-weight:800;font-size:15px;letter-spacing:0.3px">IR A MI TABLERO</a>
+          </td></tr>
+
+          <!-- Sign-off -->
+          <tr><td style="padding:32px 0 0">
+            <p style="margin:0;font-size:14px;color:#64748b;line-height:1.6">Nos encanta tenerte aquí. Si tienes dudas, solo responde este correo.</p>
+            <p style="margin:12px 0 0;font-size:14px;color:#1e293b;font-weight:600">— El equipo de Kuentas Klaras</p>
+          </td></tr>
+        </table>
+
+        <!-- Footer -->
+        <table width="480" cellpadding="0" cellspacing="0" style="padding:24px 32px 40px;max-width:480px">
+          <tr><td align="center" style="padding-bottom:16px;border-bottom:1px solid #e2e8f0">
+            <img src="https://gastos.adaptaweb.cl/KKiso.svg" alt="Kuentas Klaras" width="24" height="24" style="display:block;margin:0 auto;opacity:0.5">
+          </td></tr>
+          <tr><td align="center" style="padding-top:16px;font-size:12px;color:#94a3b8;line-height:1.5">
+            Kuentas Klaras — Tus finanzas claras, bajo control<br>
+            <a href="mailto:noreply@adaptaweb.cl" style="color:#94a3b8;text-decoration:underline">noreply@adaptaweb.cl</a>
+          </td></tr>
+          <tr><td align="center" style="padding-top:8px;font-size:11px;color:#cbd5e1">
+            Si no creaste esta cuenta, ignora este mensaje.
+          </td></tr>
+        </table>
+
       </td></tr></table>
     </body></html>`;
 }
