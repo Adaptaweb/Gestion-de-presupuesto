@@ -213,7 +213,7 @@ app.get('/api/auth/verify-email', async (req, res) => {
       <html><head><meta charset="utf-8"><title>Cuenta verificada</title></head>
       <body style="margin:0;padding:0;background:#f8fffc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh">
         <div style="background:#ffffff;border-radius:16px;padding:48px 32px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.05);max-width:440px;margin:16px">
-          <img src="https://gastos.adaptaweb.cl/logo.svg" alt="Kuentas Klaras" width="64" height="64" style="display:block;margin:0 auto 24px">
+          <img src="https://gastos.adaptaweb.cl/logo.svg" alt="Kuentas Klaras" width="auto" height="64" style="display:block;margin:0 auto 24px">
           <h1 style="font-size:24px;font-weight:900;color:#1e293b;margin:0 0 8px">Cuenta verificada</h1>
           <p style="font-size:15px;color:#64748b;line-height:1.5;margin:0 0 32px">Tu cuenta ha sido verificada exitosamente. Revisa tu correo para más detalles.</p>
           <a href="${loginUrl}" style="display:inline-block;background:#059669;color:#ffffff;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:800;font-size:15px">INICIAR SESIÓN</a>

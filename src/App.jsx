@@ -623,6 +623,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [ahorrosData, setAhorrosData] = useState({});
   const [loadingData, setLoadingData] = useState(true);
   const [showCategoriasConfig, setShowCategoriasConfig] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showFilterRulesModal, setShowFilterRulesModal] = useState(false);
 
   const {
     categorias, gastosCats, ingresosCats,
@@ -1533,6 +1535,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               setIsDarkMode={setIsDarkMode}
               onOpenAdmin={onOpenAdmin}
               onOpenCategorias={() => setShowCategoriasConfig(true)}
+              onOpenConfig={() => setShowConfigModal(true)}
+              onOpenFilters={() => setShowFilterRulesModal(true)}
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
               isAiLoading={isAiLoading}
@@ -2751,6 +2755,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             getCatIconColor={getCatIconColor}
             getCatText={getCatText}
             onOpenTutorial={onOpenTutorial}
+            showConfigModal={showConfigModal}
+            setShowConfigModal={setShowConfigModal}
+            showFilterRulesModal={showFilterRulesModal}
+            setShowFilterRulesModal={setShowFilterRulesModal}
           />
         </div></>}
 

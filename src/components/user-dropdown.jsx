@@ -31,7 +31,7 @@ export function UserMenu({
   user,
   themeColor, setThemeColor,
   isDarkMode, setIsDarkMode,
-  onOpenAdmin, onOpenCategorias, onLogout,
+  onOpenAdmin, onOpenCategorias, onOpenConfig, onOpenFilters, onLogout,
   generateFinancialAdvice, isAiLoading,
   isPushSubscribed, isPushLoading,
   onToggleNotifications,
@@ -59,7 +59,7 @@ export function UserMenu({
           )}
 
           <DropdownMenuItem
-            onClick={() => window.dispatchEvent(new CustomEvent('opencode:open-config'))}
+            onClick={onOpenConfig}
             className="p-2 rounded-lg cursor-pointer"
           >
             <Settings2 size={16} className="mr-2 text-slate-500" />
@@ -67,7 +67,7 @@ export function UserMenu({
           </DropdownMenuItem>
 
           <DropdownMenuItem
-            onClick={() => window.dispatchEvent(new CustomEvent('opencode:open-filters'))}
+            onClick={onOpenFilters}
             className="p-2 rounded-lg cursor-pointer"
           >
             <Filter size={16} className="mr-2 text-slate-500" />
@@ -116,18 +116,20 @@ export function UserMenu({
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={generateFinancialAdvice}
-            disabled={isAiLoading}
-            className="p-2 rounded-lg cursor-pointer"
-          >
-            {isAiLoading ? (
-              <Loader2 size={16} className="mr-2 text-slate-500 animate-spin" />
-            ) : (
-              <BrainCircuit size={16} className="mr-2 text-slate-500" />
-            )}
-            <span>Consultar IA ✨</span>
-          </DropdownMenuItem>
+          {user.role === 'admin' && (
+            <DropdownMenuItem
+              onClick={generateFinancialAdvice}
+              disabled={isAiLoading}
+              className="p-2 rounded-lg cursor-pointer"
+            >
+              {isAiLoading ? (
+                <Loader2 size={16} className="mr-2 text-slate-500 animate-spin" />
+              ) : (
+                <BrainCircuit size={16} className="mr-2 text-slate-500" />
+              )}
+              <span>Consultar IA ✨</span>
+            </DropdownMenuItem>
+          )}
 
           <div
             onClick={() => { if (!isPushLoading) onToggleNotifications(); }}

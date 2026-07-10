@@ -338,7 +338,7 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, showConfigModal, setShowConfigModal, showFilterRulesModal, setShowFilterRulesModal }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -439,8 +439,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
   const [statusMsg, setStatusMsg] = useState(null);
   const [filters, setFilters] = useState([]);
-  const [showFilterRulesModal, setShowFilterRulesModal] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
+
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [newFilterRemitente, setNewFilterRemitente] = useState('');
   const [newFilterAsunto, setNewFilterAsunto] = useState('');
@@ -798,17 +797,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   }, [filterDateRange]);
 
   useEffect(() => {
-    const handleOpenConfig = () => setShowConfigModal(true);
-    const handleOpenFilters = () => setShowFilterRulesModal(true);
     const handleOpenManual = () => setShowManualEntry(true);
-    window.addEventListener('opencode:open-config', handleOpenConfig);
-    window.addEventListener('opencode:open-filters', handleOpenFilters);
     window.addEventListener('opencode:open-manual', handleOpenManual);
-    return () => {
-      window.removeEventListener('opencode:open-config', handleOpenConfig);
-      window.removeEventListener('opencode:open-filters', handleOpenFilters);
-      window.removeEventListener('opencode:open-manual', handleOpenManual);
-    };
+    return () => window.removeEventListener('opencode:open-manual', handleOpenManual);
   }, []);
 
   const formatCurrency = (val) => {

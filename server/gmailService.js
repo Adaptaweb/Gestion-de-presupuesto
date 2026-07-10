@@ -84,6 +84,17 @@ async function processEmail(msgId, gmail, userId, results) {
     const subject = (headers['subject'] || '').slice(0, 200);
     const from = headers['from'] || '';
 
+    const NO_TX_SUBJECT_PATTERNS = [
+      /cartola mensual/i,
+      /estado de cuenta/i,
+      /resumen mensual/i,
+      /tips para tu salud financiera/i,
+    ];
+    if (NO_TX_SUBJECT_PATTERNS.some(p => p.test(subject))) {
+      console.log(`[GmailService] Skipping non-transaction email: "${subject}"`);
+      return;
+    }
+
     const body = getEmailBody(payload);
     if (!body) return;
 
