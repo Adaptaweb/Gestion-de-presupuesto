@@ -4,7 +4,7 @@ import { FileText, Shield } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="border-t border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-dark-normal/50 backdrop-blur-sm">
+    <footer className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-normal">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
