@@ -24,13 +24,10 @@ const LandingFooter = ({ isDarkMode }) => {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-center">
           <div className="flex items-center gap-2">
             <img
-              src="/kuentasklaras-logo.svg"
+              src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'}
               alt="Kuentas Klaras"
               className="h-10 md:h-9 w-auto grayscale hover:grayscale-0 transition-all duration-500"
             />
-            <span className={`font-black ${isDarkMode ? 'text-white' : 'text-kk-dark'} text-lg hidden sm:block`}>
-              Kuentas <span className="text-kk-primary">Klaras</span>
-            </span>
           </div>
         </div>
 

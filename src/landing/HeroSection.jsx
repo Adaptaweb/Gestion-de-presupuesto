@@ -19,10 +19,7 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode }) => {
               transition={{ duration: 0.6 }}
               className="flex items-center gap-3 mb-8"
             >
-              <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="h-12 w-auto" />
-              <span className="text-3xl font-black tracking-tight text-kk-dark dark:text-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                Kuentas <span className="text-kk-primary">Klaras</span>
-              </span>
+              <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
             </motion.div>
 
             <motion.h1

@@ -34,10 +34,7 @@ const Landing = ({ onLogin, onRegister }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="h-8 w-auto" />
-              <span className="font-black text-kk-dark dark:text-white text-lg hidden sm:block">
-                Kuentas <span className="text-kk-primary">Klaras</span>
-              </span>
+              <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-8 w-auto" />
             </div>
             <nav className="flex items-center gap-2">
               <button
