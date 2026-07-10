@@ -1,30 +1,40 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const LRU = require('lru-cache');
+const store = new Map();
 
-const cache = new LRU({ max: 500, maxAge: 1000 * 60 });
+function prune() {
+  const now = Date.now();
+  for (const [key, entry] of store) {
+    if (entry.expiry && entry.expiry <= now) store.delete(key);
+  }
+}
 
 export function getCache(key) {
-  return cache.get(key);
+  prune();
+  const entry = store.get(key);
+  if (!entry) return undefined;
+  if (entry.expiry && entry.expiry <= Date.now()) {
+    store.delete(key);
+    return undefined;
+  }
+  return entry.value;
 }
 
 export function setCache(key, data, ttlSeconds = 60) {
-  cache.set(key, data, ttlSeconds * 1000);
+  prune();
+  store.set(key, { value: data, expiry: Date.now() + ttlSeconds * 1000 });
 }
 
 export function delCache(key) {
-  cache.del(key);
+  store.delete(key);
 }
 
 export function delCacheByPattern(pattern) {
-  const keys = cache.keys();
-  for (const key of keys) {
-    if (key.includes(pattern)) cache.del(key);
+  for (const key of store.keys()) {
+    if (key.includes(pattern)) store.delete(key);
   }
 }
 
 export function flushCache() {
-  cache.reset();
+  store.clear();
 }
 
 export default { get: getCache, set: setCache, del: delCache, delByPattern: delCacheByPattern, flush: flushCache };
