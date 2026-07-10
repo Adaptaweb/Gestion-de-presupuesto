@@ -3549,6 +3549,11 @@ const App = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const stored = localStorage.getItem('kk-theme');
+    if (stored) return stored === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
