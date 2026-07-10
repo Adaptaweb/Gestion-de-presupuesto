@@ -80,8 +80,7 @@ const Landing = ({ onLogin, onRegister }) => {
       </header>
 
       <main>
-        <HeroSection onLogin={onLogin} onRegister={onRegister} isDarkMode={isDarkMode} />
-        <div ref={sentinelRef} />
+        <HeroSection onLogin={onLogin} onRegister={onRegister} isDarkMode={isDarkMode} sentinelRef={sentinelRef} scrolled={scrolled} />
         <FeaturesSection />
         <HowItWorksSection isDarkMode={isDarkMode} />
         <CTASection onRegister={onRegister} />
