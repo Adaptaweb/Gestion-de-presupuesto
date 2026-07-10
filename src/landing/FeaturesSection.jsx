@@ -65,7 +65,7 @@ const FeaturesSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-dark dark:text-white mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-primary dark:text-white mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Todo lo que necesitas para{' '}
             <span className="text-kk-primary">controlar tu plata</span>
           </h2>
@@ -92,7 +92,7 @@ const FeaturesSection = () => {
               >
                 <feature.icon size={24} />
               </div>
-              <h3 className="text-lg font-black text-kk-dark dark:text-white mb-3">
+              <h3 className="text-lg font-black text-kk-primary dark:text-white mb-3">
                 {feature.title}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-sm">

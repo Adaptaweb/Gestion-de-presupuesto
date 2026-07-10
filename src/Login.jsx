@@ -43,7 +43,7 @@ const Login = ({ onLogin, onGoToRegister }) => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-block mb-4">
-              <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="w-16 h-16 mx-auto" />
+              <img src="/KKiso.svg" alt="Kuentas Klaras" className="w-16 h-16 mx-auto" />
             </div>
             <h1 className="text-3xl font-black tracking-tight text-kk-dark dark:text-white">Kuentas Klaras</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Inicia sesión para continuar</p>

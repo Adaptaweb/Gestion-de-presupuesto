@@ -40,7 +40,7 @@ const CTASection = ({ onRegister }) => {
         >
           <button
             onClick={onRegister}
-            className="group inline-flex items-center gap-2 bg-white text-kk-dark px-10 py-5 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+            className="group inline-flex items-center gap-2 bg-white text-kk-primary px-10 py-5 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
           >
             Crear tu Cuenta Gratis
             <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />

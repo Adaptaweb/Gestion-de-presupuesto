@@ -60,7 +60,7 @@ const StepContent = ({ step, index, isDarkMode }) => {
           </div>
         </div>
         <h3
-          className="text-2xl sm:text-3xl font-black text-kk-dark dark:text-white mb-4"
+          className="text-2xl sm:text-3xl font-black text-kk-primary dark:text-white mb-4"
           style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           {step.title}
@@ -114,7 +114,7 @@ const HowItWorksSection = ({ isDarkMode }) => {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-dark dark:text-white mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-kk-primary dark:text-white mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
             Cómo funciona
           </h2>
           <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">

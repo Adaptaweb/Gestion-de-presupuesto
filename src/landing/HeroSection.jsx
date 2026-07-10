@@ -19,14 +19,14 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode }) => {
               transition={{ duration: 0.6 }}
               className="flex items-center gap-3 mb-8"
             >
-              <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
+              <img src={isDarkMode ? '/KKiso.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-kk-dark dark:text-white mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-kk-primary dark:text-white mb-6"
               style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Tus finanzas{' '}
@@ -50,19 +50,19 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode }) => {
               transition={{ duration: 0.6, delay: 0.45 }}
               className="flex flex-wrap gap-3 mb-10"
             >
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-dark dark:text-slate-200">
+              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
                 <Sparkles size={16} className="text-kk-primary" />
                 Se cargan solos con tu correo
               </div>
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-dark dark:text-slate-200">
+              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
                 <Bell size={16} className="text-kk-primary" />
                 Notificaciones al instante
               </div>
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-dark dark:text-slate-200">
+              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
                 <Smartphone size={16} className="text-kk-primary" />
                 Web App — no instalas nada
               </div>
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-dark dark:text-slate-200">
+              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
                 <Eye size={16} className="text-kk-primary" />
                 Todo en un solo lugar
               </div>
