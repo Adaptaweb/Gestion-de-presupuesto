@@ -1503,13 +1503,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
-              <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-kk-dark dark:text-white">Kuentas Klaras</h1>
-              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium tracking-tight hidden sm:block">Tus finanzas claras, bajo control</p>
-            </div>
+            <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-9 md:h-10 w-auto" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">

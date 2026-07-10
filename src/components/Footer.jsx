@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="h-6 w-auto" />
+            <img src="/KKiso.svg" alt="Kuentas Klaras" className="h-6 w-auto" />
             <span className="text-sm text-slate-400 dark:text-slate-500 font-medium">
               © {new Date().getFullYear()} Kuentas Klaras. Todos los derechos reservados.
             </span>
