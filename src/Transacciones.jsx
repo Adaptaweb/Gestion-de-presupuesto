@@ -727,8 +727,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   useEffect(() => {
     fetchStatus();
     fetchTransactions(false);
-    fetchFilters();
-    fetchConfig();
     fetchSummary();
     fetchPendientesCount();
   }, []);
