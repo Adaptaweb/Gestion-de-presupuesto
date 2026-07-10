@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, useInView } from 'motion/react';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
 import HowItWorksSection from './HowItWorksSection';
@@ -28,13 +29,30 @@ const Landing = ({ onLogin, onRegister }) => {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  const sentinelRef = useRef(null);
+  const isSentinelInView = useInView(sentinelRef, { margin: '-64px 0px 0px 0px' });
+  const scrolled = !isSentinelInView;
+
   return (
     <div className={`min-h-screen bg-white dark:bg-dark-darker font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-dark-darker/80 backdrop-blur-lg border-b border-slate-100 dark:border-dark-lighter">
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-white/80 dark:bg-dark-darker/80 backdrop-blur-lg border-b border-slate-100 dark:border-dark-lighter'
+          : 'bg-transparent border-none'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-8 w-auto" />
+              {scrolled && (
+                <motion.img
+                  initial={{ opacity: 0, y: -8, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'}
+                  alt="Kuentas Klaras"
+                  className="h-8 w-auto"
+                />
+              )}
             </div>
             <nav className="flex items-center gap-2">
               <button
@@ -63,6 +81,7 @@ const Landing = ({ onLogin, onRegister }) => {
 
       <main>
         <HeroSection onLogin={onLogin} onRegister={onRegister} isDarkMode={isDarkMode} />
+        <div ref={sentinelRef} />
         <FeaturesSection />
         <HowItWorksSection isDarkMode={isDarkMode} />
         <CTASection onRegister={onRegister} />

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import Footer from './components/Footer';
 
-const Register = ({ onRegister, onGoToLogin }) => {
+const Register = ({ onRegister, onGoToLogin,isDarkMode }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,9 +56,8 @@ const Register = ({ onRegister, onGoToLogin }) => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-block mb-4">
-              <img src="/kuentasklaras-logo.svg" alt="Kuentas Klaras" className="w-16 h-16 mx-auto" />
+              <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-12 w-auto" />
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-kk-dark dark:text-white">Kuentas Klaras</h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Crea tu cuenta gratuita</p>
           </div>
 
