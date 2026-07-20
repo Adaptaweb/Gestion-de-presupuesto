@@ -1263,6 +1263,11 @@ app.post('/api/webhook/email', async (req, res) => {
     const emailId = messageId || `wb-${Date.now()}`;
     const subjectSafe = (subject || '').slice(0, 200);
 
+    const esNuevoWebhook = !(await db.get(
+      'SELECT 1 FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2',
+      emailId, actualUserId
+    ));
+
     await db.run(
       `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13)
@@ -1315,11 +1320,7 @@ app.post('/api/webhook/email', async (req, res) => {
     cache.del(`tx:meses:${actualUserId}`);
     cache.delByPattern(`tx:pendientes:${actualUserId}`);
 
-    const yaExisteWebhook = await db.get(
-      'SELECT 1 FROM transacciones_extraidas WHERE email_id = $1 AND user_id = $2',
-      emailId, actualUserId
-    );
-    if (!yaExisteWebhook) sendPushToUser(actualUserId, 'Nueva transacción detectada',
+    if (esNuevoWebhook) sendPushToUser(actualUserId, 'Nueva transacción detectada',
       `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
       '/'
     ).catch(err => console.error(`[Webhook] Push error: ${err.message}`));
