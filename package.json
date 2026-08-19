@@ -13,7 +13,8 @@
     "build": "npm run generate-icons && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "migrate": "node server/migrations/run.js"
+    "migrate": "node server/migrations/run.js",
+    "test": "node --test server/*.test.js"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",

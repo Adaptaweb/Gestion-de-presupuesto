@@ -15,6 +15,7 @@ import { setDb as setEmbeddingsDb } from './embeddings.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
 import { rateLimit, secretsMatch } from './rateLimit.js';
+import { cargarCompromisos, guardarCompromisos } from './compromisos.js';
 import { logDebug } from './logger.js';
 
 setEmbeddingsDb(db);
@@ -635,282 +636,146 @@ app.get('/api/data', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const cacheKey = `data:${userId}`;
     const cached = cache.get(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
-    const monthRows = await db.all('SELECT mes FROM meses WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const months = monthRows.map(m => m.mes);
+    if (cached) return res.json(cached);
 
-    const deudasRows = await db.all('SELECT * FROM deudas WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosDeudasRows = await db.all('SELECT pd.* FROM pagos_deudas pd JOIN deudas d ON pd.deuda_id = d.id WHERE d.user_id = ? AND d.deleted_at IS NULL', userId);
-    const deudas = deudasRows.map(d => {
-      const pagos = {};
-      pagosDeudasRows.filter(p => p.deuda_id === d.id).forEach(p => { pagos[p.mes] = { estado: p.estado }; });
-      return { ...d, isContribuciones: Boolean(d.isContribuciones), diaPago: d.diaPago, facturacionAuto: Boolean(d.facturacionAuto), banco: d.banco, bancoLogo: d.bancoLogo, tipoTarjeta: d.tipoTarjeta, pagos };
-    });
+    const [monthRows, sueldosRows, cuentasAhorro, ahorrosDataRows, compromisos] = await Promise.all([
+      db.all('SELECT mes FROM meses WHERE user_id = ? AND deleted_at IS NULL', userId),
+      db.all('SELECT mes, monto FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId),
+      db.all('SELECT * FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId),
+      db.all(
+        `SELECT ad.* FROM ahorros_data ad
+         JOIN cuentas_ahorro c ON ad.cuenta_id = c.id
+         WHERE c.user_id = ? AND c.deleted_at IS NULL`,
+        userId
+      ),
+      cargarCompromisos(db, userId),
+    ]);
 
-    const gastosRows = await db.all('SELECT * FROM gastos_fijos WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosGastosRows = await db.all('SELECT pg.* FROM pagos_gastos pg JOIN gastos_fijos g ON pg.gasto_id = g.id WHERE g.user_id = ? AND g.deleted_at IS NULL', userId);
-    const gastosFijos = gastosRows.map(g => {
-      const pagos = {};
-      pagosGastosRows.filter(p => p.gasto_id === g.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...g, diaPago: g.diaPago, facturacionAuto: Boolean(g.facturacionAuto), pagos };
-    });
-
-    const sueldosRows = await db.all('SELECT mes, monto FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId);
     const sueldos = {};
-    sueldosRows.forEach(s => sueldos[s.mes] = s.monto);
+    for (const s of sueldosRows) sueldos[s.mes] = s.monto;
 
-    const cuentasAhorro = await db.all('SELECT * FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const ahorrosDataRows = await db.all('SELECT ad.* FROM ahorros_data ad JOIN cuentas_ahorro c ON ad.cuenta_id = c.id WHERE c.user_id = ? AND c.deleted_at IS NULL', userId);
     const ahorrosData = {};
-    ahorrosDataRows.forEach(a => {
+    for (const a of ahorrosDataRows) {
       if (!ahorrosData[a.cuenta_id]) ahorrosData[a.cuenta_id] = {};
       ahorrosData[a.cuenta_id][a.mes] = { deposito: a.deposito, gasto: a.gasto };
-    });
+    }
 
-    const subsRows = await db.all('SELECT * FROM suscripciones WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosSubsRows = await db.all('SELECT ps.* FROM pagos_suscripciones ps JOIN suscripciones s ON ps.suscripcion_id = s.id WHERE s.user_id = ? AND s.deleted_at IS NULL', userId);
-    const suscripciones = subsRows.map(s => {
-      const pagos = {};
-      pagosSubsRows.filter(p => p.suscripcion_id === s.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...s, pagos };
-    });
+    const payload = {
+      months: monthRows.map(m => m.mes),
+      sueldos,
+      cuentasAhorro,
+      ahorrosData,
+      ...compromisos,
+    };
 
-    const abonosRows = await db.all('SELECT * FROM abonos WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosAbonosRows = await db.all('SELECT pa.* FROM pagos_abonos pa JOIN abonos a ON pa.abono_id = a.id WHERE a.user_id = ? AND a.deleted_at IS NULL', userId);
-    const abonos = abonosRows.map(a => {
-      const pagos = {};
-      pagosAbonosRows.filter(p => p.abono_id === a.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...a, diaPago: a.diaPago, facturacionAuto: Boolean(a.facturacionAuto), pagos };
-    });
-
-    const payload = { months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos };
     cache.set(cacheKey, payload, 300);
     res.json(payload);
   } catch (error) {
-    console.error(error);
+    console.error('[GET /api/data]', error.message);
     res.status(500).json({ error: 'Error loading data' });
   }
 });
 
 app.post('/api/sync', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-  const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos } = req.body;
+  const { months, sueldos, cuentasAhorro, ahorrosData } = req.body;
 
   cache.del(`data:${userId}`);
 
   try {
     await db.transaction(async (tx) => {
       if (months) {
-        await tx.run('UPDATE meses SET deleted_at = NOW() WHERE user_id = ? AND deleted_at IS NULL', userId);
-        for (let i = 0; i < months.length; i++) {
-          const existing = await tx.get('SELECT id FROM meses WHERE user_id = ? AND mes = ?', userId, months[i]);
-          if (existing) {
-            await tx.run('UPDATE meses SET deleted_at = NULL WHERE id = ?', existing.id);
-          } else {
-            await tx.run('INSERT INTO meses (id, user_id, mes) VALUES (?, ?, ?)', `month-${userId}-${i}`, userId, months[i]);
-          }
-        }
-      }
-
-      if (deudas) {
-        const existingDeudas = await tx.all('SELECT id FROM deudas WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = deudas.map(d => d.id);
-        for (const d of existingDeudas) {
-          if (!receivedIds.includes(d.id)) {
-            await tx.run('UPDATE deudas SET deleted_at = NOW() WHERE id = ?', d.id);
-          }
-        }
-        for (const d of deudas) {
-          const existing = await tx.get('SELECT id FROM deudas WHERE id = ?', d.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE deudas SET descripcion = ?, "cuotasTotales" = ?, "valorCuota" = ?, "mesInicio" = ?, "isContribuciones" = ?, "diaPago" = ?, "facturacionAuto" = ?, banco = ?, "bancoLogo" = ?, "tipoTarjeta" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              d.descripcion, d.cuotasTotales, d.valorCuota, d.mesInicio, d.isContribuciones ? 1 : 0, d.diaPago || 1, d.facturacionAuto ? 1 : 0, d.banco || '', d.bancoLogo || '', d.tipoTarjeta || '', d.iconType || 'default', d.iconValue || 'layout', d.iconUrl || '', d.id);
-          } else {
-            await tx.run(
-              'INSERT INTO deudas (id, user_id, descripcion, "cuotasTotales", "valorCuota", "mesInicio", "isContribuciones", "diaPago", "facturacionAuto", banco, "bancoLogo", "tipoTarjeta", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              d.id, userId, d.descripcion, d.cuotasTotales, d.valorCuota, d.mesInicio, d.isContribuciones ? 1 : 0, d.diaPago || 1, d.facturacionAuto ? 1 : 0, d.banco || '', d.bancoLogo || '', d.tipoTarjeta || '', d.iconType || 'default', d.iconValue || 'layout', d.iconUrl || '');
-          }
-          if (d.pagos) {
-            await tx.run('UPDATE pagos_deudas SET deleted_at = NOW() WHERE deuda_id = ?', d.id);
-            for (const [mes, pago] of Object.entries(d.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_deudas WHERE deuda_id = ? AND mes = ?', d.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_deudas SET estado = ?, deleted_at = NULL WHERE deuda_id = ? AND mes = ?', pago.estado, d.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_deudas ("deuda_id", mes, estado) VALUES (?, ?, ?)', d.id, mes, pago.estado);
-              }
-            }
-          }
-        }
-      }
-
-      if (gastosFijos) {
-        const existingGastos = await tx.all('SELECT id FROM gastos_fijos WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = gastosFijos.map(g => g.id);
-        for (const g of existingGastos) {
-          if (!receivedIds.includes(g.id)) {
-            await tx.run('UPDATE gastos_fijos SET deleted_at = NOW() WHERE id = ?', g.id);
-          }
-        }
-        for (const g of gastosFijos) {
-          const existing = await tx.get('SELECT id FROM gastos_fijos WHERE id = ?', g.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE gastos_fijos SET descripcion = ?, "diaPago" = ?, "facturacionAuto" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              g.descripcion, g.diaPago || 1, g.facturacionAuto ? 1 : 0, g.iconType || 'preset', g.iconValue || 'layout', g.iconUrl || '', g.id);
-          } else {
-            await tx.run('INSERT INTO gastos_fijos (id, user_id, descripcion, "diaPago", "facturacionAuto", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-              g.id, userId, g.descripcion, g.diaPago || 1, g.facturacionAuto ? 1 : 0, g.iconType || 'preset', g.iconValue || 'layout', g.iconUrl || '');
-          }
-          if (g.pagos) {
-            await tx.run('UPDATE pagos_gastos SET deleted_at = NOW() WHERE gasto_id = ?', g.id);
-            for (const [mes, pago] of Object.entries(g.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_gastos WHERE gasto_id = ? AND mes = ?', g.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_gastos SET monto = ?, estado = ?, deleted_at = NULL WHERE gasto_id = ? AND mes = ?', pago.monto || 0, pago.estado, g.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_gastos ("gasto_id", mes, monto, estado) VALUES (?, ?, ?, ?)', g.id, mes, pago.monto || 0, pago.estado);
-              }
-            }
-          }
+        await tx.run(
+          `UPDATE meses SET deleted_at = NOW()
+           WHERE user_id = $1 AND deleted_at IS NULL AND NOT (mes = ANY($2))`,
+          userId, months
+        );
+        if (months.length > 0) {
+          const valores = months.flatMap(mes => [`month-${userId}-${mes.replace(/\s/g, '-')}`, userId, mes]);
+          const grupos = months.map((_, f) => `($${f * 3 + 1}, $${f * 3 + 2}, $${f * 3 + 3})`).join(', ');
+          // El conflicto va sobre (user_id, mes), no sobre el id: el id antiguo
+          // se derivaba de la posicion en el array y cambiaba al reordenar.
+          await tx.run(
+            `INSERT INTO meses (id, user_id, mes) VALUES ${grupos}
+             ON CONFLICT (user_id, mes) DO UPDATE SET deleted_at = NULL`,
+            ...valores
+          );
         }
       }
 
       if (sueldos) {
-        const existingSueldos = await tx.all('SELECT id FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedMes = Object.keys(sueldos);
-        for (const s of existingSueldos) {
-          if (!receivedMes.includes(s.mes)) {
-            await tx.run('UPDATE sueldos SET deleted_at = NOW() WHERE id = ?', s.id);
-          }
-        }
-        for (const [mes, monto] of Object.entries(sueldos)) {
-          const existing = await tx.get('SELECT id FROM sueldos WHERE user_id = ? AND mes = ?', userId, mes);
-          if (existing) {
-            await tx.run('UPDATE sueldos SET monto = ?, deleted_at = NULL WHERE id = ?', monto, existing.id);
-          } else {
-            await tx.run('INSERT INTO sueldos (id, user_id, mes, monto) VALUES (?, ?, ?, ?)', `sueldo-${userId}-${mes.replace(/\s/g, '-')}`, userId, mes, monto);
-          }
-        }
-      }
-
-      if (cuentasAhorro !== undefined || ahorrosData !== undefined) {
-        if (cuentasAhorro !== undefined) {
-          const existingCuentas = await tx.all('SELECT id FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId);
-          const receivedIds = cuentasAhorro.map(c => c.id);
-          for (const c of existingCuentas) {
-            if (!receivedIds.includes(c.id)) {
-              await tx.run('UPDATE cuentas_ahorro SET deleted_at = NOW() WHERE id = ?', c.id);
-            }
-          }
-
-          if (cuentasAhorro.length > 0) {
-            for (const c of cuentasAhorro) {
-              const existing = await tx.get('SELECT id FROM cuentas_ahorro WHERE id = ?', c.id);
-              if (existing) {
-                await tx.run('UPDATE cuentas_ahorro SET nombre = ?, banco = ?, deleted_at = NULL WHERE id = ?', c.nombre, c.banco, c.id);
-              } else {
-                await tx.run('INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES (?, ?, ?, ?)', c.id, userId, c.nombre, c.banco);
-              }
-            }
-          } else {
-          }
-        }
-
-        if (ahorrosData !== undefined) {
-          await tx.run('UPDATE ahorros_data SET deleted_at = NOW() WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = ?)', userId);
-
-          if (Object.keys(ahorrosData).length > 0) {
-            let i = 0;
-            for (const [cuentaId, data] of Object.entries(ahorrosData)) {
-              for (const [mes, a] of Object.entries(data)) {
-                const existing = await tx.get('SELECT id FROM ahorros_data WHERE cuenta_id = ? AND mes = ?', cuentaId, mes);
-                if (existing) {
-                  await tx.run('UPDATE ahorros_data SET deposito = ?, gasto = ?, deleted_at = NULL WHERE id = ?', a.deposito || 0, a.gasto || 0, existing.id);
-                } else {
-                  await tx.run('INSERT INTO ahorros_data (id, cuenta_id, mes, deposito, gasto) VALUES (?, ?, ?, ?, ?)',
-                    `ahorro-${userId}-${cuentaId}-${mes.replace(/\s/g, '-')}`, cuentaId, mes, a.deposito || 0, a.gasto || 0);
-                }
-                i++;
-              }
-            }
-          } else {
-          }
+        const meses = Object.keys(sueldos);
+        await tx.run(
+          `UPDATE sueldos SET deleted_at = NOW()
+           WHERE user_id = $1 AND deleted_at IS NULL AND NOT (mes = ANY($2))`,
+          userId, meses
+        );
+        if (meses.length > 0) {
+          const valores = meses.flatMap(mes => [
+            `sueldo-${userId}-${mes.replace(/\s/g, '-')}`, userId, mes, sueldos[mes] || 0,
+          ]);
+          const grupos = meses.map((_, f) => `($${f * 4 + 1}, $${f * 4 + 2}, $${f * 4 + 3}, $${f * 4 + 4})`).join(', ');
+          await tx.run(
+            `INSERT INTO sueldos (id, user_id, mes, monto) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET monto = EXCLUDED.monto, deleted_at = NULL`,
+            ...valores
+          );
         }
       }
 
-      if (suscripciones) {
-        const existingSubs = await tx.all('SELECT id FROM suscripciones WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = suscripciones.map(s => s.id);
-        for (const s of existingSubs) {
-          if (!receivedIds.includes(s.id)) {
-            await tx.run('UPDATE suscripciones SET deleted_at = NOW() WHERE id = ?', s.id);
-          }
-        }
-        for (const s of suscripciones) {
-          const existing = await tx.get('SELECT id FROM suscripciones WHERE id = ?', s.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE suscripciones SET descripcion = ?, valor = ?, "billingCycle" = ?, "diaPago" = ?, "mesInicio" = ?, "durationYears" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              s.descripcion, s.valor, s.billingCycle, s.diaPago || null, s.mesInicio, s.durationYears, s.iconType || 'default', s.iconValue || '', s.iconUrl || '', s.id);
-          } else {
-            await tx.run('INSERT INTO suscripciones (id, user_id, descripcion, valor, "billingCycle", "diaPago", "mesInicio", "durationYears", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              s.id, userId, s.descripcion, s.valor, s.billingCycle, s.diaPago || null, s.mesInicio, s.durationYears, s.iconType || 'default', s.iconValue || '', s.iconUrl || '');
-          }
-          if (s.pagos) {
-            await tx.run('UPDATE pagos_suscripciones SET deleted_at = NOW() WHERE suscripcion_id = ?', s.id);
-            for (const [mes, pago] of Object.entries(s.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_suscripciones WHERE suscripcion_id = ? AND mes = ?', s.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_suscripciones SET monto = ?, estado = ?, deleted_at = NULL WHERE suscripcion_id = ? AND mes = ?', pago.monto || s.valor || 0, pago.estado, s.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_suscripciones ("suscripcion_id", mes, monto, estado) VALUES (?, ?, ?, ?)', s.id, mes, pago.monto || s.valor || 0, pago.estado);
-              }
-            }
-          }
+      if (cuentasAhorro !== undefined) {
+        const ids = cuentasAhorro.map(c => c.id);
+        await tx.run(
+          `UPDATE cuentas_ahorro SET deleted_at = NOW()
+           WHERE user_id = $1 AND deleted_at IS NULL AND NOT (id = ANY($2))`,
+          userId, ids
+        );
+        if (cuentasAhorro.length > 0) {
+          const valores = cuentasAhorro.flatMap(c => [c.id, userId, c.nombre, c.banco]);
+          const grupos = cuentasAhorro.map((_, f) => `($${f * 4 + 1}, $${f * 4 + 2}, $${f * 4 + 3}, $${f * 4 + 4})`).join(', ');
+          await tx.run(
+            `INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, banco = EXCLUDED.banco, deleted_at = NULL`,
+            ...valores
+          );
         }
       }
 
-      if (abonos) {
-        const existingAbonos = await tx.all('SELECT id FROM abonos WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = abonos.map(a => a.id);
-        for (const a of existingAbonos) {
-          if (!receivedIds.includes(a.id)) {
-            await tx.run('UPDATE abonos SET deleted_at = NOW() WHERE id = ?', a.id);
+      if (ahorrosData !== undefined) {
+        const filas = [];
+        for (const [cuentaId, meses] of Object.entries(ahorrosData)) {
+          for (const [mes, valores] of Object.entries(meses || {})) {
+            filas.push([
+              `ahorro-${cuentaId}-${mes.replace(/\s/g, '-')}`,
+              cuentaId, mes, valores.deposito || 0, valores.gasto || 0,
+            ]);
           }
         }
-        for (const a of abonos) {
-          const existing = await tx.get('SELECT id FROM abonos WHERE id = ?', a.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE abonos SET descripcion = ?, "diaPago" = ?, "facturacionAuto" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              a.descripcion, a.diaPago || 1, a.facturacionAuto ? 1 : 0, a.iconType || 'preset', a.iconValue || 'layout', a.iconUrl || '', a.id);
-          } else {
-            await tx.run('INSERT INTO abonos (id, user_id, descripcion, "diaPago", "facturacionAuto", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-              a.id, userId, a.descripcion, a.diaPago || 1, a.facturacionAuto ? 1 : 0, a.iconType || 'preset', a.iconValue || 'layout', a.iconUrl || '');
-          }
-          if (a.pagos) {
-            await tx.run('UPDATE pagos_abonos SET deleted_at = NOW() WHERE abono_id = ?', a.id);
-            for (const [mes, pago] of Object.entries(a.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_abonos WHERE abono_id = ? AND mes = ?', a.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_abonos SET monto = ?, estado = ?, deleted_at = NULL WHERE abono_id = ? AND mes = ?', pago.monto || 0, pago.estado, a.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_abonos ("abono_id", mes, monto, estado) VALUES (?, ?, ?, ?)', a.id, mes, pago.monto || 0, pago.estado);
-              }
-            }
-          }
+
+        await tx.run(
+          `DELETE FROM ahorros_data
+           WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = $1)`,
+          userId
+        );
+
+        if (filas.length > 0) {
+          const grupos = filas
+            .map((_, f) => `($${f * 5 + 1}, $${f * 5 + 2}, $${f * 5 + 3}, $${f * 5 + 4}, $${f * 5 + 5})`)
+            .join(', ');
+          await tx.run(
+            `INSERT INTO ahorros_data (id, cuenta_id, mes, deposito, gasto) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET deposito = EXCLUDED.deposito, gasto = EXCLUDED.gasto`,
+            ...filas.flat()
+          );
         }
       }
+
+      await guardarCompromisos(tx, userId, req.body);
     });
-
 
     res.json({ success: true });
   } catch (err) {
-    console.error('Error syncing data:', err);
+    console.error('[POST /api/sync]', err.message);
     res.status(500).json({ error: 'Sync failed' });
   }
 });
@@ -1632,7 +1497,8 @@ app.post('/api/restore/:table/:id', authenticateToken, async (req, res) => {
     const { table, id } = req.params;
     const userId = req.user.id;
 
-    const allowedTables = ['deudas', 'gastos_fijos', 'suscripciones', 'abonos', 'cuentas_ahorro', 'sueldos', 'meses', 'transacciones_extraidas', 'filtros_correo', 'categorias'];
+    // deudas, gastos_fijos, suscripciones y abonos viven ahora en compromisos.
+    const allowedTables = ['compromisos', 'cuentas_ahorro', 'sueldos', 'meses', 'transacciones_extraidas', 'filtros_correo', 'categorias'];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: 'Tabla no permitida' });
     }
