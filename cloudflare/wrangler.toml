@@ -9,11 +9,9 @@ VERCEL_URL = "https://gastos.adaptaweb.cl"
 #   wrangler secret put WEBHOOK_SECRET
 
 # Correos que no se pudieron entregar. Todo dentro del plan gratuito.
-# Crear con: wrangler kv namespace create EMAIL_PENDING
-# y pegar aqui el id que devuelve.
 [[kv_namespaces]]
 binding = "EMAIL_PENDING"
-id = "PENDIENTE_DE_RELLENAR"
+id = "e05fd75c67bf4a23ae201665fd567d70"
 
 # Vacia la lista de pendientes cada quince minutos.
 [triggers]
