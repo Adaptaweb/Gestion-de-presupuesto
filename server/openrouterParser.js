@@ -1,3 +1,4 @@
+import { logDebug } from './logger.js';
 const API_KEY = process.env.OPENROUTER_API_KEY;
 const MODEL = 'openai/gpt-oss-120b:free';
 
@@ -82,7 +83,7 @@ Cuerpo: ${cuerpo}`;
 
     const data = await response.json();
     const usedModel = data.model || MODEL;
-    console.log(`[OpenRouter] Modelo: ${usedModel} | ${subject?.substring(0, 50)}`);
+    logDebug(`[OpenRouter] Modelo: ${usedModel} | ${subject?.substring(0, 50)}`);
 
     const content = data.choices?.[0]?.message?.content;
     if (!content) {

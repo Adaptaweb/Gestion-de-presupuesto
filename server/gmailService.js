@@ -6,6 +6,7 @@ import db from './db.js';
 import { sendPushToUser } from './push.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
+import { logDebug } from './logger.js';
 
 async function fetchLatestTransactions(userId) {
   if (!(await hasValidTokens(userId))) {
@@ -91,7 +92,7 @@ async function processEmail(msgId, gmail, userId, results) {
       /tips para tu salud financiera/i,
     ];
     if (NO_TX_SUBJECT_PATTERNS.some(p => p.test(subject))) {
-      console.log(`[GmailService] Skipping non-transaction email: "${subject}"`);
+      logDebug(`[GmailService] Skipping non-transaction email: "${subject}"`);
       return;
     }
 
@@ -99,10 +100,10 @@ async function processEmail(msgId, gmail, userId, results) {
     if (!body) return;
 
     let parsed = await extractWithTemplateSystem(body, headers, userId);
-    console.log(`[GmailService] extractWithTemplateSystem result:`, JSON.stringify({ monto: parsed?.monto, fecha: parsed?.fecha, comercio: parsed?.comercio, is_template: parsed?.is_template }));
+    logDebug(`[GmailService] extractWithTemplateSystem result:`, JSON.stringify({ monto: parsed?.monto, fecha: parsed?.fecha, comercio: parsed?.comercio, is_template: parsed?.is_template }));
 
     if (!parsed || !parsed.monto || !parsed.fecha || !parsed.comercio?.trim()) {
-      console.log(`[GmailService] Falling back to parseHTML`);
+      logDebug(`[GmailService] Falling back to parseHTML`);
       parsed = await parseHTML(body, headers, userId);
     }
 
@@ -162,7 +163,7 @@ async function processEmail(msgId, gmail, userId, results) {
         if (parsed.comercio && parsed.comercio.trim().length >= 2) {
           await saveTemplateFromExtraction(parsed, body, headers, subject, userId);
         } else {
-          console.log(`[GmailService] Skipping saveTemplateFromExtraction - comercio empty: "${parsed.comercio}"`);
+          logDebug(`[GmailService] Skipping saveTemplateFromExtraction - comercio empty: "${parsed.comercio}"`);
         }
       } else {
         if (parsed.comercio && parsed.comercio.trim().length >= 2) {
@@ -178,7 +179,7 @@ async function processEmail(msgId, gmail, userId, results) {
             body.substring(0, 2000)
           );
         } else {
-          console.log(`[GmailService] Skipping plantilla save - comercio empty: "${parsed.comercio}"`);
+          logDebug(`[GmailService] Skipping plantilla save - comercio empty: "${parsed.comercio}"`);
         }
       }
     } catch (logErr) {

@@ -1,5 +1,6 @@
 import webPush from 'web-push';
 import db from './db.js';
+import { logDebug } from './logger.js';
 
 const publicKey = process.env.VAPID_PUBLIC_KEY;
 const privateKey = process.env.VAPID_PRIVATE_KEY;
@@ -8,7 +9,7 @@ const subject = process.env.VAPID_SUBJECT || 'mailto:admin@kuentasklaras.cl';
 if (publicKey && privateKey) {
   try {
     webPush.setVapidDetails(subject, publicKey, privateKey);
-    console.log('[Push] VAPID configured');
+    logDebug('[Push] VAPID configured');
   } catch (e) {
     console.error('[Push] Invalid VAPID keys:', e.message);
   }
@@ -42,10 +43,10 @@ export async function sendPushToUser(userId, title, body, url = '/') {
       userId
     );
 
-    console.log(`[Push] Sending to user ${userId}: "${title}" - ${subs.length} subscription(s) found`);
+    logDebug(`[Push] Sending to user ${userId}: "${title}" - ${subs.length} subscription(s) found`);
 
     if (subs.length === 0) {
-      console.log(`[Push] No subscriptions found for user ${userId}`);
+      logDebug(`[Push] No subscriptions found for user ${userId}`);
       return;
     }
 
@@ -59,11 +60,11 @@ export async function sendPushToUser(userId, title, body, url = '/') {
 
       try {
         await webPush.sendNotification(subscription, payload);
-        console.log(`[Push] Sent to ${sub.endpoint.substring(0, 50)}...`);
+        logDebug(`[Push] Sent to ${sub.endpoint.substring(0, 50)}...`);
       } catch (err) {
         console.error(`[Push] Error sending to ${sub.endpoint.substring(0, 50)}...: ${err.message}`);
         if (err.statusCode === 410 || err.statusCode === 404) {
-          console.log(`[Push] Subscription expired/deleted on client for ${sub.endpoint.substring(0, 50)}... - keeping in DB for manual cleanup`);
+          logDebug(`[Push] Subscription expired/deleted on client for ${sub.endpoint.substring(0, 50)}... - keeping in DB for manual cleanup`);
         }
       }
     }

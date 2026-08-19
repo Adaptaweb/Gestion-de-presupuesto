@@ -1,5 +1,6 @@
 import db from './db.js';
 import { BANK_SENDERS } from './bankMapping.js';
+import { logDebug } from './logger.js';
 
 export const SEED_TEMPLATES = [
   {
@@ -202,7 +203,7 @@ export async function seedTemplates() {
           template.banco, template.tipo_correo, mockFingerprint,
           template.from_pattern, JSON.stringify(template.extraccion_json), template.prioridad
         );
-        console.log(`[TEMPLATE] Seeded: ${template.banco} - ${template.tipo_correo}`);
+        logDebug(`[TEMPLATE] Seeded: ${template.banco} - ${template.tipo_correo}`);
       }
     } catch (e) {
       if (!e.message.includes('column') && !e.message.includes('null')) {

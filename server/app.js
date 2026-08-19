@@ -15,10 +15,15 @@ import { setDb as setEmbeddingsDb } from './embeddings.js';
 import { seedTemplates } from './seedTemplates.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
+import { rateLimit, secretsMatch } from './rateLimit.js';
+import { logDebug } from './logger.js';
 
 setEmbeddingsDb(db);
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET no definida. Sin ella cualquiera podria firmar tokens validos.');
+}
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
@@ -191,8 +196,36 @@ function buildWelcomeEmail(nombre, loginUrl) {
 }
 
 const app = express();
-app.use(cors());
+
+// Detras de Vercel y de Cloudflare la IP real llega en X-Forwarded-For.
+app.set('trust proxy', true);
+
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://gastos.adaptaweb.cl,http://localhost:5173')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  // Sin cabecera Origin la peticion no viene de un navegador (el Worker de
+  // correo, curl, mismo origen): CORS no aplica y se deja pasar.
+  origin: (origin, callback) => callback(null, !origin || ALLOWED_ORIGINS.includes(origin)),
+  credentials: false,
+}));
 app.use(express.json());
+
+const loginLimiter = rateLimit({
+  bucket: 'auth-login',
+  max: 10,
+  windowSec: 300,
+  identify: req => req.body?.email,
+});
+const registerLimiter = rateLimit({ bucket: 'auth-register', max: 5, windowSec: 3600 });
+const resendLimiter = rateLimit({
+  bucket: 'auth-resend',
+  max: 3,
+  windowSec: 3600,
+  identify: req => req.body?.email,
+});
 
 runOnce('add-casilla-column', addCasillaColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
 runOnce('add-gmail-forwarding-authorized', addGmailForwardingAuthorizedColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
@@ -247,7 +280,7 @@ async function generateCasilla(email) {
   return casilla;
 }
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', registerLimiter, async (req, res) => {
   try {
     const { nombre, apellido, email, password } = req.body;
     if (!nombre || !apellido || !email || !password) {
@@ -346,7 +379,7 @@ app.get('/api/auth/verify-email', async (req, res) => {
   }
 });
 
-app.post('/api/auth/resend-verification', async (req, res) => {
+app.post('/api/auth/resend-verification', resendLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email requerido' });
@@ -381,7 +414,7 @@ app.post('/api/auth/resend-verification', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña son requeridos' });
@@ -611,10 +644,8 @@ app.get('/api/data', authenticateToken, async (req, res) => {
     const cacheKey = `data:${userId}`;
     const cached = cache.get(cacheKey);
     if (cached) {
-      console.log(`[CACHE] HIT data:${userId}`);
       return res.json(cached);
     }
-    console.log(`[CACHE] MISS data:${userId}`);
     const monthRows = await db.all('SELECT mes FROM meses WHERE user_id = ? AND deleted_at IS NULL', userId);
     const months = monthRows.map(m => m.mes);
 
@@ -645,8 +676,6 @@ app.get('/api/data', authenticateToken, async (req, res) => {
       if (!ahorrosData[a.cuenta_id]) ahorrosData[a.cuenta_id] = {};
       ahorrosData[a.cuenta_id][a.mes] = { deposito: a.deposito, gasto: a.gasto };
     });
-
-    console.log(`[GET /api/data] User ${userId}: cuentasAhorro=${cuentasAhorro.length}, ahorrosData entries=${ahorrosDataRows.length}`, JSON.stringify(ahorrosData));
 
     const subsRows = await db.all('SELECT * FROM suscripciones WHERE user_id = ? AND deleted_at IS NULL', userId);
     const pagosSubsRows = await db.all('SELECT ps.* FROM pagos_suscripciones ps JOIN suscripciones s ON ps.suscripcion_id = s.id WHERE s.user_id = ? AND s.deleted_at IS NULL', userId);
@@ -795,9 +824,7 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
                 await tx.run('INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES (?, ?, ?, ?)', c.id, userId, c.nombre, c.banco);
               }
             }
-            console.log(`[SYNC] cuentasAhorro: ${cuentasAhorro.length} cuentas saved`);
           } else {
-            console.log(`[SYNC] cuentasAhorro: cleared (empty array)`);
           }
         }
 
@@ -818,9 +845,7 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
                 i++;
               }
             }
-            console.log(`[SYNC] ahorrosData: ${i} entries saved`);
           } else {
-            console.log(`[SYNC] ahorrosData: cleared (empty object)`);
           }
         }
       }
@@ -956,7 +981,6 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order, fecha_desde, fecha_hasta })}`;
     const cached = cache.get(cacheKey);
     if (cached) {
-      console.log(`[CACHE] HIT tx:${userId}`);
       return res.json(cached);
     }
 
@@ -1046,7 +1070,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
       db.run(
         "UPDATE transacciones_extraidas SET categoria = ? WHERE user_id = ? AND LOWER(comercio) = LOWER(?) AND id != ?",
         categoria, tx.user_id, finalComercio, req.params.id)
-        .then(result => console.log(`[BACKGROUND] Bulk categorized ${result.changes} transactions with comercio=${finalComercio}`))
+        .then(result => logDebug(`[BACKGROUND] Bulk categorized ${result.changes} transactions with comercio=${finalComercio}`))
         .catch(err => console.error('[BACKGROUND] Bulk categorize error:', err.message));
     }
     if (comercio !== undefined) {
@@ -1170,8 +1194,15 @@ app.post('/api/transacciones/reprocesar', authenticateToken, async (req, res) =>
 // Webhook de Cloudflare Email Worker
 app.post('/api/webhook/email', async (req, res) => {
   try {
-    const secret = req.headers['x-webhook-secret'];
-    if (secret !== process.env.WEBHOOK_SECRET) {
+    // Fallo cerrado: sin secreto configurado el endpoint no acepta nada. Antes
+    // ambos lados valian undefined cuando faltaba la variable y la peticion
+    // pasaba sin autenticar.
+    const expectedSecret = process.env.WEBHOOK_SECRET;
+    if (!expectedSecret) {
+      console.error('[Webhook] WEBHOOK_SECRET no definida: se rechazan las peticiones');
+      return res.status(503).json({ error: 'Webhook no configurado' });
+    }
+    if (!secretsMatch(req.headers['x-webhook-secret'], expectedSecret)) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -1190,7 +1221,7 @@ app.post('/api/webhook/email', async (req, res) => {
       const fromMatch = rawStr.match(/^From:\s*(.+)$/mi);
       if (fromMatch && fromMatch[1]) {
         originalFrom = fromMatch[1].trim();
-        console.log(`[Webhook] Original From extracted from raw: ${originalFrom}`);
+        logDebug(`[Webhook] Original From extracted from raw: ${originalFrom}`);
       }
     }
 
@@ -1207,7 +1238,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
     // Check if this is a Gmail authorization email (using original From to avoid false positives from Gmail-forwarded emails)
     if (isGmailAuthorizationEmail(originalFrom, subject, html, text)) {
-      console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject} from ${from}`);
+      logDebug(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject} from ${from}`);
 
       // Get user's personal email to forward the authorization request
       const user = await db.get('SELECT email FROM users WHERE id = ?', actualUserId);
@@ -1227,7 +1258,7 @@ app.post('/api/webhook/email', async (req, res) => {
             html: emailContent.includes('<') ? emailContent : `<pre>${emailContent}</pre>`,
             text: emailContent,
           });
-          console.log(`[GmailAuth] Forwarded authorization email to ${user.email}`);
+          logDebug(`[GmailAuth] Forwarded authorization email to ${user.email}`);
         } catch (emailErr) {
           console.error(`[GmailAuth] Error forwarding email: ${emailErr.message}`);
         }
@@ -1237,7 +1268,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
       return res.json({ success: true, type: 'gmail_authorization_forwarded', forwardedTo: user.email });
     } else {
-      console.log(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
+      logDebug(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
     }
 
     const headers = {
@@ -1255,7 +1286,7 @@ app.post('/api/webhook/email', async (req, res) => {
     }
 
     if (!parsed || !parsed.monto || !parsed.fecha) {
-      console.log(`[Webhook] Could not parse transaction from ${from}: ${subject} - monto=${parsed?.monto}, fecha=${parsed?.fecha}`);
+      logDebug(`[Webhook] Could not parse transaction from ${from}: ${subject} - monto=${parsed?.monto}, fecha=${parsed?.fecha}`);
       return res.json({ success: false, reason: 'no_parsed_data' });
     }
 
@@ -1439,7 +1470,7 @@ app.post('/api/filtros/replace', authenticateToken, async (req, res) => {
       })
       .then(() => {
         cache.del(`filtros:${userId}`);
-        console.log(`[BACKGROUND] Replaced ${filtered.length} filters for user ${userId}`);
+        logDebug(`[BACKGROUND] Replaced ${filtered.length} filters for user ${userId}`);
       })
       .catch(err => console.error('[BACKGROUND] Filter replace error:', err.message));
 

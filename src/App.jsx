@@ -2765,7 +2765,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           onClose={() => setShowConfigModal(false)}
           token={token}
           theme={theme}
-          onOpenTutorial={(hasMailbox) => { setTutorialHasMailbox(hasMailbox ?? false); setShowTutorial(true); }}
+          onOpenTutorial={onOpenTutorial}
         />
         <FilterRulesModal
           isOpen={showFilterRulesModal}

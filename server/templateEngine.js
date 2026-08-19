@@ -1,6 +1,8 @@
+import { load } from 'cheerio';
 import db from './db.js';
 import { detectBankFromSender, normalizeBankName } from './bankMapping.js';
 import { generarFingerprint } from './fingerprint.js';
+import { logDebug } from './logger.js';
 
 const templateCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
@@ -22,7 +24,6 @@ function decodeQuotedPrintable(text) {
 function loadHtml(html) {
   if (typeof html !== 'string') return null;
   try {
-    const { load } = require('cheerio');
     const decoded = decodeQuotedPrintable(html);
     return load(decoded);
   } catch {
@@ -239,7 +240,7 @@ export async function extractWithTemplateSystem(html, headers, userId = null) {
 
 export async function saveTemplateFromExtraction(parsed, html, headers, subject, userId) {
   if (!parsed.comercio || parsed.comercio.trim().length < 2) {
-    console.log(`[TEMPLATE] Skipping save - comercio is empty or invalid: "${parsed.comercio}"`);
+    logDebug(`[TEMPLATE] Skipping save - comercio is empty or invalid: "${parsed.comercio}"`);
     return null;
   }
 
@@ -267,7 +268,7 @@ export async function saveTemplateFromExtraction(parsed, html, headers, subject,
   );
 
   if (seedTemplate) {
-    console.log(`[TEMPLATE] Seed template exists for ${bank}/${tipoCorreo} - skipping learning`);
+    logDebug(`[TEMPLATE] Seed template exists for ${bank}/${tipoCorreo} - skipping learning`);
     return seedTemplate.id;
   }
 
