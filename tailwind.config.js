@@ -85,6 +85,9 @@ export default {
         'slide-in-from-right': 'slideInRight 0.3s ease-out',
         'slide-in-from-left': 'slideInLeft 0.3s ease-out',
         'slide-in-from-bottom': 'slideInBottom 0.3s ease-out',
+        // Se usaba en seis sitios sin estar definida en ningun lado: las vistas
+        // que la llevaban aparecian de golpe.
+        'slide-fade': 'slideFade 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         slideDown: {
@@ -109,6 +112,10 @@ export default {
         },
         slideInBottom: {
           '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideFade: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },

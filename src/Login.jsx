@@ -153,7 +153,7 @@ const Login = ({ onLogin, onGoToRegister, isDarkMode, googleClientId }) => {
                   <button
                     onClick={handleResendVerification}
                     disabled={resending}
-                    className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {resending ? <Loader2 className="animate-spin" size={20} /> : 'Reenviar email de verificación'}
                   </button>
@@ -162,7 +162,7 @@ const Login = ({ onLogin, onGoToRegister, isDarkMode, googleClientId }) => {
                   )}
                   <button
                     onClick={() => { setNeedsVerification(false); setError(''); }}
-                    className="w-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300 py-3 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
+                    className="w-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300 py-3 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-dark-lightest transition"
                   >
                     Volver al inicio de sesión
                   </button>
@@ -184,7 +184,7 @@ const Login = ({ onLogin, onGoToRegister, isDarkMode, googleClientId }) => {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                         placeholder="tu@email.com"
                       />
                     </div>
@@ -199,7 +199,7 @@ const Login = ({ onLogin, onGoToRegister, isDarkMode, googleClientId }) => {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                         placeholder="••••••••"
                       />
                     </div>
@@ -208,7 +208,7 @@ const Login = ({ onLogin, onGoToRegister, isDarkMode, googleClientId }) => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {loading ? <Loader2 className="animate-spin" size={20} /> : 'Iniciar Sesión'}
                   </button>

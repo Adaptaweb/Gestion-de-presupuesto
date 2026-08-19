@@ -36,7 +36,7 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
           </button>
         </div>
         <div className="w-full bg-[#e6e8ea] h-1">
-          <div className="h-full rounded-full bg-[#2dbc8b] transition-all duration-500" style={{ width: '66%' }} />
+          <div className="h-full rounded-full bg-[#2dbc8b] transition duration-500" style={{ width: '66%' }} />
         </div>
       </header>
 
@@ -46,7 +46,7 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
           <p className="text-sm text-[#515f78]">{MESSAGES.step2.subtitle}</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#2dbc8b] text-white font-bold flex items-center justify-center text-sm">1</div>
             <h3 className="text-base font-semibold text-[#0a192f]">{MESSAGES.step2.steps[0].title}</h3>
@@ -75,7 +75,7 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#2dbc8b] text-white font-bold flex items-center justify-center text-sm">2</div>
             <h3 className="text-base font-semibold text-[#0a192f]">{MESSAGES.step2.steps[1].title}</h3>
@@ -91,7 +91,7 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
           <img className="rounded border w-full" src="/tutorial/2/screen1.png" alt="Configuración Gmail" />
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#2dbc8b] text-white font-bold flex items-center justify-center text-sm">3</div>
             <h3 className="text-base font-semibold text-[#0a192f]">{MESSAGES.step2.steps[2].title}</h3>
@@ -107,7 +107,7 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
           <img className="rounded border w-full" src="/tutorial/2/screen2.png" alt="Crear filtro" />
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#2dbc8b] text-white font-bold flex items-center justify-center text-sm">4</div>
             <h3 className="text-base font-semibold text-[#0a192f]">{MESSAGES.step2.steps[3].title}</h3>
@@ -116,7 +116,7 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
           <img className="rounded border w-full" src="/tutorial/2/screen3.png" alt="Pegar direcciones" />
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+        <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-[#2dbc8b] text-white font-bold flex items-center justify-center text-sm">5</div>
             <h3 className="text-base font-semibold text-[#0a192f]">{MESSAGES.step2.steps[4].title}</h3>
@@ -129,14 +129,14 @@ const Step2 = ({ emailData, onNext, onBack, onClose }) => {
       <footer className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-t border-[#f1f5f9]">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition-all"
+          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition"
         >
           <ArrowLeft size={20} />
           <span className="text-sm font-semibold">Anterior</span>
         </button>
         <button
           onClick={onNext}
-          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition-all"
+          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition"
         >
           <span className="text-sm font-semibold">Siguiente</span>
           <ArrowLeft size={20} className="rotate-180" />

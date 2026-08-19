@@ -35,7 +35,7 @@ export function DeleteConfirmModal({
         className={`
           relative bg-white dark:bg-dark-normal rounded-2xl shadow-2xl
           w-full max-w-md mx-4 overflow-hidden
-          transition-all duration-300 ease-out
+          transition duration-300 ease-out
           ${showAnimation ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
         `}
       >

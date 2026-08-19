@@ -76,14 +76,14 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
             >
               <button
                 onClick={onRegister}
-                className="group inline-flex items-center gap-2 bg-kk-primary text-white px-8 py-4 rounded-2xl font-black text-lg shadow-lg shadow-kk-primary/25 hover:bg-kk-dark hover:shadow-xl hover:shadow-kk-primary/30 transition-all duration-300"
+                className="group inline-flex items-center gap-2 bg-kk-primary text-white px-8 py-4 rounded-2xl font-black text-lg shadow-lg shadow-kk-primary/25 hover:bg-kk-dark hover:shadow-xl hover:shadow-kk-primary/30 transition duration-300"
               >
                 Comenzar Gratis
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button
                 onClick={onLogin}
-                className="inline-flex items-center gap-2 border-2 border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 px-8 py-4 rounded-2xl font-black text-lg hover:border-kk-primary hover:text-kk-primary transition-all duration-300"
+                className="inline-flex items-center gap-2 border-2 border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 px-8 py-4 rounded-2xl font-black text-lg hover:border-kk-primary hover:text-kk-primary transition duration-300"
               >
                 Iniciar Sesión
               </button>

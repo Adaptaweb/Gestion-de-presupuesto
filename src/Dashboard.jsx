@@ -982,7 +982,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 document.documentElement.classList.toggle('dark')
                 localStorage.setItem('theme', newMode ? 'dark' : 'light')
               }}
-              className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+              className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
               title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
             >
               {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
@@ -1011,7 +1011,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           <div className="mb-4 md:mb-6">
             <button
               onClick={onInstall}
-              className="flex items-center gap-2 px-4 py-2.5 bg-kk text-white rounded-xl text-xs font-bold shadow-sm hover:bg-kk-dark transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-kk text-white rounded-xl text-xs font-bold shadow-sm hover:bg-kk-dark transition"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               Instalar App
@@ -1020,7 +1020,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {aiAdvice && (
-          <div className={`mb-4 md:mb-8 ${theme.bgLight} ${theme.bgLightDark} border-2 ${theme.badgeBg} ${theme.badgeBgDark} rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 relative animate-in fade-in slide-in-from-top-4 duration-500`}>
+          <div className={`mb-4 md:mb-8 ${theme.bgLight} ${theme.bgLightDark} border-2 ${theme.badgeBg} ${theme.badgeBgDark} rounded-2xl sm:rounded-[2rem] p-3 sm:p-6 relative animate-slide-down`}>
             <button onClick={() => setAiAdvice(null)} className={`absolute top-2 sm:top-4 right-2 sm:right-4 ${theme.iconAccent} ${theme.iconAccentDark} hover:${theme.tabText} transition-colors`}>
               <X size={18} />
             </button>
@@ -1041,25 +1041,25 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         <div className="hidden md:flex gap-1.5 justify-center mb-8">
           <button
             onClick={() => setActiveTab('transacciones')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
             <Mail size={16} /> Transacciones
           </button>
           <button
             onClick={() => setActiveTab('general')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'general' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'general' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
             <ListChecks size={16} /> Detalle General
           </button>
           <button
             onClick={() => setActiveTab('ahorros')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'ahorros' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'ahorros' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
             <PiggyBank size={16} /> Gestión de Ahorros
           </button>
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
           >
             <LayoutDashboard size={16} /> Resumen
           </button>
@@ -1069,7 +1069,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
             <button
               onClick={() => setActiveTab('transacciones')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'transacciones' ? 'scale-100' : 'scale-100'}`}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'transacciones' ? 'scale-100' : 'scale-100'}`}
             >
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <Mail size={20} strokeWidth={activeTab === 'transacciones' ? 2.5 : 2} />
@@ -1080,7 +1080,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             </button>
             <button
               onClick={() => setActiveTab('general')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'general' ? 'scale-100' : 'scale-100'}`}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'general' ? 'scale-100' : 'scale-100'}`}
             >
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <ListChecks size={20} strokeWidth={activeTab === 'general' ? 2.5 : 2} />
@@ -1091,7 +1091,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             </button>
             <button
               onClick={() => setActiveTab('ahorros')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'ahorros' ? 'scale-100' : 'scale-100'}`}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'ahorros' ? 'scale-100' : 'scale-100'}`}
             >
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <PiggyBank size={20} strokeWidth={activeTab === 'ahorros' ? 2.5 : 2} />
@@ -1102,7 +1102,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             </button>
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition-all duration-200 min-w-[60px] ${activeTab === 'dashboard' ? 'scale-100' : 'scale-100'}`}
+              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'dashboard' ? 'scale-100' : 'scale-100'}`}
             >
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <LayoutDashboard size={20} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
@@ -1116,7 +1116,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {!showCategoriasConfig && <>
         {activeTab === 'dashboard' && !!dashboardMonth && (
-          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in duration-500 px-4 sm:px-6 lg:px-8">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in duration-500 px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
@@ -1197,7 +1197,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               return (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white ${theme.btnPrimary.replace('hover:bg-', 'bg-').replace('hover:bg-', '')} relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card`}>
+                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white ${theme.btnPrimary.replace('hover:bg-', 'bg-').replace('hover:bg-', '')} relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card`}>
                       <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
                       <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
@@ -1216,7 +1216,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </div>
                     </div>
 
-                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-slate-600 dark:bg-dark-lighter relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
+                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-slate-600 dark:bg-dark-lighter relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
                       <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
                       <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
@@ -1235,7 +1235,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </div>
                     </div>
 
-                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-rose-600 dark:bg-rose-700 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
+                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-rose-600 dark:bg-rose-700 relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
                       <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
                       <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
@@ -1254,7 +1254,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </div>
                     </div>
 
-                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card ${disponibleExtras >= 0 ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700'}`}>
+                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card ${disponibleExtras >= 0 ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700'}`}>
                       <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
                       <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
                       <div className="relative">
@@ -1297,7 +1297,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                             const totalD = d.isContribuciones ? 4 : d.cuotasTotales;
                             const pctD = totalD > 0 ? (pagadas / totalD) * 100 : 0;
                             return (
-                              <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                              <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
                                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 dark:bg-slate-300 overflow-hidden`}>
                                   <div className={theme.tabText}>{renderDebtIcon(d)}</div>
                                 </div>
@@ -1308,7 +1308,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
                                     <div className="flex-1 h-2 sm:h-1.5 bg-slate-100 dark:bg-dark-lighter rounded-full overflow-hidden">
-                                      <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
+                                      <div className={`h-full rounded-full transition duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
                                     </div>
                                     <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
                                   </div>
@@ -1386,7 +1386,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           {subsActivas.map(s => {
                             const monto = s.pagos?.[mes]?.monto || s.valor || 0;
                             return (
-                              <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                              <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
                                   <div className="text-rose-500 dark:text-rose-400">{renderSubscriptionIcon(s)}</div>
                                 </div>
@@ -1442,7 +1442,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       {dashSections.fijos && (
                         <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
                           {gastosFijosList.map(g => (
-                            <div key={g.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                            <div key={g.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
                               <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
                                 <div className={theme.tabText}>{renderFixedIcon(g)}</div>
                               </div>
@@ -1481,7 +1481,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                             <div className="h-full bg-amber-400" style={{ width: '20%' }}></div>
                             <div className="h-full bg-rose-400" style={{ width: '20%' }}></div>
                           </div>
-                          <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition-all duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
+                          <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
                         </div>
                         <div className="flex justify-between text-[8px] sm:text-[9px] font-bold text-slate-400 mt-1">
                           <span>0%</span>
@@ -1603,7 +1603,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                     {depositsByMonth.map((d, i) => (
                                       <div
                                         key={i}
-                                        className="flex-1 rounded-sm bg-indigo-200 dark:bg-indigo-800/50 transition-all hover:bg-indigo-400 dark:hover:bg-indigo-600"
+                                        className="flex-1 rounded-sm bg-indigo-200 dark:bg-indigo-800/50 transition hover:bg-indigo-400 dark:hover:bg-indigo-600"
                                         style={{ height: `${Math.max((d / maxDeposit) * 100, 4)}%` }}
                                         title={last6Months[i]}
                                       ></div>
@@ -1655,19 +1655,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 </select>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <Receipt size={16} /> Gasto Fijo <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <TrendingUp size={16} /> Abono <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <RefreshCw size={16} /> Suscripciones <Plus size={16} />
                 </button>
-                <button onClick={() => { const sorted = [...months].sort((a, b) => toDateVal(a) - toDateVal(b)); setMonths([...months, getNextMonthStr(sorted[sorted.length - 1])]); }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">
+                <button onClick={() => { const sorted = [...months].sort((a, b) => toDateVal(a) - toDateVal(b)); setMonths([...months, getNextMonthStr(sorted[sorted.length - 1])]); }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition">
                   <Plus size={16} /> +1 Mes
                 </button>
               </div>
@@ -1724,7 +1724,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                   </span>
                                 </div>
                               </div>
-<div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-all flex-shrink-0">
+<div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition flex-shrink-0">
                                 <button onClick={() => handleEditItem(item)} className="hidden sm:inline-flex p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={14} /></button>
                                 <button onClick={() => {
                                   const itemType = item.tipo === 'cuota' ? 'deuda' : item.tipo === 'suscripcion' ? 'suscripción' : item.tipo === 'abono' ? 'abono' : 'gasto fijo';
@@ -1758,7 +1758,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                         const next = isPagado ? 'PENDIENTE' : 'PAGADA';
                                         setDeudas(deudas.map(x => x.id === item.id ? { ...x, pagos: { ...x.pagos, [mes]: { estado: next } } } : x));
                                       }}
-                                      className={`w-full py-0.5 rounded-2xl transition-all flex flex-col items-center gap-1 ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm'}`}
+                                      className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm'}`}
                                     >
                                       <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                       <span className="text-[18px] font-mono font-black">{isPagado ? formatCurrency(item.valorCuota) : formatCurrency(item.valorCuota)}</span>
@@ -1781,7 +1781,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                           setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, pagos: { ...s.pagos, [mes]: { ...(s.pagos?.[mes] || { monto: s.valor || 0 }), estado: next } } } : s));
                                         }
                                       }}
-                                      className={`w-full py-0.5 rounded-2xl transition-all flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : hasValue ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
+                                      className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : hasValue ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
                                     >
                                       <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                       <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
@@ -1813,7 +1813,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                         updateAbonoPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA');
                                       }
                                     }}
-                                    className={`w-full py-0.5 rounded-2xl transition-all flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
+                                    className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
                                   >
                                     <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                     <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
@@ -1843,7 +1843,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                         updateFixedPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA');
                                       }
                                     }}
-                                    className={`w-full py-0.5 rounded-2xl transition-all flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
+                                    className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
                                   >
                                     <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                     <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
@@ -1885,7 +1885,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                   <div className="flex flex-col items-center gap-0.5 sm:gap-1">
                                     <span className={`text-[8px] sm:text-[10px] font-black whitespace-nowrap`}>{pagadas}/{totalCuotas} <span className="hidden sm:inline">pagadas</span></span>
                                     <div className="w-full h-0.5 sm:h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
-                                      <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
+                                      <div className={`h-full rounded-full transition duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
                                     </div>
                                     <span className={`text-[7px] sm:text-[9px] font-bold whitespace-nowrap`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
                                   </div>
@@ -1999,7 +1999,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 setSueldos({ ...sueldos, [mes]: parseInt(raw) || 0 });
                               }}
                               placeholder="$ Monto"
-                              className="w-full bg-slate-700/50 rounded-xl py-2 px-3 text-center text-cyan-400 font-mono outline-none border border-slate-600 focus:border-cyan-500 transition-all placeholder:text-slate-500"
+                              className="w-full bg-slate-700/50 rounded-xl py-2 px-3 text-center text-cyan-400 font-mono outline-none border border-slate-600 focus:border-cyan-500 transition placeholder:text-slate-500"
                             />
                           </td>
                         );
@@ -2056,12 +2056,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <button
                   onClick={getSavingsPlan}
                   disabled={isAiLoading}
-                  className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} ${theme.borderAccent} ${theme.badgeBgDark} hover:opacity-80 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition-all disabled:opacity-50`}
+                  className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} ${theme.borderAccent} ${theme.badgeBgDark} hover:opacity-80 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition disabled:opacity-50`}
                 >
                   {isAiLoading ? <Loader2 size={16} className="animate-spin" /> : <Lightbulb size={16} />}
                   <span className="hidden sm:inline">Estrategia IA</span><span className="sm:hidden">IA</span> ✨
                 </button>
-                <button onClick={() => setIsAddingAccount(true)} className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.btnPrimary} text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition-all`}>
+                <button onClick={() => setIsAddingAccount(true)} className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.btnPrimary} text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <Plus size={16} /> <span className="hidden sm:inline">Nueva Cuenta</span><span className="sm:hidden">Cuenta</span>
                 </button>
               </div>
@@ -2127,7 +2127,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                     const raw = e.target.value.replace(/[^0-9\-]/g, '');
                                     updateSavingData(cuenta.id, mes, 'deposito', parseInt(raw) || 0);
                                   }}
-                                  className="w-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-center font-mono font-black text-base py-1.5 sm:py-2 rounded-lg border-2 border-transparent focus:border-emerald-400 outline-none transition-all"
+                                  className="w-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-center font-mono font-black text-base py-1.5 sm:py-2 rounded-lg border-2 border-transparent focus:border-emerald-400 outline-none transition"
                                 />
                               </td>
                             );
@@ -2153,7 +2153,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                     const raw = e.target.value.replace(/[^0-9\-]/g, '');
                                     updateSavingData(cuenta.id, mes, 'gasto', parseInt(raw) || 0);
                                   }}
-                                  className="w-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-center font-mono font-black text-base py-1.5 sm:py-2 rounded-lg border-2 border-transparent focus:border-rose-400 outline-none transition-all"
+                                  className="w-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-center font-mono font-black text-base py-1.5 sm:py-2 rounded-lg border-2 border-transparent focus:border-rose-400 outline-none transition"
                                 />
                               </td>
                             );
@@ -2250,7 +2250,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {isAddingDebt && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <CreditCard className={theme.tabText} size={20} /> {editingItem ? 'Editar Cuota' : 'Nueva Cuota'}
@@ -2260,16 +2260,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <form onSubmit={handleSaveDebt} className="space-y-3 sm:space-y-4">
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
+                  <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
-                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, cuotasTotales: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
+                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, cuotasTotales: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
                   </div>
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
-                    <input type="number" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
+                    <input type="number" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
@@ -2279,7 +2279,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     required
                     value={monthStrToMonthInput(newDebt.mesInicio)}
                     onChange={handleMesInicioChange}
-                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
                   />
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 bg-amber-50 dark:bg-amber-900/20 p-3 sm:p-4 rounded-xl border border-amber-100 dark:border-amber-800">
@@ -2290,12 +2290,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                    <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
                       <input type="checkbox" className="sr-only peer" checked={newDebt.facturacionAuto} onChange={e => setNewDebt({ ...newDebt, facturacionAuto: e.target.checked })} />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-dark-lightest peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
                       <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
                     </label>
                   </div>
@@ -2309,13 +2309,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       type="text"
                       value={bancoSearch}
                       onChange={(e) => setBancoSearch(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                      className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
                       placeholder="Buscar banco..."
                     />
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
                     {filteredBancos.map(b => (
-                      <button type="button" key={b.id} onClick={() => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                      <button type="button" key={b.id} onClick={() => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                         <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
                       </button>
@@ -2333,8 +2333,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
                     <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
+                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
+                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
                     </div>
                   </div>
                 )}
@@ -2342,10 +2342,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2">
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Por defecto</button>
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Por defecto</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                   </div>
 
                   {newDebt.iconType === 'preset' && (
@@ -2356,13 +2356,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           type="text"
                           value={debtIconSearch}
                           onChange={(e) => setDebtIconSearch(e.target.value)}
-                          className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                          className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
                           placeholder="Buscar icono..."
                         />
                       </div>
                       <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {filteredDebtIcons.length > 0 ? filteredDebtIcons.map(i => (
-                          <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                          <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <i.icon size={16} />
                             <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
@@ -2377,14 +2377,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {['bancos', 'tarjetas'].map(cat => (
-                          <button key={cat} type="button" onClick={() => setDebtChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${debtChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                          <button key={cat} type="button" onClick={() => setDebtChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${debtChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                         ))}
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                         {CHILE_PRESET_ICONS[debtChileCat]?.map(i => {
                           const val = `${debtChileCat}:${i.id}`;
                           return (
-                            <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newDebt.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                            <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                               <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
                               <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
@@ -2395,10 +2395,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   )}
 
                   {newDebt.iconType === 'url' && (
-                    <input value={newDebt.iconUrl} onChange={e => setNewDebt({ ...newDebt, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
+                    <input value={newDebt.iconUrl} onChange={e => setNewDebt({ ...newDebt, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   )}
                 </div>
-                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Guardar Registro</button>
+                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Guardar Registro</button>
               </form>
             </div>
           </div>
@@ -2406,7 +2406,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {isAddingFixed && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <Receipt className="text-slate-800 dark:text-slate-200" size={20} /> {editingItem ? 'Editar Gasto' : 'Nuevo Gasto Fijo'}
@@ -2416,18 +2416,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <form onSubmit={handleSaveFixed} className="space-y-3 sm:space-y-4">
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
+                  <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" />
+                    <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
                       <input type="checkbox" className="sr-only peer" checked={newFixed.facturacionAuto} onChange={e => setNewFixed({ ...newFixed, facturacionAuto: e.target.checked })} />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-dark-lightest peer-checked:bg-blue-600"></div>
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
                       <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
                     </label>
                   </div>
@@ -2437,11 +2437,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
                   <div className="relative mb-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input type="text" value={fixedBancoSearch} onChange={(e) => setFixedBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" placeholder="Buscar banco..." />
+                    <input type="text" value={fixedBancoSearch} onChange={(e) => setFixedBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" placeholder="Buscar banco..." />
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
                     {(fixedBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(fixedBancoSearch.toLowerCase())) : BANCOS_CHILE).map(b => (
-                      <button type="button" key={b.id} onClick={() => { setNewFixed({ ...newFixed, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setFixedBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newFixed.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                      <button type="button" key={b.id} onClick={() => { setNewFixed({ ...newFixed, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setFixedBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                         <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
                       </button>
@@ -2457,17 +2457,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div>
                       <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
                       <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
+                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
+                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
-                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                 </div>
 
                 {newFixed.iconType === 'preset' && (
@@ -2478,13 +2478,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         type="text"
                         value={fixedIconSearch}
                         onChange={(e) => setFixedIconSearch(e.target.value)}
-                        className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                        className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
                         placeholder="Buscar icono..."
                       />
                     </div>
                     <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {filteredFixedIcons.length > 0 ? filteredFixedIcons.map(i => (
-                        <button type="button" key={i.id} onClick={() => setNewFixed({ ...newFixed, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newFixed.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                        <button type="button" key={i.id} onClick={() => setNewFixed({ ...newFixed, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                           <i.icon size={16} />
                           <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                         </button>
@@ -2499,14 +2499,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
-                        <button key={cat} type="button" onClick={() => setFixedChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${fixedChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                        <button key={cat} type="button" onClick={() => setFixedChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${fixedChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                       ))}
                     </div>
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {CHILE_PRESET_ICONS[fixedChileCat]?.map(i => {
                         const val = `${fixedChileCat}:${i.id}`;
                         return (
-                          <button key={i.id} type="button" onClick={() => setNewFixed({ ...newFixed, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newFixed.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                          <button key={i.id} type="button" onClick={() => setNewFixed({ ...newFixed, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
                             <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
@@ -2519,11 +2519,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 {newFixed.iconType === 'url' && (
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
-                    <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
+                    <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
 
-                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Registrar Gasto</button>
+                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Registrar Gasto</button>
               </form>
             </div>
           </div>
@@ -2531,7 +2531,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {isAddingAbono && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={20} /> {editingItem && editingItem.tipo === 'abono' ? 'Editar Abono' : 'Nuevo Abono'}
@@ -2541,27 +2541,27 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <form onSubmit={handleSaveAbono} className="space-y-3 sm:space-y-4">
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newAbono.descripcion} onChange={e => setNewAbono({ ...newAbono, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Freelance, Venta, Devolución..." />
+                  <input required value={newAbono.descripcion} onChange={e => setNewAbono({ ...newAbono, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Freelance, Venta, Devolución..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" />
+                    <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
                       <input type="checkbox" className="sr-only peer" checked={newAbono.facturacionAuto} onChange={e => setNewAbono({ ...newAbono, facturacionAuto: e.target.checked })} />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-dark-lightest peer-checked:bg-emerald-600"></div>
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-emerald-600"></div>
                       <span className="text-[10px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">Automático</span>
                     </label>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
-                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newAbono.iconType === 'url' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newAbono.iconType === 'url' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                 </div>
 
                 {newAbono.iconType === 'preset' && (
@@ -2572,13 +2572,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         type="text"
                         value={abonoIconSearch}
                         onChange={(e) => setAbonoIconSearch(e.target.value)}
-                        className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                        className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
                         placeholder="Buscar icono..."
                       />
                     </div>
                     <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {filteredAbonoIcons.length > 0 ? filteredAbonoIcons.map(i => (
-                        <button type="button" key={i.id} onClick={() => setNewAbono({ ...newAbono, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newAbono.iconValue === i.id ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                        <button type="button" key={i.id} onClick={() => setNewAbono({ ...newAbono, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAbono.iconValue === i.id ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                           <i.icon size={16} />
                           <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                         </button>
@@ -2593,14 +2593,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
-                        <button key={cat} type="button" onClick={() => setAbonoChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${abonoChileCat === cat ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                        <button key={cat} type="button" onClick={() => setAbonoChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${abonoChileCat === cat ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                       ))}
                     </div>
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                       {CHILE_PRESET_ICONS[abonoChileCat]?.map(i => {
                         const val = `${abonoChileCat}:${i.id}`;
                         return (
-                          <button key={i.id} type="button" onClick={() => setNewAbono({ ...newAbono, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newAbono.iconValue === val ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                          <button key={i.id} type="button" onClick={() => setNewAbono({ ...newAbono, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAbono.iconValue === val ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
                             <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
@@ -2613,11 +2613,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 {newAbono.iconType === 'url' && (
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
-                    <input value={newAbono.iconUrl} onChange={e => setNewAbono({ ...newAbono, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
+                    <input value={newAbono.iconUrl} onChange={e => setNewAbono({ ...newAbono, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
 
-                <button type="submit" className={`w-full ${theme.btnPrimary} py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Registrar Abono</button>
+                <button type="submit" className={`w-full ${theme.btnPrimary} py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Registrar Abono</button>
               </form>
             </div>
           </div>
@@ -2625,7 +2625,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {isAddingAccount && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <PiggyBank className="text-emerald-600" size={20} /> {editingAccount ? 'Editar Cuenta de Ahorro' : 'Nueva Cuenta de Ahorro'}
@@ -2635,7 +2635,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <form onSubmit={handleSaveAccount} className="space-y-3 sm:space-y-4">
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre de la Cuenta</label>
-                  <input required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200" placeholder="Ej: Fondo de Emergencia, Vacaciones..." />
+                  <input required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200" placeholder="Ej: Fondo de Emergencia, Vacaciones..." />
                 </div>
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
@@ -2645,7 +2645,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       type="text"
                       value={accountBancoSearch}
                       onChange={(e) => setAccountBancoSearch(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold outline-none focus:border-emerald-500 transition-all dark:text-slate-200"
+                      className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200"
                       placeholder="Buscar banco..."
                     />
                   </div>
@@ -2654,7 +2654,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(accountBancoSearch.toLowerCase()))
                       : BANCOS_CHILE
                     ).map(b => (
-                      <button key={b.id} type="button" onClick={() => { setNewAccount({ ...newAccount, banco: b.nombre }); setAccountBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newAccount.banco === b.nombre ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                      <button key={b.id} type="button" onClick={() => { setNewAccount({ ...newAccount, banco: b.nombre }); setAccountBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAccount.banco === b.nombre ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-10 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                         <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{b.nombre}</span>
                       </button>
@@ -2668,7 +2668,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     </div>
                   )}
                 </div>
-                <button type="submit" className="w-full bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition-all mt-3 sm:mt-4">{editingAccount ? 'Guardar Cambios' : 'Crear Cuenta'}</button>
+                <button type="submit" className="w-full bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition mt-3 sm:mt-4">{editingAccount ? 'Guardar Cambios' : 'Crear Cuenta'}</button>
               </form>
             </div>
           </div>
@@ -2676,7 +2676,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {isAddingSub && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <RefreshCw className={theme.tabText} size={20} /> {editingItem?.tipo === 'suscripcion' ? 'Editar Suscripcion' : 'Nueva Suscripcion'}
@@ -2686,29 +2686,29 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <form onSubmit={handleSaveSubscription} className="space-y-3 sm:space-y-4">
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Servicio</label>
-                  <input required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Ej: Netflix, Spotify, YouTube..." />
+                  <input required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Netflix, Spotify, YouTube..." />
                 </div>
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor</label>
-                  <input type="number" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} placeholder="Monto a pagar" />
+                  <input type="number" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Monto a pagar" />
                 </div>
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Plan de facturacion</label>
                   <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mensual</button>
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Anual</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mensual</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Anual</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Duracion (años)</label>
-                    <select value={newSub.durationYears} onChange={e => setNewSub({ ...newSub, durationYears: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}>
+                    <select value={newSub.durationYears} onChange={e => setNewSub({ ...newSub, durationYears: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}>
                       {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'año' : 'años'}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
-                    <input type="number" min="1" max="31" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`} />
+                    <input type="number" min="1" max="31" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
@@ -2718,14 +2718,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     required
                     value={monthStrToMonthInput(newSub.mesInicio)}
                     onChange={e => setNewSub({ ...newSub, mesInicio: monthInputToMonthStr(e.target.value) })}
-                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
                   />
                 </div>
 
                 <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                   <label className="relative inline-flex items-center cursor-pointer gap-3">
                     <input type="checkbox" className="sr-only peer" checked={newSub.facturacionAuto} onChange={e => setNewSub({ ...newSub, facturacionAuto: e.target.checked })} />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-dark-lightest peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
                     <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
                   </label>
                 </div>
@@ -2734,11 +2734,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
                   <div className="relative mb-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input type="text" value={subBancoSearch} onChange={(e) => setSubBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" placeholder="Buscar banco..." />
+                    <input type="text" value={subBancoSearch} onChange={(e) => setSubBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" placeholder="Buscar banco..." />
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
                     {(subBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(subBancoSearch.toLowerCase())) : BANCOS_CHILE).map(b => (
-                      <button type="button" key={b.id} onClick={() => { setNewSub({ ...newSub, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setSubBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${newSub.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                      <button type="button" key={b.id} onClick={() => { setNewSub({ ...newSub, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setSubBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newSub.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
                         <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
                       </button>
@@ -2754,8 +2754,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div>
                       <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
                       <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
+                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
+                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
                       </div>
                     </div>
                   )}
@@ -2764,9 +2764,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <div>
                   <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition-all ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                   </div>
 
                   {newSub.iconType === 'preset' && (
@@ -2777,13 +2777,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           type="text"
                           value={subscriptionIconSearch}
                           onChange={(e) => setSubscriptionIconSearch(e.target.value)}
-                          className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200`}
+                          className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
                           placeholder="Buscar icono..."
                         />
                       </div>
                       <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mb-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                         {filteredSubscriptionIcons.length > 0 ? filteredSubscriptionIcons.map(i => (
-                          <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                          <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <i.icon size={14} />
                             <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
@@ -2798,14 +2798,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {['medios-pago', 'telefonia', 'tickets'].map(cat => (
-                          <button key={cat} type="button" onClick={() => setSubChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition-all ${subChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                          <button key={cat} type="button" onClick={() => setSubChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${subChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                         ))}
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                         {CHILE_PRESET_ICONS[subChileCat]?.map(i => {
                           const val = `${subChileCat}:${i.id}`;
                           return (
-                            <button key={i.id} type="button" onClick={() => setNewSub({ ...newSub, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition-all ${newSub.iconValue === val && newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
+                            <button key={i.id} type="button" onClick={() => setNewSub({ ...newSub, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition ${newSub.iconValue === val && newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                               <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
                               <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
@@ -2816,11 +2816,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   )}
 
                   {newSub.iconType === 'url' && (
-                    <input value={newSub.iconUrl} onChange={e => setNewSub({ ...newSub, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition-all dark:text-slate-200 mt-2`} placeholder="https://ejemplo.com/logo.png" />
+                    <input value={newSub.iconUrl} onChange={e => setNewSub({ ...newSub, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200 mt-2`} placeholder="https://ejemplo.com/logo.png" />
                   )}
                 </div>
 
-                <button type="submit" className={`w-full ${theme.btnSub} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all mt-3 sm:mt-4`}>Guardar Suscripcion</button>
+                <button type="submit" className={`w-full ${theme.btnSub} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Guardar Suscripcion</button>
               </form>
             </div>
           </div>
@@ -2828,7 +2828,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {viewingItem && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   {viewingItem.tipo === 'cuota' ? <CreditCard className={theme.tabText} size={20} /> : viewingItem.tipo === 'suscripcion' ? <RefreshCw className={theme.tabText} size={20} /> : viewingItem.tipo === 'abono' ? <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={20} /> : <Receipt className="text-slate-800 dark:text-slate-200" size={20} />}
@@ -2984,10 +2984,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 )}
 
                 <div className="flex gap-2 mt-6">
-                  <button onClick={() => { setViewingItem(null); handleEditItem(viewingItem.data); }} className={`flex-1 ${theme.btnPrimary} text-white py-2.5 sm:py-3 rounded-xl font-black text-sm shadow-lg ${theme.shadowBtn} hover:opacity-90 transition-all`}>
+                  <button onClick={() => { setViewingItem(null); handleEditItem(viewingItem.data); }} className={`flex-1 ${theme.btnPrimary} text-white py-2.5 sm:py-3 rounded-xl font-black text-sm shadow-lg ${theme.shadowBtn} hover:opacity-90 transition`}>
                     Editar
                   </button>
-                  <button onClick={() => setViewingItem(null)} className="flex-1 bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300 py-2.5 sm:py-3 rounded-xl font-black text-sm hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all">
+                  <button onClick={() => setViewingItem(null)} className="flex-1 bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300 py-2.5 sm:py-3 rounded-xl font-black text-sm hover:bg-slate-200 dark:hover:bg-dark-lightest transition">
                     Cerrar
                   </button>
                 </div>

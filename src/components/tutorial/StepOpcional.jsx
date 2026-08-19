@@ -26,7 +26,7 @@ const StepOpcional = ({ emailData, onNext, onBack, onClose }) => {
           </button>
         </div>
         <div className="w-full bg-[#e6e8ea] h-1">
-          <div className="h-full rounded-full bg-[#2dbc8b] transition-all duration-500" style={{ width: '33%' }} />
+          <div className="h-full rounded-full bg-[#2dbc8b] transition duration-500" style={{ width: '33%' }} />
         </div>
       </header>
 
@@ -112,14 +112,14 @@ const StepOpcional = ({ emailData, onNext, onBack, onClose }) => {
       <footer className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-t border-[#f1f5f9]">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition-all"
+          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition"
         >
           <ArrowLeft size={20} />
           <span className="text-sm font-semibold">Volver</span>
         </button>
         <button
           onClick={onNext}
-          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition-all"
+          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition"
         >
           <span className="text-sm font-semibold">{MESSAGES.opcional.nextButton}</span>
           <ArrowLeft size={20} className="rotate-180" />

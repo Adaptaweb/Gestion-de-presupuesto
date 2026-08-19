@@ -35,7 +35,7 @@ export default function ColorPicker({ value, onChange }) {
           <button
             key={color}
             onClick={() => onChange(color)}
-            className={`w-7 h-7 rounded-lg transition-all hover:scale-110 ${
+            className={`w-7 h-7 rounded-lg transition hover:scale-110 ${
               value === color ? 'ring-2 ring-offset-1 ring-slate-400 dark:ring-offset-dark-normal scale-110' : ''
             }`}
             style={{ backgroundColor: color }}

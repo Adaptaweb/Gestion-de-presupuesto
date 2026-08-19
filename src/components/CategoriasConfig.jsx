@@ -14,7 +14,7 @@ function Toast({ msg, onDone }) {
     return () => clearTimeout(t);
   }, [onDone]);
   return (
-    <div className={`fixed top-20 right-6 z-[100] flex items-center gap-2 bg-emerald-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl font-bold text-sm transition-all duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+    <div className={`fixed top-20 right-6 z-[100] flex items-center gap-2 bg-emerald-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl font-bold text-sm transition duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
       <Check size={16} /> {msg}
     </div>
   );
@@ -188,7 +188,7 @@ export default function CategoriasConfig({
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
-              className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-lighter"
+              className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition px-2 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-lighter"
             >
               <ArrowLeft size={18} />
               <span className="text-sm font-bold">Volver</span>
@@ -197,7 +197,7 @@ export default function CategoriasConfig({
           </div>
           <button
             onClick={() => openCreate('gasto')}
-            className={`flex items-center gap-1.5 ${theme?.btnPrimary || 'bg-emerald-500 hover:bg-emerald-600'} text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all`}
+            className={`flex items-center gap-1.5 ${theme?.btnPrimary || 'bg-emerald-500 hover:bg-emerald-600'} text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition`}
           >
             <Plus size={16} /> Agregar
           </button>
@@ -226,7 +226,7 @@ export default function CategoriasConfig({
                   <React.Fragment key={cat.id}>
                     {insertBefore && (
                       <tr className="border-b border-slate-50 dark:border-dark-lighter/50">
-                        <td colSpan={6} className="p-0"><div className="h-0.5 bg-blue-400 dark:bg-blue-500 transition-all duration-150 mx-2 rounded-full" /></td>
+                        <td colSpan={6} className="p-0"><div className="h-0.5 bg-blue-400 dark:bg-blue-500 transition duration-150 mx-2 rounded-full" /></td>
                       </tr>
                     )}
                     <tr
@@ -235,7 +235,7 @@ export default function CategoriasConfig({
                       onDragEnd={handleDragEnd}
                       onDragOver={(e) => handleRowDragOver(e, idx)}
                       onDrop={(e) => handleDrop(e, idx)}
-                      className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-all duration-150 ${
+                      className={`border-b border-slate-50 dark:border-dark-lighter/50 transition duration-150 ${
                         isDragging ? 'opacity-30 bg-slate-100 dark:bg-dark-lighter' : ''
                       } ${dragOverIdx === idx && !isDragging ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50 dark:hover:bg-dark-lighter/50'}`}
                     >
@@ -264,10 +264,10 @@ export default function CategoriasConfig({
                       </td>
                       <td className="p-2 sm:p-3">
                         <div className="flex items-center gap-1 justify-end">
-                          <button onClick={() => openEdit(cat)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-lighter transition-all" title="Editar">
+                          <button onClick={() => openEdit(cat)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-lighter transition" title="Editar">
                             <Edit3 size={13} />
                           </button>
-                          <button onClick={() => handleDelete(cat)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Eliminar">
+                          <button onClick={() => handleDelete(cat)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition" title="Eliminar">
                             <Trash2 size={13} />
                           </button>
                         </div>
@@ -275,7 +275,7 @@ export default function CategoriasConfig({
                     </tr>
                     {!insertBefore && showIndicator && (
                       <tr className="border-b border-slate-50 dark:border-dark-lighter/50">
-                        <td colSpan={6} className="p-0"><div className="h-0.5 bg-blue-400 dark:bg-blue-500 transition-all duration-150 mx-2 rounded-full" /></td>
+                        <td colSpan={6} className="p-0"><div className="h-0.5 bg-blue-400 dark:bg-blue-500 transition duration-150 mx-2 rounded-full" /></td>
                       </tr>
                     )}
                   </React.Fragment>
@@ -297,7 +297,7 @@ export default function CategoriasConfig({
 
       {editing && (
         <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-sm p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-sm p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-black text-slate-800 dark:text-slate-200">
                 {editing.isNew ? 'Nueva categoría' : 'Editar categoría'}
@@ -309,7 +309,7 @@ export default function CategoriasConfig({
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Icono</label>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-12 h-12 flex items-center justify-center text-2xl bg-slate-100 dark:bg-dark-lighter rounded-xl border border-slate-200 dark:border-dark-lighter hover:border-slate-300 transition-all">
+                  <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-12 h-12 flex items-center justify-center text-2xl bg-slate-100 dark:bg-dark-lighter rounded-xl border border-slate-200 dark:border-dark-lighter hover:border-slate-300 transition">
                     {editEmoji}
                   </button>
                   <span className="text-[10px] text-slate-400">Click para cambiar</span>
@@ -325,7 +325,7 @@ export default function CategoriasConfig({
 
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
-                <input value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') save(); }} placeholder="Nombre de la categoría" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200" autoFocus />
+                <input value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') save(); }} placeholder="Nombre de la categoría" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" autoFocus />
               </div>
 
               <div>
@@ -338,7 +338,7 @@ export default function CategoriasConfig({
                 <div className="grid grid-cols-3 gap-2">
                   {TIPO_ORDER.map(tipo => (
                     <button key={tipo} onClick={() => setEditTipo(tipo)}
-                      className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all border ${
+                      className={`py-2.5 px-2 rounded-xl text-xs font-bold transition border ${
                         editTipo === tipo
                           ? tipo === 'gasto' ? 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/50'
                           : tipo === 'ingreso' ? 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/50'
@@ -353,8 +353,8 @@ export default function CategoriasConfig({
             </div>
 
             <div className="flex gap-2 mt-6">
-              <button onClick={closeModal} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold transition-all">Cancelar</button>
-              <button onClick={save} disabled={!editName.trim()} className={`flex-1 ${theme?.btnPrimary || 'bg-emerald-500 hover:bg-emerald-600'} text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all disabled:opacity-50`}>
+              <button onClick={closeModal} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold transition">Cancelar</button>
+              <button onClick={save} disabled={!editName.trim()} className={`flex-1 ${theme?.btnPrimary || 'bg-emerald-500 hover:bg-emerald-600'} text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg transition disabled:opacity-50`}>
                 {editing.isNew ? 'Crear' : 'Guardar'}
               </button>
             </div>

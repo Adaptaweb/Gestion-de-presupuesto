@@ -96,7 +96,7 @@ const StepInicio = ({ onNext, onClose }) => {
       <footer className="flex-shrink-0 flex items-center justify-center px-4 py-4 border-t border-[#f1f5f9]">
         <button
           onClick={onNext}
-          className="flex items-center justify-center bg-[#2dbc8b] text-white rounded-xl py-3 shadow-lg hover:bg-[#006c4d] transition-all active:scale-98 w-full max-w-md"
+          className="flex items-center justify-center bg-[#2dbc8b] text-white rounded-xl py-3 shadow-lg hover:bg-[#006c4d] transition active:scale-98 w-full max-w-md"
         >
           <span className="text-base font-semibold">{MESSAGES.welcome.ctaButton}</span>
         </button>

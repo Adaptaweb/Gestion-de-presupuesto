@@ -159,3 +159,20 @@
   background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
   background-size: 200% 100%;
 }
+
+/* Movimiento reducido.
+   No habia ninguna consideracion de prefers-reduced-motion en el proyecto, ni
+   siquiera para la animacion flotante permanente de la pantalla de carga. Para
+   quien lo tiene activado en el sistema, las transiciones se vuelven
+   instantaneas en vez de desaparecer, para que los cambios de estado sigan
+   siendo perceptibles. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

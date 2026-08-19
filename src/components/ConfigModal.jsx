@@ -37,7 +37,7 @@ const ConfigModal = ({ isOpen, onClose, token, theme, onOpenTutorial }) => {
 
   return (
     <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4 sm:mb-6">
           <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
             <Settings2 className={theme.tabText} size={20} /> Configuración
@@ -57,7 +57,7 @@ const ConfigModal = ({ isOpen, onClose, token, theme, onOpenTutorial }) => {
                   {authStatus ? 'Conectado' : 'No conectado'}
                 </span>
               </div>
-              <button onClick={handleGmailAuth} className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all">
+              <button onClick={handleGmailAuth} className="flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition">
                 <ExternalLink size={16} /> {authStatus ? 'Reconectar Gmail' : 'Conectar Gmail'}
               </button>
             </div>
@@ -66,7 +66,7 @@ const ConfigModal = ({ isOpen, onClose, token, theme, onOpenTutorial }) => {
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
                 Configura un filtro en Gmail para reenviar las notificaciones bancarias automáticamente.
               </p>
-              <button onClick={() => onOpenTutorial(authStatus)} className={`flex items-center justify-center gap-2 w-full ${theme.btnPrimary} text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition-all`}>
+              <button onClick={() => onOpenTutorial(authStatus)} className={`flex items-center justify-center gap-2 w-full ${theme.btnPrimary} text-white px-4 py-3 rounded-xl text-sm font-bold shadow-lg transition`}>
                 <ExternalLink size={16} /> Ver tutorial paso a paso
               </button>
             </div>

@@ -71,7 +71,7 @@ export default function EmojiPicker({ value, onChange, onClose }) {
                 <button
                   key={emoji}
                   onClick={() => { onChange(emoji); onClose?.(); }}
-                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-base hover:bg-slate-100 dark:hover:bg-dark-lighter transition-all ${
+                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-base hover:bg-slate-100 dark:hover:bg-dark-lighter transition ${
                     value === emoji ? 'bg-slate-200 dark:bg-dark-lighter ring-1 ring-slate-300' : ''
                   }`}
                 >
