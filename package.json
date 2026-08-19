@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "migrate": "node server/migrations/run.js",
-    "test": "node --test server/*.test.js"
+    "test": "node --test server/*.test.js",
+    "dev:all": "node scripts/dev.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",

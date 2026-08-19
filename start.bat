@@ -95,43 +95,16 @@ echo.
 echo   Backend  http://localhost:3000   ^(datos de produccion^)
 echo   Frontend http://localhost:5173   ^(codigo local^)
 echo.
-echo   Cierra ambas ventanas para detener el proyecto.
+echo   Ctrl+C en esta ventana detiene backend y frontend a la vez.
 echo.
 
-REM DEBUG_PARSING=1 activa los registros de diagnostico del pipeline de correos,
-REM que en produccion van apagados porque contienen datos del usuario.
-REM start hereda el directorio actual, que ya es el del proyecto por el cd /d
-REM de arriba, asi que no hace falta repetirlo dentro de las comillas.
-start "KK backend" cmd /k "set DEBUG_PARSING=1&& set NODE_ENV=development&& npm run dev:server"
-
-REM Se espera a que el backend responda de verdad en vez de dormir a ciegas:
-REM el arranque tarda distinto segun lo que carguen las dependencias.
-echo   [..] Esperando al backend...
-set "BACKEND_OK="
-for /l %%i in (1,1,30) do (
-  if not defined BACKEND_OK (
-    curl -s -o nul -m 2 http://localhost:3000/api/auth/config && set BACKEND_OK=1
-    if not defined BACKEND_OK "%SystemRoot%\System32\ping.exe" -n 2 127.0.0.1 >nul
-  )
-)
-
-if not defined BACKEND_OK (
-  echo   [AVISO] El backend no respondio en 30 intentos. Mira su ventana:
-  echo           el fallo mas comun es que Supabase rechace la conexion.
-  echo           El frontend arranca igual, pero no cargara datos.
-) else (
-  echo   [ok] Backend respondiendo
-)
-
-start "KK frontend" cmd /k "npm run dev"
-
-REM Vite tarda poco, pero abrir el navegador antes de que escuche da un error
-REM de conexion que confunde mas que la espera.
-"%SystemRoot%\System32\ping.exe" -n 6 127.0.0.1 >nul
-start "" http://localhost:5173
+REM Backend y Vite corren en esta misma consola, con la salida de cada uno
+REM etiquetada. El runner los cierra a los dos con Ctrl+C y abre el navegador
+REM cuando Vite anuncia que ya escucha, sin esperas a ciegas.
+node scripts/dev.mjs
 
 echo.
-echo   Listo. Si el navegador no se abrio, entra a http://localhost:5173
+echo   Servidores detenidos.
 echo.
 goto :fin
 
