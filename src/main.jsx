@@ -9,6 +9,7 @@ import UpdateBanner from './components/UpdateBanner.jsx';
 //
 // Los pesos reales evitan que el navegador sintetice la negrita, que es lo que
 // pasaba con 337 usos de font-black y 275 de font-bold sobre un unico peso 400.
+// Poppins solo para la landing.
 import '@fontsource/poppins/latin-400.css';
 import '@fontsource/poppins/latin-500.css';
 import '@fontsource/poppins/latin-600.css';

@@ -8,8 +8,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
+        // brand.md: Manrope para la interfaz, Poppins para marketing.
+        sans: ['Manrope Variable', 'Manrope', 'system-ui', 'sans-serif'],
         manrope: ['Manrope Variable', 'Manrope', 'sans-serif'],
+        poppins: ['Poppins', 'system-ui', 'sans-serif'],
       },
       colors: {
         kk: {

@@ -85,31 +85,34 @@ export const INITIAL_MONTHS = [
 ];
 
 export const THEMES = {
+  // El tema de marca. Antes eran clases emerald de Tailwind (#10B981), no el
+  // Mint Green de brand.md (#2DBC8B): el color corporativo no aparecia en
+  // ninguna parte de la aplicacion.
   kk: {
-    btnPrimary: 'bg-emerald-500 hover:bg-emerald-600 text-white',
-    shadowBtn: 'shadow-emerald-100 dark:shadow-emerald-900/30',
-    focusBorder: 'focus:border-emerald-500',
-    hoverBorder: 'hover:border-emerald-300',
-    iconAccent: 'text-emerald-400',
-    iconAccentDark: 'dark:text-emerald-300',
-    bgLight: 'bg-emerald-50/50',
-    bgLightDark: 'dark:bg-emerald-900/20',
-    bgLightSolid: 'bg-emerald-50',
-    bgLightDarkSolid: 'dark:bg-emerald-900',
-    badgeBg: 'bg-emerald-100',
-    badgeBgDark: 'dark:bg-emerald-900/30',
-    badgeText: 'text-emerald-700',
-    badgeTextDark: 'dark:text-emerald-300',
-    tabText: 'text-emerald-600',
-    headerIcon: 'bg-emerald-500',
-    headerIconShadow: 'shadow-emerald-200 dark:shadow-emerald-900/30',
+    btnPrimary: 'bg-kk-primary hover:bg-kk-dark text-white',
+    shadowBtn: 'shadow-kk-light dark:shadow-kk-dark/30',
+    focusBorder: 'focus:border-kk-primary',
+    hoverBorder: 'hover:border-kk-secondary',
+    iconAccent: 'text-kk-primary',
+    iconAccentDark: 'dark:text-kk-secondary',
+    bgLight: 'bg-kk-light/50',
+    bgLightDark: 'dark:bg-kk-dark/20',
+    bgLightSolid: 'bg-kk-light',
+    bgLightDarkSolid: 'dark:bg-kk-dark',
+    badgeBg: 'bg-kk-light',
+    badgeBgDark: 'dark:bg-kk-dark/30',
+    badgeText: 'text-kk-dark',
+    badgeTextDark: 'dark:text-kk-secondary',
+    tabText: 'text-kk-dark',
+    headerIcon: 'bg-kk-primary',
+    headerIconShadow: 'shadow-kk-light dark:shadow-kk-dark/30',
     btnDebt: 'bg-blue-600 hover:bg-blue-700 text-white',
     btnFixed: 'bg-sky-500 hover:bg-sky-600 text-white',
     btnSub: 'bg-rose-600 hover:bg-rose-700 text-white',
-    modalPrimary: 'bg-emerald-500 hover:bg-emerald-600 text-white',
-    borderAccent: 'border-emerald-500',
-    bgModalLight: 'bg-emerald-50 dark:bg-emerald-900/30',
-    inputBg: 'bg-emerald-50/50 dark:bg-emerald-900/20',
+    modalPrimary: 'bg-kk-primary hover:bg-kk-dark text-white',
+    borderAccent: 'border-kk-primary',
+    bgModalLight: 'bg-kk-light dark:bg-kk-dark/30',
+    inputBg: 'bg-kk-light/50 dark:bg-kk-dark/20',
   },
   indigo: {
     btnPrimary: 'bg-indigo-600 hover:bg-indigo-700',
@@ -322,7 +325,7 @@ export const THEMES = {
 };
 
 export const THEME_COLOR_HEX = {
-  kk: '#059669',
+  kk: '#2DBC8B',
   indigo: '#4f46e5',
   blue: '#2563eb',
   emerald: '#059669',
