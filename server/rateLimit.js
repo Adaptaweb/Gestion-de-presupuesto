@@ -4,21 +4,8 @@ import db from './db.js';
 // Limitador de tasa respaldado por Postgres.
 //
 // En serverless no sirve un contador en memoria: cada instancia tendria el suyo
-// y el limite se multiplicaria por el numero de instancias vivas. La tabla se
-// crea de forma perezosa la primera vez que se usa; en la Fase 1 pasara a ser
-// una migracion SQL versionada como el resto.
-
-let tableReady = false;
-
-async function ensureTable() {
-  if (tableReady) return;
-  await db.run(`CREATE TABLE IF NOT EXISTS rate_limits (
-    key TEXT PRIMARY KEY,
-    count INTEGER NOT NULL DEFAULT 0,
-    window_start TIMESTAMPTZ NOT NULL DEFAULT NOW()
-  )`);
-  tableReady = true;
-}
+// y el limite se multiplicaria por el numero de instancias vivas. La tabla
+// rate_limits la crea la migracion 0011.
 
 function clientIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
@@ -50,8 +37,6 @@ export function rateLimit({ bucket, max, windowSec, identify }) {
     }
 
     try {
-      await ensureTable();
-
       const row = await db.get(
         `INSERT INTO rate_limits (key, count, window_start)
          VALUES (?, 1, NOW())

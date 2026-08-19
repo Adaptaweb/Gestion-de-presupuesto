@@ -186,7 +186,6 @@ export const SEED_TEMPLATES = [
 ];
 
 export async function seedTemplates() {
-  await new Promise(r => setTimeout(r, 2000));
 
   for (const template of SEED_TEMPLATES) {
     try {

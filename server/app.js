@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addAuthColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns, runOnce } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
@@ -12,7 +12,6 @@ import { Resend } from 'resend';
 import crypto from 'crypto';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 import { setDb as setEmbeddingsDb } from './embeddings.js';
-import { seedTemplates } from './seedTemplates.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
 import { rateLimit, secretsMatch } from './rateLimit.js';
@@ -227,15 +226,8 @@ const resendLimiter = rateLimit({
   identify: req => req.body?.email,
 });
 
-runOnce('add-casilla-column', addCasillaColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-gmail-forwarding-authorized', addGmailForwardingAuthorizedColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-push-subscriptions', addPushSubscriptionsTable).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-created-at-columns', addCreatedAtColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-auth-columns', addAuthColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-parsing-logs', addParsingLogsTable).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-plantillas-email-table', addPlantillasEmailTable).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('migrate-plantillas-email-columns', migratePlantillasEmailColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
-setTimeout(() => seedTemplates().catch(e => console.error('[TEMPLATE] Seed error:', e.message)), 3000);
+// El esquema se aplica con `npm run migrate` en el despliegue, no al arrancar.
+// Ver server/migrations/run.js.
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
