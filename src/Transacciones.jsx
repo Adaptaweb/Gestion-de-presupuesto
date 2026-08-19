@@ -18,6 +18,7 @@ import {
   CATEGORY_ICON_BG as CATEGORY_ICON_BG_DEFAULT,
   CATEGORY_ICON_COLOR as CATEGORY_ICON_COLOR_DEFAULT,
   CATEGORY_EMOJI as CATEGORY_EMOJI_DEFAULT,
+  CATEGORY_HEX as CATEGORY_HEX_DEFAULT, hexToRgba,
   BANK_COLORS, BANK_ACCENT, BANK_ICONS
 } from './constants.js';
 
@@ -338,7 +339,211 @@ const ReviewCard = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial }) => {
+
+const MOVIMIENTO_COLORS = {
+  Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+  Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  Retiro: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+  Cargo: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  'Débito': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+  'Crédito': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+};
+
+const SORT_OPTIONS = [
+  { key: 'fecha', label: 'Fecha' },
+  { key: 'monto', label: 'Monto' },
+  { key: 'comercio', label: 'Comercio' },
+  { key: 'banco', label: 'Banco' },
+  { key: 'categoria', label: 'Categoria' },
+];
+
+// Todo el color de la card sale del hex de la categoria: asi una categoria
+// creada por el usuario pinta igual que una por defecto.
+// El tinte se apaga hacia la derecha para no competir con el monto.
+const catCardGradient = (hex, isDark) => {
+  const a = isDark ? [0.20, 0.08, 0] : [0.16, 0.055, 0];
+  return `linear-gradient(100deg, ${hexToRgba(hex, a[0])} 0%, ${hexToRgba(hex, a[1])} 42%, ${hexToRgba(hex, a[2])} 78%)`;
+};
+
+const catAccentGradient = (hex) =>
+  `linear-gradient(180deg, ${hexToRgba(hex, 1)} 0%, ${hexToRgba(hex, 0.45)} 100%)`;
+
+const catIconGradient = (hex, isDark) => {
+  const a = isDark ? [0.38, 0.16] : [0.26, 0.1];
+  return `linear-gradient(135deg, ${hexToRgba(hex, a[0])} 0%, ${hexToRgba(hex, a[1])} 100%)`;
+};
+
+const catChipGradient = (hex, isDark) =>
+  `linear-gradient(135deg, ${hexToRgba(hex, isDark ? 0.34 : 0.24)} 0%, ${hexToRgba(hex, isDark ? 0.14 : 0.08)} 100%)`;
+
+// La tabla ordenaba al hacer clic en el <th>. Sin tabla ese affordance
+// desaparece, asi que el orden pasa a chips explicitos.
+const SortChips = ({ sortConfig, onSort }) => (
+  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5" style={{ scrollbarWidth: 'none' }}>
+    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex-shrink-0 pr-0.5">Ordenar</span>
+    {SORT_OPTIONS.map(opt => {
+      const isActive = sortConfig.key === opt.key;
+      const isAsc = sortConfig.dir === 'asc';
+      return (
+        <button
+          key={opt.key}
+          onClick={() => onSort(opt.key)}
+          className={`flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold border transition ${
+            isActive
+              ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
+              : 'bg-white dark:bg-dark-normal text-slate-500 dark:text-slate-400 border-slate-200 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'
+          }`}
+          title={isActive ? (isAsc ? 'Ascendente' : 'Descendente') : `Ordenar por ${opt.label}`}
+        >
+          {opt.label}
+          {isActive
+            ? (isAsc ? <ArrowUp size={11} /> : <ArrowDown size={11} />)
+            : <ArrowUpDown size={11} className="opacity-30" />}
+        </button>
+      );
+    })}
+  </div>
+);
+
+const TransactionCardSkeleton = () => (
+  <div className="relative flex items-center gap-3 sm:gap-4 pl-5 pr-3 py-3.5 rounded-2xl border border-slate-100 dark:border-dark-lighter bg-white dark:bg-dark-lighter/40 overflow-hidden">
+    <span className="absolute left-0 inset-y-0 w-1.5 bg-slate-200 dark:bg-dark-lightest" />
+    <span className="skeleton inline-block rounded-full flex-shrink-0" style={{ width: '42px', height: '42px' }} />
+    <div className="flex-1 min-w-0 space-y-2">
+      <span className="skeleton block" style={{ width: '45%', height: '13px' }} />
+      <span className="flex gap-1.5">
+        <span className="skeleton inline-block rounded-full" style={{ width: '72px', height: '16px' }} />
+        <span className="skeleton inline-block rounded-full" style={{ width: '58px', height: '16px' }} />
+      </span>
+    </div>
+    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+      <span className="skeleton inline-block" style={{ width: '76px', height: '15px' }} />
+      <span className="skeleton inline-block" style={{ width: '92px', height: '11px' }} />
+    </div>
+  </div>
+);
+
+const TransactionCard = ({
+  tx, hex, emoji, badge, isDarkMode,
+  formatCurrency, formatDate, formatTime, onEdit, onDelete,
+}) => {
+  const isMuted = tx.tipo_transaccion === 'no_es_gasto'
+    || tx.tipo_transaccion === 'no_es_ingreso'
+    || tx.tipo_transaccion === 'interno';
+  const isIngreso = tx.tipo_transaccion === 'ingreso';
+  const movimiento = tx.tipo_movimiento || tx.tipo_tarjeta || '';
+  const mutedChip = 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500';
+
+  return (
+    <div
+      className={`group relative flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-2 sm:pr-3 py-3 sm:py-3.5 rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30 ${
+        isMuted
+          ? 'bg-slate-50 dark:bg-dark-lighter/30 border-slate-100 dark:border-dark-lighter'
+          : 'bg-white dark:bg-dark-lighter/50'
+      }`}
+      style={isMuted ? undefined : {
+        backgroundImage: catCardGradient(hex, isDarkMode),
+        borderColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.18),
+      }}
+    >
+      <span
+        className={`absolute left-0 inset-y-0 w-1.5 ${isMuted ? 'bg-slate-200 dark:bg-dark-lightest' : ''}`}
+        style={isMuted ? undefined : { backgroundImage: catAccentGradient(hex) }}
+      />
+
+      <div
+        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex-shrink-0 grid place-items-center text-lg sm:text-xl leading-none ${
+          isMuted ? 'bg-slate-100 dark:bg-dark-lightest grayscale opacity-60' : ''
+        }`}
+        style={isMuted ? undefined : {
+          backgroundImage: catIconGradient(hex, isDarkMode),
+          border: `1px solid ${hexToRgba(hex, isDarkMode ? 0.3 : 0.22)}`,
+        }}
+      >
+        {emoji}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className={`truncate text-sm sm:text-[15px] font-black leading-tight ${
+          isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'
+        }`}>
+          {tx.comercio || 'Sin comercio'}
+        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1 sm:gap-1.5">
+          <span className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${
+            isMuted ? mutedChip : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+          }`}>
+            {BANK_ICONS[tx.banco] && (
+              <img
+                src={BANK_ICONS[tx.banco]}
+                alt=""
+                className={`w-3.5 h-3.5 rounded-full ${isMuted ? 'opacity-50' : ''} ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`}
+              />
+            )}
+            {tx.banco || '-'}
+          </span>
+
+          {movimiento && (
+            <span className={`text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${
+              isMuted ? mutedChip : MOVIMIENTO_COLORS[movimiento] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+            }`}>{movimiento}</span>
+          )}
+
+          <span
+            className={`text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full max-w-[9rem] truncate ${
+              isMuted ? mutedChip : badge.className || ''
+            }`}
+            style={isMuted ? undefined : {
+              ...(badge.style || {}),
+              backgroundImage: catChipGradient(hex, isDarkMode),
+            }}
+          >
+            {tx.categoria}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-shrink-0 text-right">
+        <div className={`text-sm sm:text-base font-black tabular-nums leading-tight ${
+          isMuted
+            ? 'text-slate-400 dark:text-slate-500'
+            : isIngreso
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-slate-800 dark:text-white'
+        }`}>
+          {!isMuted && isIngreso ? '+' : ''}{formatCurrency(tx.monto)}
+        </div>
+        <div className="mt-0.5 text-[10px] sm:text-[11px] font-bold text-slate-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
+          {formatDate(tx.fecha)}
+          {formatTime(tx.fecha_extraccion) && (
+            <span className="hidden sm:inline"> · {formatTime(tx.fecha_extraccion)}</span>
+          )}
+        </div>
+      </div>
+
+      {/* En desktop las acciones aparecen al hover; en tactil no hay hover,
+          asi que ahi quedan siempre visibles. */}
+      <div className="flex-shrink-0 flex sm:flex-col lg:flex-row items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+        <button
+          onClick={(e) => { e.stopPropagation(); onEdit(tx); }}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+          title="Reclasificar"
+        >
+          <Edit3 size={15} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(tx.id); }}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+          title="Eliminar"
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -362,6 +567,12 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     if (typeof val === 'string') return { className: val };
     return { style: { backgroundColor: val.backgroundColor, color: val.color } };
   };
+
+  const catHexes = Object.fromEntries((categorias || []).map(c => [c.nombre, c.color_hex]));
+  const CATEGORY_HEX = Object.keys(catHexes).length > 0 ? catHexes : CATEGORY_HEX_DEFAULT;
+
+  const catHex = (catName) =>
+    CATEGORY_HEX[catName] || CATEGORY_HEX_DEFAULT[catName] || CATEGORY_HEX_DEFAULT['Otros'];
 
   const dateToInputStr = (d) => d.toISOString().slice(0, 10);
 
@@ -388,27 +599,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     const val = CATEGORY_BAR_COLORS[catName] || CATEGORY_BAR_COLORS['Otros'];
     if (typeof val === 'string') return { className: val };
     return { style: { backgroundColor: val.backgroundColor } };
-  };
-
-  const SortableTh = ({ sortKey, align = 'left', hideMobile, children }) => {
-    const isActive = sortConfig.key === sortKey;
-    const isAsc = sortConfig.dir === 'asc';
-    const alignClass = align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left';
-    return (
-      <th
-        onClick={() => handleSort(sortKey)}
-        className={`p-2 sm:p-4 ${alignClass} font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors ${hideMobile ? 'hidden sm:table-cell' : ''}`}
-      >
-        <span className="inline-flex items-center gap-1">
-          {children}
-          {isActive ? (
-            isAsc ? <ArrowUp size={10} className="text-emerald-500" /> : <ArrowDown size={10} className="text-emerald-500" />
-          ) : (
-            <ArrowUpDown size={10} className="opacity-30" />
-          )}
-        </span>
-      </th>
-    );
   };
 
   const [transactions, setTransactions] = useState([]);
@@ -742,20 +932,32 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     }
   }, [loading]);
 
+  // Ordenar solo reordena la lista: los totales y los widgets de resumen no
+  // cambian, asi que no debe entrar por la ruta de `loading` (esa deja los
+  // widgets en skeleton). Los filtros y el cambio de mes si.
+  const lastQueryRef = useRef(null);
+
   useEffect(() => {
+    const queryKey = JSON.stringify({ filterCat, filterTipo, filterBanco, filterDateRange });
+    const onlySortChanged = lastQueryRef.current !== null && lastQueryRef.current === queryKey;
+    lastQueryRef.current = queryKey;
     setPage(0);
-    fetchTransactions(false, 0);
+    fetchTransactions(onlySortChanged, 0);
   }, [filterCat, filterTipo, filterBanco, sortConfig, filterDateRange]);
 
   useEffect(() => {
     fetchSummary();
   }, [filterDateRange]);
 
+  // La navegacion global (FAB central y menu de usuario) pide acciones que solo
+  // se pueden ejecutar aqui, que es donde vive el estado de la pantalla.
   useEffect(() => {
-    const handleOpenManual = () => setShowManualEntry(true);
-    window.addEventListener('opencode:open-manual', handleOpenManual);
-    return () => window.removeEventListener('opencode:open-manual', handleOpenManual);
-  }, []);
+    if (!pendingAction) return;
+    if (pendingAction.type === 'manual') setShowManualEntry(true);
+    else if (pendingAction.type === 'revisar') handleRevisar();
+    else if (pendingAction.type === 'reprocesar') handleReprocess();
+    if (typeof onActionHandled === 'function') onActionHandled();
+  }, [pendingAction]);
 
   const formatCurrency = (val) => {
     if (val == null) return '$0';
@@ -1054,12 +1256,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       )}
       <div className="animate-fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <div className="flex items-center gap-3">
+        {/* En movil Pendientes se empuja al borde derecho: es la accion mas
+            importante de la pantalla y ahi cae bajo el pulgar. */}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
           <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3 whitespace-nowrap">
             <Mail className={theme.tabText} size={20} /> Transacciones
           </h2>
           {pendientesCount > 0 ? (
-            <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95 whitespace-nowrap">
+            <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/30 dark:shadow-orange-900/40 transition active:scale-95 whitespace-nowrap">
               <Bell size={16} />
               Pendientes
               <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
@@ -1084,6 +1288,75 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             </span>
           )}
         </div>
+      </div>
+
+      {/* Mes y filtros mandan sobre los widgets y sobre la lista, asi que van
+          antes que ambos: abajo obligaban a bajar para cambiar de mes. */}
+      <div className="flex flex-wrap gap-2 items-center justify-between">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative">
+            <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-2 py-1.5">
+              <button onClick={goToPrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
+                <ChevronLeft size={16} />
+              </button>
+              <button onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }} className="min-w-[120px] text-center text-xs font-bold text-slate-700 dark:text-slate-200 capitalize hover:bg-slate-100 dark:hover:bg-dark-lighter px-2 py-1 rounded-lg transition">
+                {formatMonthLabel(monthDate)}
+              </button>
+              <button onClick={goToNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            {showMonthPicker && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
+                <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3 min-w-[220px]">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <button onClick={() => setPickerYear(pickerYear - 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
+                    <button onClick={() => setPickerYear(pickerYear + 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1">
+                    {MONTHS_SHORT.map((name, i) => {
+                      const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
+                      return (
+                        <button
+                          key={name}
+                          onClick={() => {
+                            const d = new Date(pickerYear, i, 1);
+                            setMonthDate(d);
+                            setFilterDateRange(getMonthRange(d));
+                            setShowMonthPicker(false);
+                          }}
+                          className={`px-2 py-2 rounded-lg text-xs font-bold transition ${
+                            isCurrent
+                              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                              : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
+                          }`}
+                        >
+                          {name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition">
+            <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
+          </button>
+
+        </div>
+        {/* Solo icono en movil: con el texto, mes + Filtrar + Actualizar no
+            caben en 375px y Actualizar caia a una segunda fila. */}
+        <button onClick={refreshTable} disabled={pageLoading || loading} title="Actualizar" className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-2.5 sm:px-3 py-2 min-w-[36px] rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition disabled:opacity-50">
+          <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> <span className="hidden sm:inline">Actualizar</span>
+        </button>
       </div>
 
       {loading && !pageLoading ? (
@@ -1197,110 +1470,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
 
 
-      <div className="flex flex-wrap gap-2 items-center justify-between">
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="relative">
-            <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-2 py-1.5">
-              <button onClick={goToPrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                <ChevronLeft size={16} />
-              </button>
-              <button onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }} className="min-w-[120px] text-center text-xs font-bold text-slate-700 dark:text-slate-200 capitalize hover:bg-slate-100 dark:hover:bg-dark-lighter px-2 py-1 rounded-lg transition">
-                {formatMonthLabel(monthDate)}
-              </button>
-              <button onClick={goToNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            {showMonthPicker && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
-                <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3 min-w-[220px]">
-                  <div className="flex items-center justify-between mb-2 px-1">
-                    <button onClick={() => setPickerYear(pickerYear - 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                      <ChevronLeft size={16} />
-                    </button>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
-                    <button onClick={() => setPickerYear(pickerYear + 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-4 gap-1">
-                    {MONTHS_SHORT.map((name, i) => {
-                      const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
-                      return (
-                        <button
-                          key={name}
-                          onClick={() => {
-                            const d = new Date(pickerYear, i, 1);
-                            setMonthDate(d);
-                            setFilterDateRange(getMonthRange(d));
-                            setShowMonthPicker(false);
-                          }}
-                          className={`px-2 py-2 rounded-lg text-xs font-bold transition ${
-                            isCurrent
-                              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                              : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
-                          }`}
-                        >
-                          {name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition">
-            <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
-          </button>
-
-          {user?.role === 'admin' && (
-            <button onClick={handleRevisar} disabled={revisando || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-3 py-2 rounded-xl text-xs font-bold border border-teal-200 dark:border-teal-800 transition disabled:opacity-50">
-              <Mail size={14} className={revisando ? 'animate-bounce' : ''} /> Revisar correos
-            </button>
-          )}
-          {user?.role === 'admin' && (
-            <button onClick={handleReprocess} disabled={reprocessing || pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition disabled:opacity-50">
-              <RefreshCw size={14} className={reprocessing ? 'animate-spin' : ''} /> Reprocesar
-            </button>
-          )}
-        </div>
-        <button onClick={refreshTable} disabled={pageLoading || loading} className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition disabled:opacity-50">
-          <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> Actualizar
-        </button>
-      </div>
-
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
         {loading && transactions.length === 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[700px]">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                    <SortableTh sortKey="fecha" align="left">Fecha</SortableTh>
-                    <SortableTh sortKey="banco" align="left">Banco</SortableTh>
-                    <SortableTh sortKey="comercio" align="left">Comercio</SortableTh>
-                    <SortableTh sortKey="monto" align="right">Monto</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest hidden sm:table-cell">Tipo</th>
-                    <SortableTh sortKey="categoria" align="center" hideMobile>Categoría</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest w-16">Acción</th>
-                  </tr>
-                </thead>
-              <tbody>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-50 dark:border-dark-lighter/50">
-                    <td className="p-2 sm:p-4"><SkeletonBar w="68px" /></td>
-                    <td className="p-2 sm:p-4"><SkeletonBar w="85px" /></td>
-                    <td className="p-2 sm:p-4"><SkeletonBar w="130px" /></td>
-                    <td className="p-2 sm:p-4 text-right"><span className="inline-flex justify-end w-full"><SkeletonBar w="70px" /></span></td>
-                    <td className="p-2 sm:p-4 text-center hidden sm:table-cell"><span className="inline-flex justify-center w-full"><SkeletonBar w="55px" /></span></td>
-                    <td className="p-2 sm:p-4 text-center hidden sm:table-cell"><span className="inline-flex justify-center w-full"><SkeletonBar w="65px" /></span></td>
-                    <td className="p-2 sm:p-4 text-center"><span className="inline-flex justify-center gap-2 w-full"><SkeletonBar w="22px" h="22px" /><SkeletonBar w="22px" h="22px" /></span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-3 sm:p-4 space-y-2.5">
+            <div className="px-1 pb-1"><SortChips sortConfig={sortConfig} onSort={handleSort} /></div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <TransactionCardSkeleton key={i} />
+            ))}
           </div>
         ) : transactions.length === 0 && !loading ? (
           <div className="text-center py-16">
@@ -1310,69 +1486,32 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           </div>
         ) : (
           <>
-            <div className={`animate-slide-fade overflow-x-auto relative ${pageLoading ? 'opacity-60 pointer-events-none transition-opacity duration-150' : ''}`}>
+            <div className={`animate-slide-fade relative p-3 sm:p-4 ${pageLoading ? 'opacity-60 pointer-events-none transition-opacity duration-150' : ''}`}>
               {pageLoading && (
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <Loader2 size={28} className="animate-spin text-slate-400 dark:text-slate-500" />
                 </div>
               )}
-              <table className="w-full border-collapse min-w-[700px]">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                    <SortableTh sortKey="fecha" align="left">Fecha</SortableTh>
-                    <SortableTh sortKey="banco" align="left">Banco</SortableTh>
-                    <SortableTh sortKey="comercio" align="left">Comercio</SortableTh>
-                    <SortableTh sortKey="monto" align="right">Monto</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest hidden sm:table-cell">Tipo</th>
-                    <SortableTh sortKey="categoria" align="center" hideMobile>Categoría</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest w-16">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((tx, idx) => {
-                    const isMuted = tx.tipo_transaccion === 'no_es_gasto' || tx.tipo_transaccion === 'no_es_ingreso' || tx.tipo_transaccion === 'interno';
-                    return (
-                    <tr key={tx.id} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
-                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold whitespace-nowrap ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{formatDate(tx.fecha)}</td>
-                      <td className="p-2 sm:p-4">
-                        <span className={`inline-flex items-center gap-1.5 text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full ${isMuted ? 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500' : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-                          {BANK_ICONS[tx.banco] && <img src={BANK_ICONS[tx.banco]} alt="" className={`w-4 h-4 rounded-full ${isMuted ? 'opacity-50' : ''} ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />}
-                          {tx.banco || '-'}
-                        </span>
-                      </td>
-                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>{tx.comercio || '-'}</td>
-                      <td className={`p-2 sm:p-4 text-xs sm:text-sm font-black text-right ${isMuted ? 'text-slate-400 dark:text-slate-500' : tx.tipo_transaccion === 'ingreso' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
-  {!isMuted && (tx.tipo_transaccion === 'ingreso' ? '+' : '')}{formatCurrency(tx.monto)}
-</td>
-                      <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
-                        {(() => {
-                          const label = tx.tipo_movimiento || tx.tipo_tarjeta || '';
-                          if (!label) return <span className="text-xs text-slate-300 dark:text-slate-600">—</span>;
-                          const colorMap = {
-                            Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-                            Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-                            Retiro: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-                            Cargo: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-                            Débito: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-                            Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-                          };
-                          return (
-                            <span className={`text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
-                          );
-                        })()}
-                      </td>
-                      <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
-                        <span {...catBadgeStyle(tx.categoria)} className={`text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full ${catBadgeStyle(tx.categoria).className || ''}`}>{tx.categoria}</span>
-                      </td>
-                      <td className="p-2 sm:p-4 text-center">
-                        <button onClick={(e) => { e.stopPropagation(); handleReclasificarTx(tx); }} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition" title="Reclasificar"><Edit3 size={14} /></button>
-                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTx(tx.id); }} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition" title="Eliminar"><Trash2 size={14} /></button>
-                      </td>
-                    </tr>
-                    );
-                    })}
-                </tbody>
-              </table>
+              <div className="px-1 pb-3">
+                <SortChips sortConfig={sortConfig} onSort={handleSort} />
+              </div>
+              <div className="space-y-2 sm:space-y-2.5">
+                {transactions.map(tx => (
+                  <TransactionCard
+                    key={tx.id}
+                    tx={tx}
+                    hex={catHex(tx.categoria)}
+                    emoji={CATEGORY_EMOJI[tx.categoria] || CATEGORY_EMOJI_DEFAULT[tx.categoria] || '💳'}
+                    badge={catBadgeStyle(tx.categoria)}
+                    isDarkMode={isDarkMode}
+                    formatCurrency={formatCurrency}
+                    formatDate={formatDate}
+                    formatTime={formatTime}
+                    onEdit={handleReclasificarTx}
+                    onDelete={handleDeleteTx}
+                  />
+                ))}
+              </div>
             </div>
             {totalCount > 10 && (() => {
               const totalPages = Math.ceil(totalCount / 10);
@@ -1430,14 +1569,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </p>
       )}
 
-      {!showFilterModal && !showEditModal && !showReview && !showManualEntry && (
-        <button
-          onClick={() => setShowManualEntry(true)}
-          className={`fixed bottom-20 md:bottom-6 right-6 lg:bottom-8 lg:right-8 z-[60] ${theme.btnPrimary} text-white px-5 py-3.5 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-2 transition hover:scale-105 active:scale-95 ${theme.shadowBtn}`}
-        >
-          <Plus size={20} /> <span className="hidden sm:inline">Ingreso Manual</span>
-        </button>
-      )}
 
       {/* Edit Transaction Modal */}
       {showEditModal && editingTx && (

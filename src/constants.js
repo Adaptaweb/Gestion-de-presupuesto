@@ -148,3 +148,38 @@ export const BANK_ICONS = {
   'Banco Falabella': '/chile-icons/bancos/banco_falabella.png',
   'Banco Paris': '/chile-icons/bancos/paris.png',
 };
+
+// Hex de respaldo por categoria: las categorias del usuario traen su propio
+// color_hex, pero las categorias por defecto solo existian como clases de
+// Tailwind, que no sirven para construir degradados en linea.
+export const CATEGORY_HEX = {
+  'Casa y cuentas': '#f59e0b',
+  'Mercadería': '#f97316',
+  'Gustitos': '#f43f5e',
+  'Transporte': '#3b82f6',
+  'Compras': '#ec4899',
+  'Salud y deportes': '#22c55e',
+  'Educación': '#8b5cf6',
+  'Suscripciones': '#6366f1',
+  'Viajes y vacaciones': '#06b6d4',
+  'Donaciones y regalos': '#d946ef',
+  'Otros': '#64748b',
+  'Ahorro': '#10b981',
+  'Sueldo': '#84cc16',
+  'Inversiones / Renta': '#34d399',
+  'Otros ingresos': '#14b8a6',
+  'Gastos bancarios': '#78716c',
+  'Intereses': '#0ea5e9',
+  'Créditos de consumo': '#ef4444',
+  'Sin categoría': '#71717a',
+  'Juegos': '#a855f7',
+};
+
+export function hexToRgba(hex, alpha = 1) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length !== 6) return `rgba(100,116,139,${alpha})`;
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}

@@ -1,7 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2, RefreshCw,
-  Settings2, Filter, Tags, Bell,
+  Settings2, Filter, Tags, Bell, Mail, RotateCw,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ export function UserMenu({
   themeColor, setThemeColor,
   isDarkMode, setIsDarkMode,
   onOpenAdmin, onOpenCategorias, onOpenConfig, onOpenFilters, onLogout,
+  onRevisarCorreos, onReprocesar,
   generateFinancialAdvice, isAiLoading,
   isPushSubscribed, isPushLoading,
   onToggleNotifications,
@@ -39,22 +40,60 @@ export function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 py-2 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-dark-lighter transition cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-300 min-h-[40px]">
-          <User size={16} className="text-slate-400 flex-shrink-0" />
-          <span className="truncate max-w-[100px]">{user.name}</span>
+        {/* En movil se reduce a un boton cuadrado de 40px, igual que el toggle
+            de modo oscuro, para que ambos quepan en la fila del logo. El
+            nombre, el distintivo Admin y el chevron vuelven desde sm. */}
+        <button
+          aria-label={`Menu de ${user.name}`}
+          className="flex items-center justify-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-2 sm:px-3 py-2 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-dark-lighter transition cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-300 min-h-[40px] min-w-[40px]"
+        >
+          <span className="relative flex-shrink-0">
+            <User size={16} className="text-slate-400" />
+            {user.role === 'admin' && (
+              <span className="sm:hidden absolute -top-1.5 -right-1.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-white dark:ring-dark-normal" />
+            )}
+          </span>
+          <span className="hidden sm:block truncate max-w-[100px]">{user.name}</span>
           {user.role === 'admin' && (
-            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
+            <span className="hidden sm:inline bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
           )}
-          <ChevronDown size={14} className="text-slate-400 flex-shrink-0" />
+          <ChevronDown size={14} className="hidden sm:block text-slate-400 flex-shrink-0" />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-64 rounded-2xl p-1" align="end">
+        {/* En movil el disparador solo muestra el icono, asi que el nombre y el
+            rol se recuperan aqui. */}
+        <div className="sm:hidden flex items-center gap-2 px-2 py-2 mb-1 border-b border-slate-100 dark:border-dark-lighter">
+          <User size={16} className="text-slate-400 flex-shrink-0" />
+          <span className="truncate font-bold text-sm">{user.name}</span>
+          {user.role === 'admin' && (
+            <span className="ml-auto bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
+          )}
+        </div>
+
         <DropdownMenuGroup>
           {user.role === 'admin' && (
             <DropdownMenuItem onClick={onOpenAdmin} className="p-2 rounded-lg cursor-pointer">
               <Users size={16} className="mr-2 text-slate-500" />
               <span>Usuarios</span>
+            </DropdownMenuItem>
+          )}
+
+          {/* Acciones de mantenimiento sobre las transacciones. Vivian como
+              botones sueltos en la toolbar de Transacciones, visibles solo
+              para admin: ahi ocupaban espacio de barra a todo el mundo. */}
+          {user.role === 'admin' && onRevisarCorreos && (
+            <DropdownMenuItem onClick={onRevisarCorreos} className="p-2 rounded-lg cursor-pointer">
+              <Mail size={16} className="mr-2 text-slate-500" />
+              <span>Revisar correos</span>
+            </DropdownMenuItem>
+          )}
+
+          {user.role === 'admin' && onReprocesar && (
+            <DropdownMenuItem onClick={onReprocesar} className="p-2 rounded-lg cursor-pointer">
+              <RotateCw size={16} className="mr-2 text-slate-500" />
+              <span>Reprocesar</span>
             </DropdownMenuItem>
           )}
 

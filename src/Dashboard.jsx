@@ -54,8 +54,28 @@ import {
   getAhorroBankInfo,
 } from './constants/dashboard.js';
 
+// Una sola fuente para la navegacion: las tabs de escritorio y la barra
+// flotante movil se generaban por separado y ya habian divergido.
+const NAV_ITEMS = [
+  { id: 'transacciones', icon: Mail, label: 'Transacciones', short: 'Trans' },
+  { id: 'general', icon: ListChecks, label: 'Detalle General', short: 'Detalle' },
+  { id: 'ahorros', icon: PiggyBank, label: 'Gestión de Ahorros', short: 'Ahorros' },
+  { id: 'dashboard', icon: LayoutDashboard, label: 'Resumen', short: 'Resumen' },
+];
+
 const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall, onDashboardReady }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
+  // Acciones que dispara la navegacion global pero ejecuta Transacciones, que
+  // es donde vive el estado. El contador evita que dos peticiones iguales
+  // seguidas se pierdan por comparacion de referencia.
+  const [txAction, setTxAction] = useState(null);
+  const txActionSeq = useRef(0);
+  const requestTxAction = useCallback((type) => {
+    setActiveTab('transacciones');
+    txActionSeq.current += 1;
+    setTxAction({ type, seq: txActionSeq.current });
+  }, []);
+  const openManualEntry = useCallback(() => requestTxAction('manual'), [requestTxAction]);
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState(null);
@@ -960,19 +980,29 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-	      <div className="min-h-screen bg-kk-background dark:bg-dark-darker p-1 md:p-2 pb-20 md:pb-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+	      <div className="min-h-screen bg-kk-background dark:bg-dark-darker p-1 md:p-2 pb-28 md:pb-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-[100%] lg:max-w-[1920px] mx-auto">
 
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-6">
-          <div className="flex items-center gap-3 md:gap-4">
-            <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-9 md:h-10 w-auto" />
+        {/* Una sola fila en todos los tamanos: en movil el logo ocupaba su
+            propia linea y empujaba los controles a una segunda fila. El logo
+            mide 5:1, asi que en pantallas estrechas baja a h-8 para dejar sitio. */}
+        <header className="flex flex-row justify-between items-center mb-4 md:mb-6 gap-2 sm:gap-3 md:gap-6">
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-8 sm:h-9 md:h-10 w-auto" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             {syncStatus !== 'idle' && (
-              <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : syncStatus === 'conflict' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}>
+              <div
+                title={syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
+                className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2 min-w-[36px] rounded-xl text-xs font-bold transition-colors ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : syncStatus === 'conflict' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}
+              >
                 {syncStatus === 'saving' ? <Loader2 size={14} className="animate-spin" /> : syncStatus === 'saved' ? <ClipboardCheck size={14} /> : syncStatus === 'conflict' ? <RefreshCw size={14} /> : <X size={14} />}
-                {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
+                {/* El texto de 'conflict' mide 28 caracteres: en movil empujaba
+                    el menu de usuario fuera de la fila. */}
+                <span className="hidden sm:inline">
+                  {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
+                </span>
               </div>
             )}
             <button
@@ -997,6 +1027,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               onOpenCategorias={() => setShowCategoriasConfig(true)}
               onOpenConfig={() => setShowConfigModal(true)}
               onOpenFilters={() => setShowFilterRulesModal(true)}
+              onRevisarCorreos={() => requestTxAction('revisar')}
+              onReprocesar={() => requestTxAction('reprocesar')}
               onLogout={onLogout}
               generateFinancialAdvice={generateFinancialAdvice}
               isAiLoading={isAiLoading}
@@ -1038,78 +1070,67 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </div>
         )}
 
-        <div className="hidden md:flex gap-1.5 justify-center mb-8">
+        <div className="hidden md:flex items-center justify-center gap-2 mb-8">
+          <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm">
+            {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                aria-current={activeTab === id ? 'page' : undefined}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition ${
+                  activeTab === id
+                    ? `${theme.btnPrimary} text-white shadow-md ${theme.shadowBtn}`
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter'
+                }`}
+              >
+                <Icon size={16} /> {label}
+              </button>
+            ))}
+          </div>
           <button
-            onClick={() => setActiveTab('transacciones')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'transacciones' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
+            onClick={openManualEntry}
+            className={`flex items-center gap-2 pl-2.5 pr-5 py-2.5 rounded-full ${theme.btnPrimary} text-white text-sm font-black shadow-lg ${theme.shadowBtn} transition active:scale-95`}
           >
-            <Mail size={16} /> Transacciones
-          </button>
-          <button
-            onClick={() => setActiveTab('general')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'general' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
-          >
-            <ListChecks size={16} /> Detalle General
-          </button>
-          <button
-            onClick={() => setActiveTab('ahorros')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'ahorros' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
-          >
-            <PiggyBank size={16} /> Gestión de Ahorros
-          </button>
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition ${activeTab === 'dashboard' ? `bg-white dark:bg-dark-lighter ${theme.tabText} shadow-md` : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter/50'}`}
-          >
-            <LayoutDashboard size={16} /> Resumen
+            <span className="grid place-items-center w-7 h-7 rounded-full bg-white/20"><Plus size={16} strokeWidth={2.75} /></span>
+            Ingreso Manual
           </button>
         </div>
 
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-dark-normal/90 backdrop-blur-lg border-t border-slate-200 dark:border-dark-lighter animate-slide-in-from-bottom" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+        {/* Barra flotante con FAB central. El FAB reemplaza al boton flotante
+            que Transacciones dibujaba en la esquina y que se solapaba con esta
+            barra en pantallas cortas. */}
+        <div
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pointer-events-none"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
+        >
+          <div className="relative max-w-md mx-auto pointer-events-auto animate-slide-in-from-bottom">
+            <div className="flex items-center h-16 rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60">
+              {NAV_ITEMS.map(({ id, icon: Icon, short }, i) => (
+                <React.Fragment key={id}>
+                  {i === 2 && <span className="w-16 flex-shrink-0" aria-hidden="true" />}
+                  <button
+                    onClick={() => setActiveTab(id)}
+                    aria-current={activeTab === id ? 'page' : undefined}
+                    className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 h-full rounded-full transition active:scale-90"
+                  >
+                    <Icon
+                      size={21}
+                      strokeWidth={activeTab === id ? 2.6 : 2}
+                      className={`transition-colors duration-200 ${activeTab === id ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}
+                    />
+                    <span className={`text-[11px] font-bold leading-none transition-colors duration-200 ${activeTab === id ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+                      {short}
+                    </span>
+                  </button>
+                </React.Fragment>
+              ))}
+            </div>
             <button
-              onClick={() => setActiveTab('transacciones')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'transacciones' ? 'scale-100' : 'scale-100'}`}
+              onClick={openManualEntry}
+              aria-label="Ingreso manual"
+              className={`absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} ring-8 ring-kk-background dark:ring-dark-darker transition active:scale-90`}
             >
-              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                <Mail size={20} strokeWidth={activeTab === 'transacciones' ? 2.5 : 2} />
-              </div>
-              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                Trans
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('general')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'general' ? 'scale-100' : 'scale-100'}`}
-            >
-              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                <ListChecks size={20} strokeWidth={activeTab === 'general' ? 2.5 : 2} />
-              </div>
-              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                Detalle
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('ahorros')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'ahorros' ? 'scale-100' : 'scale-100'}`}
-            >
-              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                <PiggyBank size={20} strokeWidth={activeTab === 'ahorros' ? 2.5 : 2} />
-              </div>
-              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                Ahorros
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-lg transition duration-200 min-w-[60px] ${activeTab === 'dashboard' ? 'scale-100' : 'scale-100'}`}
-            >
-              <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                <LayoutDashboard size={20} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
-              </div>
-              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                Resumen
-              </span>
+              <Plus size={26} strokeWidth={2.75} />
             </button>
           </div>
         </div>
@@ -2215,6 +2236,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             getCatIconColor={getCatIconColor}
             getCatText={getCatText}
             onOpenTutorial={onOpenTutorial}
+            pendingAction={txAction}
+            onActionHandled={() => setTxAction(null)}
           />
         </div>
 
