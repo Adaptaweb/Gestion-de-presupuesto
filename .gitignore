@@ -54,3 +54,5 @@ coverage/
 .stylelintcache
 .vercel
 PLAN-AUTH.md
+.backup/
+
