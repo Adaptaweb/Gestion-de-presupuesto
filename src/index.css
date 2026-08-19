@@ -141,6 +141,19 @@
   html {
     @apply font-sans;
   }
+
+  /* Foco visible con el color de marca. Sin esto, navegar con teclado por una
+     pantalla con decenas de controles no da ninguna pista de donde se esta. */
+  :focus-visible {
+    outline: 2px solid var(--kk-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Area tactil minima en los controles de solo icono. */
+  button, [role="button"], a {
+    touch-action: manipulation;
+  }
 }
 
 @keyframes shimmer {

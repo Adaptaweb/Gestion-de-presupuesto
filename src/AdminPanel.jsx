@@ -249,7 +249,7 @@ const AdminPanel = ({ onBack, token }) => {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-slate-800 dark:text-slate-200">{user.nombre ? `${user.nombre} ${user.apellido || ''}`.trim() : user.name}</span>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                        <span className={`text-xs font-black px-2 py-0.5 rounded-full uppercase ${
                           user.role === 'admin'
                             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                             : 'bg-slate-100 dark:bg-dark-lighter text-slate-500 dark:text-slate-400'
@@ -258,7 +258,7 @@ const AdminPanel = ({ onBack, token }) => {
                           {user.role}
                         </span>
                         {user.blocked === 1 && (
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                          <span className="text-xs font-black px-2 py-0.5 rounded-full uppercase bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 flex items-center gap-1">
                             <Ban size={10} /> Bloqueado
                           </span>
                         )}

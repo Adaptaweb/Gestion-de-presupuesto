@@ -209,9 +209,9 @@ export default function CategoriasConfig({
               <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
                 <th className="w-8 p-2 sm:p-3"></th>
                 <th className="w-10 p-2 sm:p-3"></th>
-                <th className="p-2 sm:p-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Nombre</th>
-                <th className="p-2 sm:p-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</th>
-                <th className="p-2 sm:p-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Color</th>
+                <th className="p-2 sm:p-3 text-left text-xs font-black text-slate-400 uppercase tracking-widest">Nombre</th>
+                <th className="p-2 sm:p-3 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tipo</th>
+                <th className="p-2 sm:p-3 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Color</th>
                 <th className="w-16 p-2 sm:p-3"></th>
               </tr>
             </thead>
@@ -251,7 +251,7 @@ export default function CategoriasConfig({
                         <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">{cat.nombre}</span>
                       </td>
                       <td className="p-2 sm:p-3 text-center">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                           cat.tipo === 'gasto' ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' :
                           cat.tipo === 'ingreso' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' :
                           'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
@@ -307,12 +307,12 @@ export default function CategoriasConfig({
 
             <div className="space-y-5">
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Icono</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-2 block">Icono</label>
                 <div className="flex items-center gap-3">
                   <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-12 h-12 flex items-center justify-center text-2xl bg-slate-100 dark:bg-dark-lighter rounded-xl border border-slate-200 dark:border-dark-lighter hover:border-slate-300 transition">
                     {editEmoji}
                   </button>
-                  <span className="text-[10px] text-slate-400">Click para cambiar</span>
+                  <span className="text-xs text-slate-400">Click para cambiar</span>
                 </div>
                 {showEmojiPicker && (
                   <div className="mt-2 relative z-10">
@@ -324,17 +324,17 @@ export default function CategoriasConfig({
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre</label>
                 <input value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') save(); }} placeholder="Nombre de la categoría" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" autoFocus />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Color</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-2 block">Color</label>
                 <ColorPicker value={editColor} onChange={setEditColor} />
               </div>
 
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-2 block">Tipo</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-2 block">Tipo</label>
                 <div className="grid grid-cols-3 gap-2">
                   {TIPO_ORDER.map(tipo => (
                     <button key={tipo} onClick={() => setEditTipo(tipo)}

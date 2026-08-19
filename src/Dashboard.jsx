@@ -1074,7 +1074,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <Mail size={20} strokeWidth={activeTab === 'transacciones' ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'transacciones' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 Trans
               </span>
             </button>
@@ -1085,7 +1085,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <ListChecks size={20} strokeWidth={activeTab === 'general' ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'general' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 Detalle
               </span>
             </button>
@@ -1096,7 +1096,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <PiggyBank size={20} strokeWidth={activeTab === 'ahorros' ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'ahorros' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 Ahorros
               </span>
             </button>
@@ -1107,7 +1107,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className={`p-1 rounded-lg transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 <LayoutDashboard size={20} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-bold leading-tight transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
+              <span className={`text-xs font-bold leading-tight transition-colors duration-200 ${activeTab === 'dashboard' ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
                 Resumen
               </span>
             </button>
@@ -1205,10 +1205,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
                             <CreditCard className="text-white/90" size={14} />
                           </div>
-                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Cuotas</span>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Cuotas</span>
                         </div>
                         <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalCuotas)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{cuotasPagadasMes} pagadas</span>
                           <span>·</span>
                           <span>{cuotasPendientesMes} pendientes</span>
@@ -1224,10 +1224,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
                             <Receipt className="text-white/90" size={14} />
                           </div>
-                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Gastos Fijos</span>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Gastos Fijos</span>
                         </div>
                         <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalGastos)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{gastosPagados} pagados</span>
                           <span>·</span>
                           <span>{gastosFijos.length - gastosPagados} pendientes</span>
@@ -1243,10 +1243,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
                             <RefreshCw className="text-white/90" size={14} />
                           </div>
-                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Suscripciones</span>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Suscripciones</span>
                         </div>
                         <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalSubs)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{subsActivas.length} activas</span>
                           {proximosCobros.length > 0 && <span>·</span>}
                           {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
@@ -1262,10 +1262,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
                             <Wallet className="text-white/90" size={14} />
                           </div>
-                          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider opacity-90">Disponible</span>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Disponible</span>
                         </div>
                         <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras < 0 ? 'animate-pulse' : ''}`}>{formatCurrency(disponibleExtras)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[10px] sm:text-xs opacity-85">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
                           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{pctDisponible.toFixed(0)}% libre</span>
                           <span>·</span>
                           <span className="font-bold">{saludLabel}</span>
@@ -1283,7 +1283,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                           <div className="text-left">
                             <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Cuotas Activas</span>
-                            <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${theme.badgeBg} ${theme.badgeBgDark} ${theme.badgeText} dark:${theme.badgeTextDark}`}>{cuotasActivas.length} este mes</span>
+                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${theme.badgeBg} ${theme.badgeBgDark} ${theme.badgeText} dark:${theme.badgeTextDark}`}>{cuotasActivas.length} este mes</span>
                           </div>
                         </div>
                         <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.cuotas ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
@@ -1304,13 +1304,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-1.5 sm:gap-2">
                                     <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{d.descripcion}</span>
-                                    {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[8px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
+                                    {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
                                   </div>
                                   <div className="flex items-center gap-2 mt-1">
                                     <div className="flex-1 h-2 sm:h-1.5 bg-slate-100 dark:bg-dark-lighter rounded-full overflow-hidden">
                                       <div className={`h-full rounded-full transition duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
                                     </div>
-                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
+                                    <span className="text-xs sm:text-xs font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
                                   </div>
                                 </div>
                                 <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(d.valorCuota)}</span>
@@ -1341,7 +1341,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               return `${donutColors[i]} ${i === 0 ? '0' : donutSegments.slice(0, i).reduce((a, x) => a + x.pct, 0)}% ${donutSegments.slice(0, i + 1).reduce((a, x) => a + x.pct, 0)}%`;
                             }).join(', ')})` }}></div>
                             <div className="absolute inset-2 sm:inset-3 rounded-full bg-white dark:bg-dark-normal flex flex-col items-center justify-center shadow-inner">
-                              <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gastado</span>
+                              <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Gastado</span>
                               <span className="text-sm sm:text-lg font-mono font-black text-slate-800 dark:text-slate-100">{pctGastado.toFixed(0)}%</span>
                             </div>
                           </div>
@@ -1356,7 +1356,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 </div>
                                 <div className="text-right">
                                   <span className={`text-xs font-mono font-black ${textColors[i]}`}>{formatCurrency(s.value)}</span>
-                                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 ml-1 sm:ml-1.5">{s.pct.toFixed(0)}%</span>
+                                  <span className="text-xs sm:text-xs font-bold text-slate-400 ml-1 sm:ml-1.5">{s.pct.toFixed(0)}%</span>
                                 </div>
                               </div>
                             ));
@@ -1376,7 +1376,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                           <div className="text-left">
                             <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Suscripciones</span>
-                            <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300`}>{subsActivas.length} activas</span>
+                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300`}>{subsActivas.length} activas</span>
                           </div>
                         </div>
                         <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.subs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
@@ -1394,7 +1394,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
                                   </div>
-                                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400">Día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
+                                  <span className="text-xs sm:text-xs font-bold text-slate-400">Día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
                                 </div>
                                 <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(monto)}</span>
                               </div>
@@ -1405,7 +1405,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               <div className="pt-2 sm:pt-3 border-t border-slate-100 dark:border-dark-lighter">
                                 <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
                                   <CalendarDays size={12} className="text-slate-400" />
-                                  <span className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase">Próximos cobros</span>
+                                  <span className="text-xs sm:text-xs font-black text-slate-400 uppercase">Próximos cobros</span>
                                 </div>
                                 <div className="space-y-1 sm:space-y-1.5">
                                   {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
@@ -1434,7 +1434,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                           <div className="text-left">
                             <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Gastos Fijos</span>
-                            <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300`}>{gastosFijos.length} activos</span>
+                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300`}>{gastosFijos.length} activos</span>
                           </div>
                         </div>
                         <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.fijos ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
@@ -1471,7 +1471,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         </div>
                         <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Salud Financiera</span>
                       </div>
-                      <span className={`text-[10px] sm:text-xs font-black px-2 sm:px-3 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
+                      <span className={`text-xs sm:text-xs font-black px-2 sm:px-3 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                       <div className="flex-1">
@@ -1483,7 +1483,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                           <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
                         </div>
-                        <div className="flex justify-between text-[8px] sm:text-[9px] font-bold text-slate-400 mt-1">
+                        <div className="flex justify-between text-xs sm:text-xs font-bold text-slate-400 mt-1">
                           <span>0%</span>
                           <span className="text-emerald-500">60%</span>
                           <span className="text-amber-500">80%</span>
@@ -1492,7 +1492,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </div>
                       <div className="text-right sm:min-w-[100px]">
                         <div className={`text-xl sm:text-2xl font-mono font-black ${saludColor}`}>{pctGastado.toFixed(0)}%</div>
-                        <div className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase">gastado</div>
+                        <div className="text-xs sm:text-xs font-bold text-slate-400 uppercase">gastado</div>
                       </div>
                     </div>
                   </div>
@@ -1542,12 +1542,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               <div className="text-center py-4 sm:py-6">
                                 <PiggyBank className="mx-auto text-slate-300 dark:text-slate-600 mb-2 sm:mb-3" size={28} />
                                 <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">Sin datos de ahorro aún</p>
-                                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Ve a la pestaña <span className="font-bold text-emerald-500">Gestión de Ahorros</span> para registrar depósitos o gastos.</p>
+                                <p className="text-xs sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Ve a la pestaña <span className="font-bold text-emerald-500">Gestión de Ahorros</span> para registrar depósitos o gastos.</p>
                               </div>
                             ) : (
                               <>
                                 <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-500/70 uppercase tracking-wider">Balance total</span>
+                                  <span className="text-xs sm:text-xs font-bold text-emerald-500/70 uppercase tracking-wider">Balance total</span>
                                   <div className="text-lg sm:text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalAhorroActual)}</div>
                                 </div>
                                 <div className="space-y-1.5 sm:space-y-2">
@@ -1559,7 +1559,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                           {(() => { const bi = getAhorroBankInfo(c.banco); return bi ? <img src={bi.logo} alt={c.banco} className="w-5 h-3 sm:w-6 sm:h-4 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} /> : null; })()}
                                           <div className="min-w-0">
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-200 block truncate">{c.nombre}</span>
-                                            <span className="text-[9px] sm:text-[10px] text-slate-400">{c.banco}</span>
+                                            <span className="text-xs sm:text-xs text-slate-400">{c.banco}</span>
                                           </div>
                                         </div>
                                         <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(saldo)}</span>
@@ -1580,7 +1580,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               </div>
                               <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Proyección de Ahorro</span>
                               {promedioMensual > 0 && (
-                                <span className={`ml-auto text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${trendUp ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-dark-lighter text-slate-500'}`}>
+                                <span className={`ml-auto text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${trendUp ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-dark-lighter text-slate-500'}`}>
                                   {trendUp ? 'Tendencia +' : 'Estable'}
                                 </span>
                               )}
@@ -1590,13 +1590,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               <div className="text-center py-4 sm:py-6">
                                 <TrendingUp className="mx-auto text-slate-300 dark:text-slate-600 mb-2 sm:mb-3" size={28} />
                                 <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">Sin historial de depósitos</p>
-                                <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Registra depósitos en al menos un mes para ver tu proyección.</p>
+                                <p className="text-xs sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Registra depósitos en al menos un mes para ver tu proyección.</p>
                               </div>
                             ) : (
                               <>
                                 <div className="mb-3 sm:mb-4">
                                   <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">Promedio mensual</span>
+                                    <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase">Promedio mensual</span>
                                     <span className="text-xs font-mono font-black text-slate-600 dark:text-slate-300">{formatCurrency(promedioMensual)}</span>
                                   </div>
                                   <div className="flex gap-1 items-end h-6 sm:h-8">
@@ -1609,7 +1609,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                       ></div>
                                     ))}
                                   </div>
-                                  <div className="flex justify-between text-[8px] sm:text-[9px] text-slate-400 mt-0.5">
+                                  <div className="flex justify-between text-xs sm:text-xs text-slate-400 mt-0.5">
                                     {last6Months.map((m, i) => (
                                       <span key={i} className="flex-1 text-center truncate">{m.split(' ')[0].substring(0, 3)}</span>
                                     ))}
@@ -1618,11 +1618,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
                                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                   <div className="p-2 sm:p-3 bg-slate-50 dark:bg-dark-lighter/30 rounded-xl text-center">
-                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">3 meses</span>
+                                    <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase">3 meses</span>
                                     <div className="text-xs sm:text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion3Meses)}</div>
                                   </div>
                                   <div className="p-2 sm:p-3 bg-slate-50 dark:bg-dark-lighter/30 rounded-xl text-center">
-                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase">6 meses</span>
+                                    <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase">6 meses</span>
                                     <div className="text-xs sm:text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion6Meses)}</div>
                                   </div>
                                 </div>
@@ -1678,14 +1678,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <table className="w-full border-collapse text-left min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50/50 dark:bg-dark-normal/50 border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter w-[55px] min-w-[55px] sm:min-w-[280px] sm:w-auto">
+                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-xs sm:text-xs tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter w-[55px] min-w-[55px] sm:min-w-[280px] sm:w-auto">
                         <span className="hidden sm:inline">Detalle de Gastos</span><span className="sm:hidden">Detalle</span>
                       </th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
                         return (
                           <th key={mes} className={`p-3 min-w-[100px] text-center border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white dark:bg-dark-lighter/20'}`}>
-                            <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
+                            <div className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
                             <div className="text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
                           </th>
                         );
@@ -1693,7 +1693,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           <th className={`hidden portrait:table-cell sm:table-cell p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-dark-lighter ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sm:sticky right-0 z-20`}>
                         <div className="flex items-center justify-center gap-1">
                           <TrendingUp size={12} className={theme.tabText} />
-                          <span className={`text-[10px] font-white uppercase tracking-tighter`}>Progreso</span>
+                          <span className={`text-xs font-white uppercase tracking-tighter`}>Progreso</span>
                         </div>
                       </th>
                     </tr>
@@ -1714,18 +1714,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                  <div className="flex flex-col min-w-0 cursor-pointer" onClick={() => setViewingItem({ tipo: item.tipo, data: item })}>
                                   <div className="flex items-center gap-1 sm:gap-2">
                                     <span className="font-black text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title={item.descripcion}>{item.descripcion}</span>
-                                    {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
-                                    {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
-                                    {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
-                                    {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[7px] sm:text-[9px] font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
+                                    {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
+                                    {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
+                                    {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
+                                    {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
                                   </div>
-                                  <span className="text-[8px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
+                                  <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
                                     {item.tipo === 'cuota' ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : item.tipo === 'abono' ? 'Abono' : 'Fijo'}
                                   </span>
                                 </div>
                               </div>
-<div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition flex-shrink-0">
-                                <button onClick={() => handleEditItem(item)} className="hidden sm:inline-flex p-1.5 text-slate-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={14} /></button>
+<div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition flex-shrink-0">
+                                <button onClick={() => handleEditItem(item)} aria-label={`Editar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:p-1.5 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={16} /></button>
                                 <button onClick={() => {
                                   const itemType = item.tipo === 'cuota' ? 'deuda' : item.tipo === 'suscripcion' ? 'suscripción' : item.tipo === 'abono' ? 'abono' : 'gasto fijo';
                                   confirmDelete({
@@ -1740,7 +1740,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                       return Promise.resolve();
                                     }
                                   });
-                                }} className="hidden sm:inline-flex p-1.5 text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
+                                }} aria-label={`Eliminar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:p-1.5 text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
                               </div>
                             </div>
                           </td>
@@ -1760,7 +1760,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                       }}
                                       className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm'}`}
                                     >
-                                      <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
+                                      <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                       <span className="text-[18px] font-mono font-black">{isPagado ? formatCurrency(item.valorCuota) : formatCurrency(item.valorCuota)}</span>
                                     </button>
                                   )}
@@ -1783,9 +1783,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                       }}
                                       className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : hasValue ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
                                     >
-                                      <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
+                                      <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                       <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
-                                        <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-60">$</span>
+                                        <span className="absolute left-1 top-1/2 -translate-y-1/2 text-sm font-bold opacity-60">$</span>
                                         <input
                                           type="text"
                                           placeholder="0"
@@ -1815,9 +1815,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                     }}
                                     className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
                                   >
-                                    <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
+                                    <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                     <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
-                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-60">$</span>
+                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-sm font-bold opacity-60">$</span>
                                       <input
                                         type="text"
                                         placeholder="0"
@@ -1845,9 +1845,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                     }}
                                     className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
                                   >
-                                    <span className="text-[9px] font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
+                                    <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
                                     <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
-                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-[13px] font-bold opacity-60">$</span>
+                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-sm font-bold opacity-60">$</span>
                                       <input
                                         type="text"
                                         placeholder="0"
@@ -1883,18 +1883,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 const pct = totalCuotas > 0 ? (pagadas / totalCuotas) * 100 : 0;
                                 return (
                                   <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-                                    <span className={`text-[8px] sm:text-[10px] font-black whitespace-nowrap`}>{pagadas}/{totalCuotas} <span className="hidden sm:inline">pagadas</span></span>
+                                    <span className={`text-xs sm:text-xs font-black whitespace-nowrap`}>{pagadas}/{totalCuotas} <span className="hidden sm:inline">pagadas</span></span>
                                     <div className="w-full h-0.5 sm:h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
                                       <div className={`h-full rounded-full transition duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
                                     </div>
-                                    <span className={`text-[7px] sm:text-[9px] font-bold whitespace-nowrap`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
+                                    <span className={`text-[11px] sm:text-xs font-bold whitespace-nowrap`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
                                   </div>
                                 );
                               })()}
                             </td>
                           ) : (
                             <td className={`hidden portrait:table-cell sm:table-cell p-1.5 sm:p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sm:sticky right-0 z-10`}>
-                              <span className={`text-[8px] sm:text-xs ${theme.tabText} opacity-30`}>—</span>
+                              <span className={`text-xs sm:text-xs ${theme.tabText} opacity-30`}>—</span>
                             </td>
                           )}
                         </tr>
@@ -1908,7 +1908,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-slate-300">
                           <CreditCard size={18} />
-                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Cuotas</span><span className="sm:hidden">Cuotas</span></span>
+                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Cuotas</span><span className="sm:hidden">Cuotas</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1920,14 +1920,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         );
                       })}
                       <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
                       <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-slate-400">
                           <Receipt size={18} />
-                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Gastos Fijos</span><span className="sm:hidden">G. Fijos</span></span>
+                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Gastos Fijos</span><span className="sm:hidden">G. Fijos</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1939,14 +1939,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         );
                       })}
                       <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
                       <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-rose-400">
                           <RefreshCw size={18} />
-                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Suscripciones</span><span className="sm:hidden">Subs</span></span>
+                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Suscripciones</span><span className="sm:hidden">Subs</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1958,14 +1958,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         );
                       })}
                       <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800">
                       <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-emerald-400">
                           <TrendingUp size={18} />
-                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Abonos</span><span className="sm:hidden">Abonos</span></span>
+                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Abonos</span><span className="sm:hidden">Abonos</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -1977,14 +1977,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         );
                       })}
                       <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className={`border-t-4 ${theme.borderAccent} divide-x divide-slate-800`}>
                       <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
                         <div className="flex items-center gap-2 text-cyan-400">
                           <ArrowUpCircle size={18} />
-                          <span className="uppercase text-[10px] sm:text-xs tracking-widest"><span className="hidden sm:inline">Sueldo del Mes</span><span className="sm:hidden">Sueldo</span></span>
+                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Sueldo del Mes</span><span className="sm:hidden">Sueldo</span></span>
                         </div>
                       </td>
                       {filteredMonths.map((mes, idx) => {
@@ -2005,7 +2005,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         );
                       })}
                       <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                     <tr className="divide-x divide-slate-800 border-t border-slate-800 bg-slate-950">
@@ -2024,7 +2024,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         );
                       })}
                       <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-[10px] font-bold ${theme.tabText} opacity-30`}>—</span>
+                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
                       </td>
                     </tr>
                   </tfoot>
@@ -2072,12 +2072,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <table className="w-full border-collapse min-w-[600px]">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[55px] sm:min-w-[200px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
+                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[55px] sm:min-w-[200px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
                         return (
                           <th key={mes} className={`p-2 sm:p-3 text-center min-w-[80px] sm:min-w-[100px] border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white/50 dark:bg-dark-lighter/30'}`}>
-                            <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
+                            <div className="text-xs sm:text-xs font-black text-slate-400 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
                             <div className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
                           </th>
                         );
@@ -2088,12 +2088,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     {cuentasAhorro.map(cuenta => (
                       <React.Fragment key={cuenta.id}>
                         <tr className="border-b border-slate-100 dark:border-dark-lighter">
-                          <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal z-10 border-r border-slate-100 dark:border-dark-lighter font-black text-[9px] sm:text-xs uppercase tracking-widest" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>
+                          <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal z-10 border-r border-slate-100 dark:border-dark-lighter font-black text-xs sm:text-xs uppercase tracking-widest" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>
                             <div className="flex justify-between items-center w-full">
                               <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                                 {(() => { const bi = getAhorroBankInfo(cuenta.banco); return bi ? <img src={bi.logo} alt={cuenta.banco} className="w-6 h-4 sm:w-8 sm:h-5 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} /> : <Building2 size={10} />; })()}
                                 <span className="truncate">{cuenta.banco} - {cuenta.nombre}</span>
-                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded uppercase">Ahorro</span>
+                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded uppercase">Ahorro</span>
                               </div>
                               <div className="flex items-center gap-0.5 flex-shrink-0">
                                 <button onClick={() => {
@@ -2134,7 +2134,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           })}
                         </tr>
                         <tr className="border-b border-slate-100 dark:border-dark-lighter">
-                          <td className="p-2 sm:p-3 sticky left-0 bg-slate-50 dark:bg-dark-normal/50 z-10 border-r border-slate-100 dark:border-dark-lighter font-black text-[9px] sm:text-xs uppercase tracking-widest text-rose-500 pl-8 sm:pl-12">
+                          <td className="p-2 sm:p-3 sticky left-0 bg-slate-50 dark:bg-dark-normal/50 z-10 border-r border-slate-100 dark:border-dark-lighter font-black text-xs sm:text-xs uppercase tracking-widest text-rose-500 pl-8 sm:pl-12">
                             <div className="flex items-center gap-1.5">
                               <ArrowDownCircle size={14} />
                               <span>Gasto / Retiro</span>
@@ -2161,7 +2161,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         </tr>
                         <tr className="border-b border-slate-100 dark:border-dark-lighter">
                           <td className="p-1.5 sm:p-2 sticky left-0 bg-slate-50 dark:bg-dark-normal z-10 border-r border-slate-100 dark:border-dark-lighter text-right pr-2 sm:pr-4">
-                            <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase">Saldo {cuenta.nombre}</span>
+                            <span className="text-xs sm:text-xs font-black text-slate-400 uppercase">Saldo {cuenta.nombre}</span>
                           </td>
                           {filteredMonths.map((mes, idx) => {
                             const isEven = idx % 2 === 0;
@@ -2182,7 +2182,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <tr>
                       <td className={`p-2 sm:p-4 sticky left-0 ${theme.btnPrimary} z-30 flex items-center gap-2 sm:gap-3`}>
                         <TrendingUp size={18} />
-                        <span className="uppercase text-[10px] sm:text-sm"><span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span></span>
+                        <span className="uppercase text-xs sm:text-sm"><span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span></span>
                       </td>
                       {filteredMonths.map((mes, idx) => {
                         const isEven = idx % 2 === 0;
@@ -2259,21 +2259,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
               <form onSubmit={handleSaveDebt} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
                   <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
                     <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, cuotasTotales: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
                   </div>
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
                     <input type="number" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de Inicio</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de Inicio</label>
                   <input
                     type="month"
                     required
@@ -2284,25 +2284,25 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 bg-amber-50 dark:bg-amber-900/20 p-3 sm:p-4 rounded-xl border border-amber-100 dark:border-amber-800">
                   <input type="checkbox" id="contrib" checked={newDebt.isContribuciones} onChange={handleContribucionesChange} className="w-4 h-4 sm:w-5 sm:h-5 rounded-md accent-amber-600" />
-                  <label htmlFor="contrib" className="text-[10px] sm:text-xs font-bold text-amber-800 dark:text-amber-200">Es Contribución Legal (Solo 4 cuotas fijas al año)</label>
+                  <label htmlFor="contrib" className="text-xs sm:text-xs font-bold text-amber-800 dark:text-amber-200">Es Contribución Legal (Solo 4 cuotas fijas al año)</label>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
                     <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
                       <input type="checkbox" className="sr-only peer" checked={newDebt.facturacionAuto} onChange={e => setNewDebt({ ...newDebt, facturacionAuto: e.target.checked })} />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
-                      <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
+                      <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
                   <div className="relative mb-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                     <input
@@ -2317,7 +2317,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     {filteredBancos.map(b => (
                       <button type="button" key={b.id} onClick={() => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
+                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
                       </button>
                     ))}
                   </div>
@@ -2331,21 +2331,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
                 {newDebt.banco && (
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
                     <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
+                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
+                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2">
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Por defecto</button>
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Por defecto</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                   </div>
 
                   {newDebt.iconType === 'preset' && (
@@ -2364,7 +2364,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         {filteredDebtIcons.length > 0 ? filteredDebtIcons.map(i => (
                           <button type="button" key={i.id} onClick={() => setNewDebt({ ...newDebt, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <i.icon size={16} />
-                            <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                            <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         )) : (
                           <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
@@ -2377,7 +2377,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {['bancos', 'tarjetas'].map(cat => (
-                          <button key={cat} type="button" onClick={() => setDebtChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${debtChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                          <button key={cat} type="button" onClick={() => setDebtChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${debtChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                         ))}
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
@@ -2386,7 +2386,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           return (
                             <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                               <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
-                              <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                              <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
                           );
                         })}
@@ -2415,26 +2415,26 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
               <form onSubmit={handleSaveFixed} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
                   <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
                     <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
                       <input type="checkbox" className="sr-only peer" checked={newFixed.facturacionAuto} onChange={e => setNewFixed({ ...newFixed, facturacionAuto: e.target.checked })} />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
-                      <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
+                      <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
                   <div className="relative mb-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                     <input type="text" value={fixedBancoSearch} onChange={(e) => setFixedBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" placeholder="Buscar banco..." />
@@ -2443,7 +2443,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     {(fixedBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(fixedBancoSearch.toLowerCase())) : BANCOS_CHILE).map(b => (
                       <button type="button" key={b.id} onClick={() => { setNewFixed({ ...newFixed, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setFixedBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
+                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
                       </button>
                     ))}
                   </div>
@@ -2455,19 +2455,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   )}
                   {newFixed.banco && (
                     <div>
-                      <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
+                      <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
                       <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
+                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
+                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
-                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                 </div>
 
                 {newFixed.iconType === 'preset' && (
@@ -2486,7 +2486,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       {filteredFixedIcons.length > 0 ? filteredFixedIcons.map(i => (
                         <button type="button" key={i.id} onClick={() => setNewFixed({ ...newFixed, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.iconValue === i.id ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                           <i.icon size={16} />
-                          <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                          <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                         </button>
                       )) : (
                         <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
@@ -2499,7 +2499,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
-                        <button key={cat} type="button" onClick={() => setFixedChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${fixedChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                        <button key={cat} type="button" onClick={() => setFixedChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${fixedChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                       ))}
                     </div>
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
@@ -2508,7 +2508,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         return (
                           <button key={i.id} type="button" onClick={() => setNewFixed({ ...newFixed, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
-                            <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                            <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         );
                       })}
@@ -2518,7 +2518,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
                 {newFixed.iconType === 'url' && (
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
                     <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
@@ -2540,28 +2540,28 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
               <form onSubmit={handleSaveAbono} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
                   <input required value={newAbono.descripcion} onChange={e => setNewAbono({ ...newAbono, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Freelance, Venta, Devolución..." />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
                     <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200" />
                   </div>
                   <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
                     <label className="relative inline-flex items-center cursor-pointer gap-3">
                       <input type="checkbox" className="sr-only peer" checked={newAbono.facturacionAuto} onChange={e => setNewAbono({ ...newAbono, facturacionAuto: e.target.checked })} />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-emerald-600"></div>
-                      <span className="text-[10px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">Automático</span>
+                      <span className="text-xs sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">Automático</span>
                     </label>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
-                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newAbono.iconType === 'url' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'url' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                 </div>
 
                 {newAbono.iconType === 'preset' && (
@@ -2580,7 +2580,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       {filteredAbonoIcons.length > 0 ? filteredAbonoIcons.map(i => (
                         <button type="button" key={i.id} onClick={() => setNewAbono({ ...newAbono, iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAbono.iconValue === i.id ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                           <i.icon size={16} />
-                          <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                          <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                         </button>
                       )) : (
                         <div className="col-span-5 sm:col-span-6 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
@@ -2593,7 +2593,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
-                        <button key={cat} type="button" onClick={() => setAbonoChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${abonoChileCat === cat ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                        <button key={cat} type="button" onClick={() => setAbonoChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${abonoChileCat === cat ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                       ))}
                     </div>
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-36 sm:max-h-48 overflow-y-auto pr-1 custom-scrollbar">
@@ -2602,7 +2602,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         return (
                           <button key={i.id} type="button" onClick={() => setNewAbono({ ...newAbono, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAbono.iconValue === val ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
-                            <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                            <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         );
                       })}
@@ -2612,7 +2612,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
                 {newAbono.iconType === 'url' && (
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">URL del Logo (PNG/SVG)</label>
                     <input value={newAbono.iconUrl} onChange={e => setNewAbono({ ...newAbono, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
@@ -2634,11 +2634,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
               <form onSubmit={handleSaveAccount} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre de la Cuenta</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre de la Cuenta</label>
                   <input required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200" placeholder="Ej: Fondo de Emergencia, Vacaciones..." />
                 </div>
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
                   <div className="relative mb-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                     <input
@@ -2656,7 +2656,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     ).map(b => (
                       <button key={b.id} type="button" onClick={() => { setNewAccount({ ...newAccount, banco: b.nombre }); setAccountBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAccount.banco === b.nombre ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-10 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center">{b.nombre}</span>
+                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{b.nombre}</span>
                       </button>
                     ))}
                   </div>
@@ -2685,34 +2685,34 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
               <form onSubmit={handleSaveSubscription} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Servicio</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Servicio</label>
                   <input required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Netflix, Spotify, YouTube..." />
                 </div>
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor</label>
                   <input type="number" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Monto a pagar" />
                 </div>
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Plan de facturacion</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Plan de facturacion</label>
                   <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mensual</button>
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Anual</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mensual</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Anual</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Duracion (años)</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Duracion (años)</label>
                     <select value={newSub.durationYears} onChange={e => setNewSub({ ...newSub, durationYears: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}>
                       {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'año' : 'años'}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
+                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
                     <input type="number" min="1" max="31" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de inicio</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de inicio</label>
                   <input
                     type="month"
                     required
@@ -2726,12 +2726,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <label className="relative inline-flex items-center cursor-pointer gap-3">
                     <input type="checkbox" className="sr-only peer" checked={newSub.facturacionAuto} onChange={e => setNewSub({ ...newSub, facturacionAuto: e.target.checked })} />
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
-                    <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
+                    <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
                   </label>
                 </div>
 
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
                   <div className="relative mb-2">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                     <input type="text" value={subBancoSearch} onChange={(e) => setSubBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" placeholder="Buscar banco..." />
@@ -2740,7 +2740,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     {(subBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(subBancoSearch.toLowerCase())) : BANCOS_CHILE).map(b => (
                       <button type="button" key={b.id} onClick={() => { setNewSub({ ...newSub, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setSubBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newSub.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                         <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[7px] sm:text-[8px] font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
+                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
                       </button>
                     ))}
                   </div>
@@ -2752,21 +2752,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   )}
                   {newSub.banco && (
                     <div>
-                      <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
+                      <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
                       <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
+                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
+                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-[10px] sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
+                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
-                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-black border-2 transition ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
+                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                   </div>
 
                   {newSub.iconType === 'preset' && (
@@ -2785,7 +2785,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         {filteredSubscriptionIcons.length > 0 ? filteredSubscriptionIcons.map(i => (
                           <button type="button" key={i.id} onClick={() => setNewSub({ ...newSub, iconType: 'preset', iconValue: i.id })} className={`p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition ${newSub.iconValue === i.id && newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                             <i.icon size={14} />
-                            <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                            <span className="text-[11px] sm:text-[11px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         )) : (
                           <div className="col-span-5 text-center py-3 sm:py-4 text-xs font-bold text-slate-400">No se encontraron iconos</div>
@@ -2798,7 +2798,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {['medios-pago', 'telefonia', 'tickets'].map(cat => (
-                          <button key={cat} type="button" onClick={() => setSubChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-[9px] sm:text-[10px] font-black border-2 transition ${subChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
+                          <button key={cat} type="button" onClick={() => setSubChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${subChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                         ))}
                       </div>
                       <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 max-h-28 sm:max-h-32 overflow-y-auto pr-1 custom-scrollbar">
@@ -2807,7 +2807,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           return (
                             <button key={i.id} type="button" onClick={() => setNewSub({ ...newSub, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition ${newSub.iconValue === val && newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
                               <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
-                              <span className="text-[6px] sm:text-[7px] font-bold leading-none truncate w-full text-center">{i.label}</span>
+                              <span className="text-[11px] sm:text-[11px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
                           );
                         })}
@@ -2853,26 +2853,26 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Cuotas Totales</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Cuotas Totales</span>
                         <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.cuotasTotales}</p>
                       </div>
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Valor Cuota</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Valor Cuota</span>
                         <p className="font-black text-slate-800 dark:text-slate-200">{formatCurrency(viewingItem.data.valorCuota)}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Mes Inicio</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Mes Inicio</span>
                         <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.mesInicio}</p>
                       </div>
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Día de Pago</span>
                         <p className="font-black text-slate-800 dark:text-slate-200">Día {viewingItem.data.diaPago || 1}</p>
                       </div>
                     </div>
                     <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Progreso</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase">Progreso</span>
                       {(() => {
                         const mesTermino = calculateEndDate(viewingItem.data.mesInicio, viewingItem.data.cuotasTotales, viewingItem.data.isContribuciones);
                         let cur = toDateVal(viewingItem.data.mesInicio);
@@ -2892,7 +2892,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           <div className="flex flex-col gap-2 mt-1">
                             <div className="flex justify-between items-center">
                               <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{pagadas}/{totalCuotas} pagadas</span>
-                              <span className="text-[9px] font-bold text-slate-400">{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
+                              <span className="text-xs font-bold text-slate-400">{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
                             </div>
                             <div className="w-full h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
                               <div className={`h-full rounded-full ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
@@ -2903,7 +2903,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     </div>
                     {viewingItem.data.banco && (
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Banco / Institución</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Banco / Institución</span>
                         <div className="flex items-center gap-2 mt-1">
                           {viewingItem.data.bancoLogo && <img src={viewingItem.data.bancoLogo} alt={viewingItem.data.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />}
                           <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.banco} {viewingItem.data.tipoTarjeta && `- ${viewingItem.data.tipoTarjeta.toUpperCase()}`}</p>
@@ -2914,7 +2914,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       <div className={`w-11 h-6 rounded-full relative transition-colors ${viewingItem.data.facturacionAuto ? 'bg-blue-600' : 'bg-slate-300 dark:bg-dark-lightest'}`}>
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${viewingItem.data.facturacionAuto ? 'translate-x-[22px]' : 'translate-x-0.5'}`}></div>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">
+                      <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">
                         {viewingItem.data.facturacionAuto ? 'Facturación Automática Activada' : 'Sin Facturación Automática'}
                       </span>
                     </div>
@@ -2925,21 +2925,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Valor</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Valor</span>
                         <p className="font-black text-slate-800 dark:text-slate-200">{formatCurrency(viewingItem.data.valor)}</p>
                       </div>
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Ciclo</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Ciclo</span>
                         <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</p>
                       </div>
                     </div>
                     <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase">Día de Pago</span>
                       <p className="font-black text-slate-800 dark:text-slate-200">Día {viewingItem.data.diaPago || 1}</p>
                     </div>
                     {viewingItem.data.banco && (
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Banco / Institución</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Banco / Institución</span>
                         <div className="flex items-center gap-2 mt-1">
                           {viewingItem.data.bancoLogo && <img src={viewingItem.data.bancoLogo} alt={viewingItem.data.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />}
                           <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.banco} {viewingItem.data.tipoTarjeta && `- ${viewingItem.data.tipoTarjeta.toUpperCase()}`}</p>
@@ -2950,7 +2950,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       <div className={`w-11 h-6 rounded-full relative transition-colors ${viewingItem.data.facturacionAuto ? 'bg-blue-600' : 'bg-slate-300 dark:bg-dark-lightest'}`}>
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${viewingItem.data.facturacionAuto ? 'translate-x-[22px]' : 'translate-x-0.5'}`}></div>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-blue-800 dark:text-blue-200">
+                      <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">
                         {viewingItem.data.facturacionAuto ? 'Facturación Automática Activada' : 'Sin Facturación Automática'}
                       </span>
                     </div>
@@ -2960,12 +2960,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 {(viewingItem.tipo === 'fijo' || viewingItem.tipo === 'abono') && (
                   <>
                     <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Día de Pago</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase">Día de Pago</span>
                       <p className="font-black text-slate-800 dark:text-slate-200">Día {viewingItem.data.diaPago || 1}</p>
                     </div>
                     {viewingItem.data.banco && (
                       <div className="bg-slate-50 dark:bg-dark-lighter/50 p-3 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Banco / Institución</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">Banco / Institución</span>
                         <div className="flex items-center gap-2 mt-1">
                           {viewingItem.data.bancoLogo && <img src={viewingItem.data.bancoLogo} alt={viewingItem.data.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />}
                           <p className="font-black text-slate-800 dark:text-slate-200">{viewingItem.data.banco} {viewingItem.data.tipoTarjeta && `- ${viewingItem.data.tipoTarjeta.toUpperCase()}`}</p>
@@ -2976,7 +2976,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       <div className={`w-11 h-6 rounded-full relative transition-colors ${viewingItem.data.facturacionAuto ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-dark-lightest'}`}>
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${viewingItem.data.facturacionAuto ? 'translate-x-[22px]' : 'translate-x-0.5'}`}></div>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">
+                      <span className="text-xs sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">
                         {viewingItem.data.facturacionAuto ? 'Automático' : 'Manual'}
                       </span>
                     </div>

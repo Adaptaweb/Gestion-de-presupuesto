@@ -186,7 +186,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Monto *</label>
+            <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Monto *</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">$</span>
               <input
@@ -201,7 +201,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Comercio</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Comercio</label>
               <input
                 value={comercio}
                 onChange={e => setComercio(e.target.value)}
@@ -210,7 +210,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
               />
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Fecha</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Fecha</label>
               <input
                 type="date"
                 value={fecha}
@@ -222,7 +222,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Banco</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Banco</label>
               <select
                 value={banco}
                 onChange={e => setBanco(e.target.value)}
@@ -236,7 +236,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Tipo tarjeta</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Tipo tarjeta</label>
               <select
                 value={tipoTarjeta}
                 onChange={e => setTipoTarjeta(e.target.value)}
@@ -251,8 +251,8 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
 
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoría</label>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[categoria] || CATEGORY_COLORS['Otros']}`}>{categoria}</span>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Categoría</label>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[categoria] || CATEGORY_COLORS['Otros']}`}>{categoria}</span>
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -275,7 +275,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
                       }`}
                     >
                       <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                      <span className={`text-[8px] font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-200'}`}>{cat}</span>
+                      <span className={`text-xs font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-200'}`}>{cat}</span>
                     </button>
                   );
                 })}
@@ -291,7 +291,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
 
           {isGasto && (
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {[
                   { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },

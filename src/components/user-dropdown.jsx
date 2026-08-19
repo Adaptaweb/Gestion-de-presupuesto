@@ -43,7 +43,7 @@ export function UserMenu({
           <User size={16} className="text-slate-400 flex-shrink-0" />
           <span className="truncate max-w-[100px]">{user.name}</span>
           {user.role === 'admin' && (
-            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
+            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
           )}
           <ChevronDown size={14} className="text-slate-400 flex-shrink-0" />
         </button>
@@ -103,7 +103,7 @@ export function UserMenu({
                         <Check size={14} className="text-white" />
                       )}
                     </div>
-                    <span className="text-[8px] font-bold text-slate-400 capitalize">
+                    <span className="text-xs font-bold text-slate-400 capitalize">
                       {COLOR_NAMES[color]}
                     </span>
                   </button>

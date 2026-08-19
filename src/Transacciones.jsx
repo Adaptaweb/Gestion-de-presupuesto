@@ -184,15 +184,15 @@ const ReviewCard = ({
               Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
             };
             return (
-              <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
+              <span className={`inline-block text-xs font-bold px-2.5 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
             );
           })()}
         </div>
    
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={CATEGORY_COLORS[reviewCat]?.backgroundColor ? { backgroundColor: CATEGORY_COLORS[reviewCat].backgroundColor, color: CATEGORY_COLORS[reviewCat].color, border: `1px solid ${CATEGORY_COLORS[reviewCat].borderColor || 'transparent'}` } : {}}>
+            <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={CATEGORY_COLORS[reviewCat]?.backgroundColor ? { backgroundColor: CATEGORY_COLORS[reviewCat].backgroundColor, color: CATEGORY_COLORS[reviewCat].color, border: `1px solid ${CATEGORY_COLORS[reviewCat].borderColor || 'transparent'}` } : {}}>
               <span className={!CATEGORY_COLORS[reviewCat]?.backgroundColor ? CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros'] : ''}>{reviewCat}</span>
             </span>
           </div>
@@ -214,7 +214,7 @@ const ReviewCard = ({
                   }`}
                 >
                   <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                  <span className={`text-[8px] font-bold leading-tight text-center ${selected && !isStyle ? iconCol : ''}`} style={selected && isStyle ? { color: iconCol.color } : {}}>
+                  <span className={`text-xs font-bold leading-tight text-center ${selected && !isStyle ? iconCol : ''}`} style={selected && isStyle ? { color: iconCol.color } : {}}>
                     {cat}
                   </span>
                 </button>
@@ -230,7 +230,7 @@ const ReviewCard = ({
                 title="Agregar categoría"
               >
                 <span className="text-xl leading-none">+</span>
-                <span className="text-[8px] font-bold leading-tight text-center">Nueva</span>
+                <span className="text-xs font-bold leading-tight text-center">Nueva</span>
               </button>
             )}
           </div>
@@ -238,7 +238,7 @@ const ReviewCard = ({
 
         {isGasto && (
           <div className="animate-fade-in slide-in-from-top-1 duration-200">
-            <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
+            <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
             <div className="grid grid-cols-3 gap-1.5">
               {[
                 { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
@@ -269,7 +269,7 @@ const ReviewCard = ({
           <div className="space-y-2">
             <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 text-center">
               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Detectado como traspaso entre cuentas</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500">Selecciona el tipo real de esta transacción</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Selecciona el tipo real de esta transacción</p>
             </div>
             <div className="grid grid-cols-3 gap-1.5">
               {[
@@ -397,7 +397,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     return (
       <th
         onClick={() => handleSort(sortKey)}
-        className={`p-2 sm:p-4 ${alignClass} font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors ${hideMobile ? 'hidden sm:table-cell' : ''}`}
+        className={`p-2 sm:p-4 ${alignClass} font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest cursor-pointer select-none hover:text-slate-600 dark:hover:text-slate-200 transition-colors ${hideMobile ? 'hidden sm:table-cell' : ''}`}
       >
         <span className="inline-flex items-center gap-1">
           {children}
@@ -1062,7 +1062,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95 whitespace-nowrap">
               <Bell size={16} />
               Pendientes
-              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
+              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
                 {pendientesCount}
               </span>
             </button>
@@ -1129,7 +1129,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {filteredSummary.length > 0 && (
               <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-2.5 sm:p-3">
-                <div className="text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">Categorías</div>
+                <div className="text-xs sm:text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">Categorías</div>
                 <div className="space-y-0.5 max-h-[100px] overflow-y-auto custom-scrollbar">
                   {(() => {
                     const maxTotal = Math.max(...filteredSummary.map(s => s.total), 1);
@@ -1138,7 +1138,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                       const signo = esIngreso ? '+' : '-';
                       const colorCls = esIngreso ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
                       return (
-                      <div key={s.categoria + '-' + (s.tipo || 'gasto')} className="flex items-center gap-1.5 text-[10px] sm:text-xs leading-tight">
+                      <div key={s.categoria + '-' + (s.tipo || 'gasto')} className="flex items-center gap-1.5 text-xs sm:text-xs leading-tight">
                         <span {...catBadgeStyle(s.categoria)} className={`font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 w-28 sm:w-32 text-left leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${catBadgeStyle(s.categoria).className || ''}`}>{s.categoria}</span>
                         <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden">
                           <div {...catBarStyle(s.categoria)} className={`h-full rounded-full ${catBarStyle(s.categoria).className || ''}`} style={{ width: `${(s.total / maxTotal) * 100}%`, ...(catBarStyle(s.categoria).style || {}) }} />
@@ -1151,7 +1151,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
 
                 </div>
-                <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-[10px] sm:text-xs font-black">
+                <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-xs sm:text-xs font-black">
                   <span className="text-slate-700 dark:text-slate-200">Total</span>
                   <span className={neto > 0 ? 'text-green-600 dark:text-green-400' : neto < 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}>
                     {neto >= 0 ? '+' : ''}{formatCurrency(Math.abs(neto))}
@@ -1170,7 +1170,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   </div>
                   <div className="space-y-1">
                     {['Débito', 'Crédito'].map(tipo => (
-                      <div key={tipo} className="flex items-center justify-between text-[10px] sm:text-xs">
+                      <div key={tipo} className="flex items-center justify-between text-xs sm:text-xs">
                         <span className={`font-bold px-1.5 py-0.5 rounded ${
                           tipo === 'Débito' ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'
                         }`}>{tipo}</span>
@@ -1184,7 +1184,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                       </div>
                     ))}
                   </div>
-                  <div className="border-t border-slate-100 dark:border-dark-lighter mt-1.5 pt-1.5 flex items-center justify-between text-[10px] sm:text-xs font-black text-slate-700 dark:text-slate-200">
+                  <div className="border-t border-slate-100 dark:border-dark-lighter mt-1.5 pt-1.5 flex items-center justify-between text-xs sm:text-xs font-black text-slate-700 dark:text-slate-200">
                     <span>Total</span>
                     <span>{formatCurrency(totalBank)} <span className="text-slate-400 font-normal">{totalCount}tx</span></span>
                   </div>
@@ -1282,9 +1282,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                     <SortableTh sortKey="banco" align="left">Banco</SortableTh>
                     <SortableTh sortKey="comercio" align="left">Comercio</SortableTh>
                     <SortableTh sortKey="monto" align="right">Monto</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Tipo</th>
+                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest hidden sm:table-cell">Tipo</th>
                     <SortableTh sortKey="categoria" align="center" hideMobile>Categoría</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest w-16">Acción</th>
+                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest w-16">Acción</th>
                   </tr>
                 </thead>
               <tbody>
@@ -1323,9 +1323,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                     <SortableTh sortKey="banco" align="left">Banco</SortableTh>
                     <SortableTh sortKey="comercio" align="left">Comercio</SortableTh>
                     <SortableTh sortKey="monto" align="right">Monto</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest hidden sm:table-cell">Tipo</th>
+                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest hidden sm:table-cell">Tipo</th>
                     <SortableTh sortKey="categoria" align="center" hideMobile>Categoría</SortableTh>
-                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-[9px] sm:text-[10px] tracking-widest w-16">Acción</th>
+                    <th className="p-2 sm:p-4 text-center font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest w-16">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1335,7 +1335,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                     <tr key={tx.id} className={`border-b border-slate-50 dark:border-dark-lighter/50 transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/30 dark:bg-dark-lighter/10'} ${isMuted ? 'italic' : ''}`}>
                       <td className={`p-2 sm:p-4 text-xs sm:text-sm font-bold whitespace-nowrap ${isMuted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}>{formatDate(tx.fecha)}</td>
                       <td className="p-2 sm:p-4">
-                        <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${isMuted ? 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500' : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+                        <span className={`inline-flex items-center gap-1.5 text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full ${isMuted ? 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500' : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
                           {BANK_ICONS[tx.banco] && <img src={BANK_ICONS[tx.banco]} alt="" className={`w-4 h-4 rounded-full ${isMuted ? 'opacity-50' : ''} ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />}
                           {tx.banco || '-'}
                         </span>
@@ -1347,7 +1347,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
                         {(() => {
                           const label = tx.tipo_movimiento || tx.tipo_tarjeta || '';
-                          if (!label) return <span className="text-[10px] text-slate-300 dark:text-slate-600">—</span>;
+                          if (!label) return <span className="text-xs text-slate-300 dark:text-slate-600">—</span>;
                           const colorMap = {
                             Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
                             Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -1357,12 +1357,12 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                             Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
                           };
                           return (
-                            <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
+                            <span className={`text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
                           );
                         })()}
                       </td>
                       <td className="p-2 sm:p-4 text-center hidden sm:table-cell">
-                        <span {...catBadgeStyle(tx.categoria)} className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full ${catBadgeStyle(tx.categoria).className || ''}`}>{tx.categoria}</span>
+                        <span {...catBadgeStyle(tx.categoria)} className={`text-xs sm:text-xs font-bold px-2 py-0.5 rounded-full ${catBadgeStyle(tx.categoria).className || ''}`}>{tx.categoria}</span>
                       </td>
                       <td className="p-2 sm:p-4 text-center">
                         <button onClick={(e) => { e.stopPropagation(); handleReclasificarTx(tx); }} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition" title="Reclasificar"><Edit3 size={14} /></button>
@@ -1425,7 +1425,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       </div>
 
       {lastCheck > 0 && (
-        <p className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
+        <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
           Ultima revision: {new Date(lastCheck).toLocaleString('es-CL')}
         </p>
       )}
@@ -1455,21 +1455,21 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 {editingTx.asunto || '(sin detalle)'}
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Comercio</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Comercio</label>
                 <input value={editComercio} onChange={e => setEditComercio(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Monto</label>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Monto</label>
                   <input type="number" value={editMonto} onChange={e => setEditMonto(e.target.value)} placeholder="0" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Fecha</label>
+                  <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Fecha</label>
                   <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Categoria</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Categoria</label>
                 <select value={editCategoria} onChange={e => setEditCategoria(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
                 </select>
@@ -1479,14 +1479,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                       const name = prompt('Nombre de la nueva categoría:');
                       if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setEditCategoria(c.nombre)).catch(e => alert(e.message));
                     }}
-                    className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-blue-500 transition"
+                    className="mt-1.5 flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-blue-500 transition"
                   >
                     <Plus size={12} /> Nueva categoría
                   </button>
                 )}
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Tipo de tarjeta</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo de tarjeta</label>
                 <select value={editTipoTarjeta} onChange={e => setEditTipoTarjeta(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="">—</option>
                   <option value="Debito">Debito</option>
@@ -1494,7 +1494,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Banco / Medio de pago</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Banco / Medio de pago</label>
                 <select value={editBanco} onChange={e => setEditBanco(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="">—</option>
                   {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
@@ -1524,7 +1524,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Rango de fechas</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Rango de fechas</label>
                 <Calendar
                   mode="range"
                   selected={pendingDateRange}
@@ -1539,14 +1539,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Categoría</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Categoría</label>
                 <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="">Todas las categorías</option>
                   {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Tipo</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo</label>
                 <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="">Todos los tipos</option>
                   <option value="gasto">Gasto</option>
@@ -1555,7 +1555,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Banco</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Banco</label>
                 <select value={filterBanco} onChange={e => setFilterBanco(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="">Todos los bancos</option>
                   {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
@@ -1563,7 +1563,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Ordenar por</label>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Ordenar por</label>
                 <select value={`${sortConfig.key}-${sortConfig.dir}`} onChange={e => { const [key, dir] = e.target.value.split('-'); setSortConfig({ key, dir }); }} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="fecha-desc">Fecha ↓</option>
                   <option value="fecha-asc">Fecha ↑</option>
@@ -1577,7 +1577,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 <div className="pt-2 border-t border-slate-100 dark:border-dark-lighter">
                   <div className="flex flex-wrap gap-1.5 items-center">
                     {activeFilters.map(f => (
-                      <span key={f.key} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      <span key={f.key} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
                         {f.label}
                         <button onClick={() => { f.clear(); }} className="hover:text-red-500 transition-colors"><X size={10} /></button>
                       </span>

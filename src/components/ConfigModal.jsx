@@ -50,7 +50,7 @@ const ConfigModal = ({ isOpen, onClose, token, theme, onOpenTutorial }) => {
         ) : (
           <>
             <div className="mb-6 p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
-              <label className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 mb-2 block">Conexión Gmail</label>
+              <label className="text-xs font-black uppercase text-emerald-600 dark:text-emerald-400 mb-2 block">Conexión Gmail</label>
               <div className="flex items-center gap-2 mb-3">
                 <div className={`w-2 h-2 rounded-full ${authStatus ? 'bg-emerald-500' : 'bg-red-400'}`} />
                 <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
@@ -62,7 +62,7 @@ const ConfigModal = ({ isOpen, onClose, token, theme, onOpenTutorial }) => {
               </button>
             </div>
             <div className="mb-6 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-              <label className="text-[10px] font-black uppercase text-blue-500 dark:text-blue-400 mb-2 block">Reenvío automático</label>
+              <label className="text-xs font-black uppercase text-blue-500 dark:text-blue-400 mb-2 block">Reenvío automático</label>
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3">
                 Configura un filtro en Gmail para reenviar las notificaciones bancarias automáticamente.
               </p>

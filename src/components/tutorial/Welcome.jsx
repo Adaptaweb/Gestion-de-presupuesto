@@ -56,7 +56,7 @@ const Welcome = ({ onNext, onClose }) => {
             <ArrowRight className="text-[#6de0b3]/40 hidden md:block" size={24} />
             <ArrowRight className="text-[#6de0b3]/40 md:hidden rotate-90" size={24} />
             <div className="flex flex-col items-center relative">
-              <div className="absolute -top-1 -right-1 bg-[#6de0b3] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">AI</div>
+              <div className="absolute -top-1 -right-1 bg-[#6de0b3] text-white text-xs px-2 py-0.5 rounded-full font-bold">AI</div>
               <div className="w-16 h-16 rounded-full bg-[#2dbc8b] flex items-center justify-center shadow-xl">
                 <svg className="text-white" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
