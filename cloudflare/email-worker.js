@@ -1,14 +1,22 @@
 import PostalMime from 'postal-mime';
 
-// Limite duro de Cloudflare Queues por mensaje. Se deja margen para la
-// sobrecarga de la serializacion.
-const MAX_MESSAGE_BYTES = 120 * 1024;
+// Entrega de correo entrante al backend.
+//
+// Cloudflare Email Routing recibe el correo en parse+<casilla>@adaptaweb.cl y
+// dispara este Worker. Todo lo que se usa aqui esta en el plan gratuito: Email
+// Workers, KV y Cron Triggers. Queues no, por eso los reintentos diferidos se
+// hacen a mano.
+//
+// Camino normal: se intenta entregar al webhook con unos pocos reintentos en
+// linea. Si el backend esta caido, en vez de perder el correo se guarda en KV y
+// un cron lo reintenta cada quince minutos hasta que entre o caduque.
 
-function byteLength(value) {
-  return new TextEncoder().encode(JSON.stringify(value)).length;
-}
+const INLINE_RETRIES = 3;
+const PENDING_PREFIX = 'pending:';
+const PENDING_TTL_SECONDS = 7 * 24 * 60 * 60;
+const MAX_DRAIN_PER_RUN = 50;
 
-async function postToWebhook(env, payload) {
+function postToWebhook(env, payload) {
   return fetch(`${env.VERCEL_URL}/api/webhook/email`, {
     method: 'POST',
     headers: {
@@ -19,11 +27,47 @@ async function postToWebhook(env, payload) {
   });
 }
 
+// Devuelve 'ok' si entro, 'descartado' si el backend lo rechaza por un problema
+// del mensaje, o 'reintentar' si el fallo es del backend.
+async function deliver(env, payload, retries = INLINE_RETRIES) {
+  for (let intento = 1; intento <= retries; intento++) {
+    let res;
+    try {
+      res = await postToWebhook(env, payload);
+    } catch (err) {
+      console.error(`[EmailWorker] Red caida en intento ${intento}: ${err.message}`);
+      if (intento < retries) await new Promise(r => setTimeout(r, 2000 * intento));
+      continue;
+    }
+
+    if (res.ok) return 'ok';
+
+    // 4xx es un problema del propio mensaje: reintentar no lo arregla.
+    if (res.status >= 400 && res.status < 500) {
+      console.error(`[EmailWorker] Rechazado con ${res.status}: ${await res.text()}`);
+      return 'descartado';
+    }
+
+    console.error(`[EmailWorker] Backend respondio ${res.status} en intento ${intento}`);
+    if (intento < retries) await new Promise(r => setTimeout(r, 2000 * intento));
+  }
+
+  return 'reintentar';
+}
+
+async function guardarPendiente(env, payload) {
+  if (!env.EMAIL_PENDING) {
+    console.error('[EmailWorker] Sin binding EMAIL_PENDING: el correo se pierde');
+    return;
+  }
+  const key = `${PENDING_PREFIX}${Date.now()}-${crypto.randomUUID()}`;
+  await env.EMAIL_PENDING.put(key, JSON.stringify(payload), {
+    expirationTtl: PENDING_TTL_SECONDS,
+  });
+  console.warn(`[EmailWorker] Backend inalcanzable: guardado en ${key} para reintento`);
+}
+
 export default {
-  // Productor: Cloudflare entrega el correo, nosotros lo dejamos en la cola y
-  // devolvemos el control. Antes se llamaba al webhook aqui mismo con
-  // reintentos en linea: si el backend estaba caido o lento, el correo se
-  // perdia al agotarse los tres intentos.
   async email(message, env, ctx) {
     try {
       const recipient = message.to.toLowerCase();
@@ -41,57 +85,40 @@ export default {
         messageId: parsed.messageId || message.headers.get('message-id') || '',
       };
 
-      // Los correos muy grandes no caben en un mensaje de cola. Se prueba sin
-      // la version en texto plano, que es redundante cuando hay HTML, y si
-      // sigue sin caber se entrega directo al webhook.
-      let toQueue = payload;
-      if (byteLength(toQueue) > MAX_MESSAGE_BYTES && payload.html) {
-        toQueue = { ...payload, text: '' };
+      const resultado = await deliver(env, payload);
+      if (resultado === 'reintentar') {
+        await guardarPendiente(env, payload);
       }
-
-      if (byteLength(toQueue) > MAX_MESSAGE_BYTES) {
-        console.warn(`[EmailWorker] Mensaje demasiado grande para la cola (${byteLength(toQueue)} bytes): entrega directa`);
-        const res = await postToWebhook(env, payload);
-        if (!res.ok) {
-          console.error(`[EmailWorker] Entrega directa fallida: ${res.status}`);
-        }
-        return;
-      }
-
-      await env.EMAIL_QUEUE.send(toQueue);
     } catch (err) {
-      console.error('[EmailWorker] Error encolando:', err.message, err.stack);
-      throw err;
+      console.error('[EmailWorker] Error:', err.message, err.stack);
     }
   },
 
-  // Consumidor: entrega al backend. Los reintentos y la cola de mensajes
-  // muertos los gestiona Cloudflare segun wrangler.toml, con espera
-  // exponencial entre intentos.
-  async queue(batch, env, ctx) {
-    for (const message of batch.messages) {
-      try {
-        const res = await postToWebhook(env, message.body);
+  // Cron: vacia los correos que no se pudieron entregar. Gratuito, a diferencia
+  // de los reintentos de Queues.
+  async scheduled(event, env, ctx) {
+    if (!env.EMAIL_PENDING) return;
 
-        if (res.ok) {
-          message.ack();
-          continue;
-        }
+    const listado = await env.EMAIL_PENDING.list({ prefix: PENDING_PREFIX, limit: MAX_DRAIN_PER_RUN });
+    if (listado.keys.length === 0) return;
 
-        // 4xx es un problema del mensaje, no del backend: reintentarlo no lo
-        // arregla y solo consume la cola.
-        if (res.status >= 400 && res.status < 500) {
-          console.error(`[EmailWorker] Rechazado con ${res.status}, se descarta: ${await res.text()}`);
-          message.ack();
-          continue;
-        }
+    console.log(`[EmailWorker] Reintentando ${listado.keys.length} correo(s) pendiente(s)`);
 
-        console.error(`[EmailWorker] Backend respondio ${res.status}, se reintenta`);
-        message.retry();
-      } catch (err) {
-        console.error('[EmailWorker] Error entregando:', err.message);
-        message.retry();
+    let entregados = 0;
+    for (const { name } of listado.keys) {
+      const raw = await env.EMAIL_PENDING.get(name);
+      if (!raw) continue;
+
+      // Un solo intento por ejecucion: si sigue caido, lo coge el cron
+      // siguiente. Asi una tanda grande no agota el tiempo del Worker.
+      const resultado = await deliver(env, JSON.parse(raw), 1);
+
+      if (resultado === 'ok' || resultado === 'descartado') {
+        await env.EMAIL_PENDING.delete(name);
+        if (resultado === 'ok') entregados++;
       }
     }
+
+    console.log(`[EmailWorker] Entregados ${entregados} de ${listado.keys.length}`);
   },
 };

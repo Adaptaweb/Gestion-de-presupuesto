@@ -8,15 +8,13 @@ VERCEL_URL = "https://gastos.adaptaweb.cl"
 # Secreto compartido con el backend:
 #   wrangler secret put WEBHOOK_SECRET
 
-# El correo entrante se encola en vez de entregarse en linea, para que un
-# backend caido o lento no pierda transacciones.
-[[queues.producers]]
-queue = "email-ingest"
-binding = "EMAIL_QUEUE"
+# Correos que no se pudieron entregar. Todo dentro del plan gratuito.
+# Crear con: wrangler kv namespace create EMAIL_PENDING
+# y pegar aqui el id que devuelve.
+[[kv_namespaces]]
+binding = "EMAIL_PENDING"
+id = "PENDIENTE_DE_RELLENAR"
 
-[[queues.consumers]]
-queue = "email-ingest"
-max_batch_size = 10
-max_batch_timeout = 5
-max_retries = 5
-dead_letter_queue = "email-ingest-dlq"
+# Vacia la lista de pendientes cada quince minutos.
+[triggers]
+crons = ["*/15 * * * *"]
