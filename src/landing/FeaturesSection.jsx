@@ -85,7 +85,7 @@ const FeaturesSection = () => {
             <motion.div
               key={feature.title}
               variants={cardVariants}
-              className="group relative bg-white dark:bg-dark-lighter border border-slate-100 dark:border-dark-lightest rounded-3xl p-8 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20 transition-all duration-500"
+              className="group relative bg-white dark:bg-dark-lighter border border-slate-100 dark:border-dark-lightest rounded-3xl p-8 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-black/20 transition duration-500"
             >
               <div
                 className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.color} text-white mb-5 shadow-lg`}
@@ -98,7 +98,7 @@ const FeaturesSection = () => {
               <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-sm">
                 {feature.description}
               </p>
-              <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-kk-primary/0 group-hover:ring-kk-primary/10 dark:group-hover:ring-kk-primary/20 transition-all duration-500 pointer-events-none" />
+              <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-kk-primary/0 group-hover:ring-kk-primary/10 dark:group-hover:ring-kk-primary/20 transition duration-500 pointer-events-none" />
             </motion.div>
           ))}
         </motion.div>

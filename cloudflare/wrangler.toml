@@ -5,4 +5,14 @@ compatibility_date = "2024-12-01"
 [vars]
 VERCEL_URL = "https://gastos.adaptaweb.cl"
 
-# Run: wrangler secret put WEBHOOK_SECRET
+# Secreto compartido con el backend:
+#   wrangler secret put WEBHOOK_SECRET
+
+# Correos que no se pudieron entregar. Todo dentro del plan gratuito.
+[[kv_namespaces]]
+binding = "EMAIL_PENDING"
+id = "e05fd75c67bf4a23ae201665fd567d70"
+
+# Vacia la lista de pendientes cada quince minutos.
+[triggers]
+crons = ["*/15 * * * *"]

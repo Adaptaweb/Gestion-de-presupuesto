@@ -39,11 +39,11 @@ export function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 py-2 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-300 min-h-[40px]">
+        <button className="flex items-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 py-2 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-dark-lighter transition cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-300 min-h-[40px]">
           <User size={16} className="text-slate-400 flex-shrink-0" />
           <span className="truncate max-w-[100px]">{user.name}</span>
           {user.role === 'admin' && (
-            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
+            <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black px-1.5 py-0.5 rounded uppercase flex-shrink-0">Admin</span>
           )}
           <ChevronDown size={14} className="text-slate-400 flex-shrink-0" />
         </button>
@@ -96,14 +96,14 @@ export function UserMenu({
                     className="flex flex-col items-center gap-1 group"
                   >
                     <div
-                      className={`w-8 h-8 rounded-full transition-all flex items-center justify-center ${themeColor === color ? 'ring-[3px] ring-offset-2 ring-slate-400 dark:ring-offset-slate-800 scale-110' : 'hover:scale-110'}`}
+                      className={`w-8 h-8 rounded-full transition flex items-center justify-center ${themeColor === color ? 'ring-[3px] ring-offset-2 ring-slate-400 dark:ring-offset-slate-800 scale-110' : 'hover:scale-110'}`}
                       style={{ backgroundColor: THEME_COLOR_HEX[color] }}
                     >
                       {themeColor === color && (
                         <Check size={14} className="text-white" />
                       )}
                     </div>
-                    <span className="text-[8px] font-bold text-slate-400 capitalize">
+                    <span className="text-xs font-bold text-slate-400 capitalize">
                       {COLOR_NAMES[color]}
                     </span>
                   </button>

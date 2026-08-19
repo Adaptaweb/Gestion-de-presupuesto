@@ -42,7 +42,7 @@ const Step3 = ({ onNext, onBack, onClose }) => {
           </button>
         </div>
         <div className="w-full bg-[#e6e8ea] h-1">
-          <div className="h-full rounded-full bg-[#2dbc8b] transition-all duration-500" style={{ width: '100%' }} />
+          <div className="h-full rounded-full bg-[#2dbc8b] transition duration-500" style={{ width: '100%' }} />
         </div>
       </header>
 
@@ -73,7 +73,7 @@ const Step3 = ({ onNext, onBack, onClose }) => {
         <button
           onClick={handleComplete}
           disabled={loading}
-          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition disabled:opacity-50"
         >
           {loading ? <Loader2 size={20} className="animate-spin" /> : <X size={20} />}
           <span className="text-sm font-semibold">{loading ? 'Finalizando...' : MESSAGES.step3.closeButton}</span>

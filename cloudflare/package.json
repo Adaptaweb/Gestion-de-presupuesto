@@ -1,15 +1,13 @@
 {
   "name": "cloudflare",
   "version": "1.0.0",
-  "description": "",
+  "description": "Worker de correo entrante: encola y entrega al backend",
   "main": "email-worker.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "postal-mime": "^2.7.4"
   }

@@ -548,7 +548,7 @@ function Calendar(props) {
     <div
       className={cn(
         'bg-background text-foreground group/calendar p-3 border border-border rounded-md shadow-xs',
-        animate && 'transition-all',
+        animate && 'transition',
         numberOfMonths > 1 && 'flex flex-col gap-4 sm:flex-row',
         className
       )}

@@ -152,7 +152,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                 </p>
                 <button
                   onClick={onGoToLogin}
-                  className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all"
+                  className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition"
                 >
                   Ir a iniciar sesión
                 </button>
@@ -199,7 +199,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                         required
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
-                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                         placeholder="Juan"
                       />
                     </div>
@@ -213,7 +213,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                         required
                         value={apellido}
                         onChange={(e) => setApellido(e.target.value)}
-                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                        className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                         placeholder="Pérez"
                       />
                     </div>
@@ -229,7 +229,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                       placeholder="tu@email.com"
                     />
                   </div>
@@ -244,7 +244,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                       required
                       value={password}
                       onChange={handlePasswordChange}
-                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                       placeholder="Mínimo 8 caracteres"
                     />
                   </div>
@@ -278,7 +278,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition-all dark:text-slate-200"
+                      className="w-full bg-kk-light/50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pl-11 font-bold outline-none focus:border-kk-primary transition dark:text-slate-200"
                       placeholder="Repite tu contraseña"
                     />
                   </div>
@@ -287,7 +287,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-kk-primary text-white py-4 rounded-2xl font-black shadow-kk-sm hover:bg-kk-dark transition mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 className="animate-spin" size={20} /> : 'Crear Cuenta'}
                 </button>

@@ -204,7 +204,7 @@ const AdminPanel = ({ onBack, token }) => {
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all shadow-sm"
+              className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm"
             >
               <ArrowLeft size={20} />
             </button>
@@ -220,7 +220,7 @@ const AdminPanel = ({ onBack, token }) => {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30"
           >
             <UserPlus size={18} /> Nuevo Usuario
           </button>
@@ -249,7 +249,7 @@ const AdminPanel = ({ onBack, token }) => {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-black text-slate-800 dark:text-slate-200">{user.nombre ? `${user.nombre} ${user.apellido || ''}`.trim() : user.name}</span>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                        <span className={`text-xs font-black px-2 py-0.5 rounded-full uppercase ${
                           user.role === 'admin'
                             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                             : 'bg-slate-100 dark:bg-dark-lighter text-slate-500 dark:text-slate-400'
@@ -258,7 +258,7 @@ const AdminPanel = ({ onBack, token }) => {
                           {user.role}
                         </span>
                         {user.blocked === 1 && (
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full uppercase bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                          <span className="text-xs font-black px-2 py-0.5 rounded-full uppercase bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 flex items-center gap-1">
                             <Ban size={10} /> Bloqueado
                           </span>
                         )}
@@ -271,7 +271,7 @@ const AdminPanel = ({ onBack, token }) => {
                     <button
                       onClick={() => handleToggleBlock(user)}
                       disabled={actionLoading}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50 ${
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition disabled:opacity-50 ${
                         user.blocked
                           ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/40'
                           : 'bg-rose-100 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/40'
@@ -284,7 +284,7 @@ const AdminPanel = ({ onBack, token }) => {
                     <button
                       onClick={() => handleToggleRole(user)}
                       disabled={actionLoading}
-                      className="flex items-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                      className="flex items-center gap-1.5 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition disabled:opacity-50"
                     >
                       <Shield size={14} />
                       {user.role === 'admin' ? 'Quitar Admin' : 'Hacer Admin'}
@@ -293,7 +293,7 @@ const AdminPanel = ({ onBack, token }) => {
                     <button
                       onClick={() => setEditingPassword(editingPassword === user.id ? null : user.id)}
                       disabled={actionLoading}
-                      className="p-2 bg-slate-100 dark:bg-dark-lighter hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 rounded-xl transition-all disabled:opacity-50"
+                      className="p-2 bg-slate-100 dark:bg-dark-lighter hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 rounded-xl transition disabled:opacity-50"
                     >
                       <Key size={14} />
                     </button>
@@ -301,7 +301,7 @@ const AdminPanel = ({ onBack, token }) => {
                     <button
                       onClick={() => handleDeleteUser(user)}
                       disabled={actionLoading}
-                      className="p-2 bg-slate-100 dark:bg-dark-lighter hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 rounded-xl transition-all disabled:opacity-50"
+                      className="p-2 bg-slate-100 dark:bg-dark-lighter hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 rounded-xl transition disabled:opacity-50"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -320,13 +320,13 @@ const AdminPanel = ({ onBack, token }) => {
                         <button
                           onClick={() => handleResetPassword(user.id)}
                           disabled={actionLoading}
-                          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black hover:bg-indigo-700 transition-all disabled:opacity-50"
+                          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black hover:bg-indigo-700 transition disabled:opacity-50"
                         >
                           Guardar
                         </button>
                         <button
                           onClick={() => { setEditingPassword(null); setNewPassword(''); }}
-                          className="bg-slate-200 dark:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-black hover:bg-slate-300 dark:hover:bg-dark-lightest transition-all"
+                          className="bg-slate-200 dark:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-black hover:bg-slate-300 dark:hover:bg-dark-lightest transition"
                         >
                           Cancelar
                         </button>
@@ -341,7 +341,7 @@ const AdminPanel = ({ onBack, token }) => {
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-dark-normal rounded-[2rem] w-full max-w-md p-8 shadow-2xl animate-scale-in">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
                 <UserPlus className="text-indigo-600" size={24} /> Nuevo Usuario
@@ -358,7 +358,7 @@ const AdminPanel = ({ onBack, token }) => {
                     required
                     value={newUser.nombre}
                     onChange={(e) => setNewUser({ ...newUser, nombre: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition dark:text-slate-200"
                     placeholder="Juan"
                   />
                 </div>
@@ -367,7 +367,7 @@ const AdminPanel = ({ onBack, token }) => {
                   <input
                     value={newUser.apellido}
                     onChange={(e) => setNewUser({ ...newUser, apellido: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition dark:text-slate-200"
                     placeholder="Pérez"
                   />
                 </div>
@@ -379,7 +379,7 @@ const AdminPanel = ({ onBack, token }) => {
                   required
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition dark:text-slate-200"
                   placeholder="usuario@email.com"
                 />
               </div>
@@ -391,7 +391,7 @@ const AdminPanel = ({ onBack, token }) => {
                     required
                     value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pr-12 font-bold outline-none focus:border-indigo-500 transition-all dark:text-slate-200"
+                    className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-4 py-3 pr-12 font-bold outline-none focus:border-indigo-500 transition dark:text-slate-200"
                     placeholder="Mínimo 8 caracteres"
                   />
                   <button
@@ -409,7 +409,7 @@ const AdminPanel = ({ onBack, token }) => {
                   <button
                     type="button"
                     onClick={() => setNewUser({ ...newUser, role: 'user' })}
-                    className={`py-3 rounded-xl text-sm font-black border-2 transition-all ${
+                    className={`py-3 rounded-xl text-sm font-black border-2 transition ${
                       newUser.role === 'user'
                         ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
                         : 'border-slate-100 dark:border-dark-lighter text-slate-400'
@@ -420,7 +420,7 @@ const AdminPanel = ({ onBack, token }) => {
                   <button
                     type="button"
                     onClick={() => setNewUser({ ...newUser, role: 'admin' })}
-                    className={`py-3 rounded-xl text-sm font-black border-2 transition-all ${
+                    className={`py-3 rounded-xl text-sm font-black border-2 transition ${
                       newUser.role === 'admin'
                         ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
                         : 'border-slate-100 dark:border-dark-lighter text-slate-400'
@@ -433,7 +433,7 @@ const AdminPanel = ({ onBack, token }) => {
               <button
                 type="submit"
                 disabled={actionLoading}
-                className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30 hover:bg-indigo-700 transition-all mt-4 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30 hover:bg-indigo-700 transition mt-4 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {actionLoading ? <Loader2 className="animate-spin" size={20} /> : <><UserPlus size={18} /> Crear Usuario</>}
               </button>

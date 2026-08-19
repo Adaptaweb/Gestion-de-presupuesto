@@ -2,23 +2,28 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions, addCasillaColumn, addGmailForwardingAuthorizedColumn, addPushSubscriptionsTable, addCreatedAtColumns, addAuthColumns, addParsingLogsTable, addPlantillasEmailTable, migratePlantillasEmailColumns, runOnce } from './db.js';
+import db, { ensureCategoriasTable, seedDefaultCategorias, normalizeUserOrden, reassignOrphanTransactions } from './db.js';
 import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions } from './gmailService.js';
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
 import cache from './cache.js';
-import { createJob, getJob } from './jobQueue.js';
+import { runJob, getJob } from './jobs.js';
 import { Resend } from 'resend';
 import crypto from 'crypto';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 import { setDb as setEmbeddingsDb } from './embeddings.js';
-import { seedTemplates } from './seedTemplates.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
+import { rateLimit, secretsMatch } from './rateLimit.js';
+import { cargarCompromisos, guardarCompromisos, guardarUno, borrarUno, fijarPago, TIPOS } from './compromisos.js';
+import { logDebug } from './logger.js';
 
 setEmbeddingsDb(db);
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gestion-presupuesto-secret-key-2025';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET no definida. Sin ella cualquiera podria firmar tokens validos.');
+}
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
@@ -191,18 +196,39 @@ function buildWelcomeEmail(nombre, loginUrl) {
 }
 
 const app = express();
-app.use(cors());
+
+// Detras de Vercel y de Cloudflare la IP real llega en X-Forwarded-For.
+app.set('trust proxy', true);
+
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://gastos.adaptaweb.cl,http://localhost:5173')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  // Sin cabecera Origin la peticion no viene de un navegador (el Worker de
+  // correo, curl, mismo origen): CORS no aplica y se deja pasar.
+  origin: (origin, callback) => callback(null, !origin || ALLOWED_ORIGINS.includes(origin)),
+  credentials: false,
+}));
 app.use(express.json());
 
-runOnce('add-casilla-column', addCasillaColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-gmail-forwarding-authorized', addGmailForwardingAuthorizedColumn).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-push-subscriptions', addPushSubscriptionsTable).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-created-at-columns', addCreatedAtColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-auth-columns', addAuthColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-parsing-logs', addParsingLogsTable).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('add-plantillas-email-table', addPlantillasEmailTable).catch(e => console.error('[MIGRATION] Error:', e.message));
-runOnce('migrate-plantillas-email-columns', migratePlantillasEmailColumns).catch(e => console.error('[MIGRATION] Error:', e.message));
-setTimeout(() => seedTemplates().catch(e => console.error('[TEMPLATE] Seed error:', e.message)), 3000);
+const loginLimiter = rateLimit({
+  bucket: 'auth-login',
+  max: 10,
+  windowSec: 300,
+  identify: req => req.body?.email,
+});
+const registerLimiter = rateLimit({ bucket: 'auth-register', max: 5, windowSec: 3600 });
+const resendLimiter = rateLimit({
+  bucket: 'auth-resend',
+  max: 3,
+  windowSec: 3600,
+  identify: req => req.body?.email,
+});
+
+// El esquema se aplica con `npm run migrate` en el despliegue, no al arrancar.
+// Ver server/migrations/run.js.
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -247,7 +273,7 @@ async function generateCasilla(email) {
   return casilla;
 }
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', registerLimiter, async (req, res) => {
   try {
     const { nombre, apellido, email, password } = req.body;
     if (!nombre || !apellido || !email || !password) {
@@ -346,7 +372,7 @@ app.get('/api/auth/verify-email', async (req, res) => {
   }
 });
 
-app.post('/api/auth/resend-verification', async (req, res) => {
+app.post('/api/auth/resend-verification', resendLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email requerido' });
@@ -381,7 +407,7 @@ app.post('/api/auth/resend-verification', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email y contraseña son requeridos' });
@@ -605,296 +631,238 @@ app.put('/api/admin/users/:id/password', authenticateToken, requireAdmin, async 
   }
 });
 
+// Version de sincronizacion del usuario. Sube en cada escritura para que un
+// cliente con datos viejos no pise los cambios de otra pestana.
+async function leerVersion(userId) {
+  const row = await db.get('SELECT sync_version FROM users WHERE id = ?', userId);
+  return row?.sync_version ?? 0;
+}
+
+async function tocarVersion(userId) {
+  const row = await db.get(
+    'UPDATE users SET sync_version = sync_version + 1 WHERE id = ? RETURNING sync_version',
+    userId
+  );
+  return row?.sync_version ?? 0;
+}
+
 app.get('/api/data', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
     const cacheKey = `data:${userId}`;
     const cached = cache.get(cacheKey);
-    if (cached) {
-      console.log(`[CACHE] HIT data:${userId}`);
-      return res.json(cached);
-    }
-    console.log(`[CACHE] MISS data:${userId}`);
-    const monthRows = await db.all('SELECT mes FROM meses WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const months = monthRows.map(m => m.mes);
+    if (cached) return res.json(cached);
 
-    const deudasRows = await db.all('SELECT * FROM deudas WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosDeudasRows = await db.all('SELECT pd.* FROM pagos_deudas pd JOIN deudas d ON pd.deuda_id = d.id WHERE d.user_id = ? AND d.deleted_at IS NULL', userId);
-    const deudas = deudasRows.map(d => {
-      const pagos = {};
-      pagosDeudasRows.filter(p => p.deuda_id === d.id).forEach(p => { pagos[p.mes] = { estado: p.estado }; });
-      return { ...d, isContribuciones: Boolean(d.isContribuciones), diaPago: d.diaPago, facturacionAuto: Boolean(d.facturacionAuto), banco: d.banco, bancoLogo: d.bancoLogo, tipoTarjeta: d.tipoTarjeta, pagos };
-    });
+    const [monthRows, sueldosRows, cuentasAhorro, ahorrosDataRows, compromisos, syncVersion] = await Promise.all([
+      db.all('SELECT mes FROM meses WHERE user_id = ? AND deleted_at IS NULL', userId),
+      db.all('SELECT mes, monto FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId),
+      db.all('SELECT * FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId),
+      db.all(
+        `SELECT ad.* FROM ahorros_data ad
+         JOIN cuentas_ahorro c ON ad.cuenta_id = c.id
+         WHERE c.user_id = ? AND c.deleted_at IS NULL`,
+        userId
+      ),
+      cargarCompromisos(db, userId),
+      leerVersion(userId),
+    ]);
 
-    const gastosRows = await db.all('SELECT * FROM gastos_fijos WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosGastosRows = await db.all('SELECT pg.* FROM pagos_gastos pg JOIN gastos_fijos g ON pg.gasto_id = g.id WHERE g.user_id = ? AND g.deleted_at IS NULL', userId);
-    const gastosFijos = gastosRows.map(g => {
-      const pagos = {};
-      pagosGastosRows.filter(p => p.gasto_id === g.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...g, diaPago: g.diaPago, facturacionAuto: Boolean(g.facturacionAuto), pagos };
-    });
-
-    const sueldosRows = await db.all('SELECT mes, monto FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId);
     const sueldos = {};
-    sueldosRows.forEach(s => sueldos[s.mes] = s.monto);
+    for (const s of sueldosRows) sueldos[s.mes] = s.monto;
 
-    const cuentasAhorro = await db.all('SELECT * FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const ahorrosDataRows = await db.all('SELECT ad.* FROM ahorros_data ad JOIN cuentas_ahorro c ON ad.cuenta_id = c.id WHERE c.user_id = ? AND c.deleted_at IS NULL', userId);
     const ahorrosData = {};
-    ahorrosDataRows.forEach(a => {
+    for (const a of ahorrosDataRows) {
       if (!ahorrosData[a.cuenta_id]) ahorrosData[a.cuenta_id] = {};
       ahorrosData[a.cuenta_id][a.mes] = { deposito: a.deposito, gasto: a.gasto };
-    });
+    }
 
-    console.log(`[GET /api/data] User ${userId}: cuentasAhorro=${cuentasAhorro.length}, ahorrosData entries=${ahorrosDataRows.length}`, JSON.stringify(ahorrosData));
+    const payload = {
+      months: monthRows.map(m => m.mes),
+      sueldos,
+      cuentasAhorro,
+      ahorrosData,
+      syncVersion,
+      ...compromisos,
+    };
 
-    const subsRows = await db.all('SELECT * FROM suscripciones WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosSubsRows = await db.all('SELECT ps.* FROM pagos_suscripciones ps JOIN suscripciones s ON ps.suscripcion_id = s.id WHERE s.user_id = ? AND s.deleted_at IS NULL', userId);
-    const suscripciones = subsRows.map(s => {
-      const pagos = {};
-      pagosSubsRows.filter(p => p.suscripcion_id === s.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...s, pagos };
-    });
-
-    const abonosRows = await db.all('SELECT * FROM abonos WHERE user_id = ? AND deleted_at IS NULL', userId);
-    const pagosAbonosRows = await db.all('SELECT pa.* FROM pagos_abonos pa JOIN abonos a ON pa.abono_id = a.id WHERE a.user_id = ? AND a.deleted_at IS NULL', userId);
-    const abonos = abonosRows.map(a => {
-      const pagos = {};
-      pagosAbonosRows.filter(p => p.abono_id === a.id).forEach(p => { pagos[p.mes] = { monto: p.monto, estado: p.estado }; });
-      return { ...a, diaPago: a.diaPago, facturacionAuto: Boolean(a.facturacionAuto), pagos };
-    });
-
-    const payload = { months, deudas, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos };
     cache.set(cacheKey, payload, 300);
     res.json(payload);
   } catch (error) {
-    console.error(error);
+    console.error('[GET /api/data]', error.message);
     res.status(500).json({ error: 'Error loading data' });
   }
 });
 
 app.post('/api/sync', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-  const { deudas, months, gastosFijos, sueldos, cuentasAhorro, ahorrosData, suscripciones, abonos } = req.body;
+  const { months, sueldos, cuentasAhorro, ahorrosData, syncVersion } = req.body;
 
   cache.del(`data:${userId}`);
 
   try {
+    // Concurrencia optimista: si el cliente trae una version que ya no es la
+    // actual, otro dispositivo guardo entre medias. Antes ganaba el ultimo en
+    // escribir y el otro perdia sus cambios sin aviso.
+    if (syncVersion !== undefined) {
+      const actual = await leerVersion(userId);
+      if (syncVersion !== actual) {
+        return res.status(409).json({
+          error: 'Los datos cambiaron en otra sesion',
+          syncVersion: actual,
+        });
+      }
+    }
+
     await db.transaction(async (tx) => {
       if (months) {
-        await tx.run('UPDATE meses SET deleted_at = NOW() WHERE user_id = ? AND deleted_at IS NULL', userId);
-        for (let i = 0; i < months.length; i++) {
-          const existing = await tx.get('SELECT id FROM meses WHERE user_id = ? AND mes = ?', userId, months[i]);
-          if (existing) {
-            await tx.run('UPDATE meses SET deleted_at = NULL WHERE id = ?', existing.id);
-          } else {
-            await tx.run('INSERT INTO meses (id, user_id, mes) VALUES (?, ?, ?)', `month-${userId}-${i}`, userId, months[i]);
-          }
-        }
-      }
-
-      if (deudas) {
-        const existingDeudas = await tx.all('SELECT id FROM deudas WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = deudas.map(d => d.id);
-        for (const d of existingDeudas) {
-          if (!receivedIds.includes(d.id)) {
-            await tx.run('UPDATE deudas SET deleted_at = NOW() WHERE id = ?', d.id);
-          }
-        }
-        for (const d of deudas) {
-          const existing = await tx.get('SELECT id FROM deudas WHERE id = ?', d.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE deudas SET descripcion = ?, "cuotasTotales" = ?, "valorCuota" = ?, "mesInicio" = ?, "isContribuciones" = ?, "diaPago" = ?, "facturacionAuto" = ?, banco = ?, "bancoLogo" = ?, "tipoTarjeta" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              d.descripcion, d.cuotasTotales, d.valorCuota, d.mesInicio, d.isContribuciones ? 1 : 0, d.diaPago || 1, d.facturacionAuto ? 1 : 0, d.banco || '', d.bancoLogo || '', d.tipoTarjeta || '', d.iconType || 'default', d.iconValue || 'layout', d.iconUrl || '', d.id);
-          } else {
-            await tx.run(
-              'INSERT INTO deudas (id, user_id, descripcion, "cuotasTotales", "valorCuota", "mesInicio", "isContribuciones", "diaPago", "facturacionAuto", banco, "bancoLogo", "tipoTarjeta", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              d.id, userId, d.descripcion, d.cuotasTotales, d.valorCuota, d.mesInicio, d.isContribuciones ? 1 : 0, d.diaPago || 1, d.facturacionAuto ? 1 : 0, d.banco || '', d.bancoLogo || '', d.tipoTarjeta || '', d.iconType || 'default', d.iconValue || 'layout', d.iconUrl || '');
-          }
-          if (d.pagos) {
-            await tx.run('UPDATE pagos_deudas SET deleted_at = NOW() WHERE deuda_id = ?', d.id);
-            for (const [mes, pago] of Object.entries(d.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_deudas WHERE deuda_id = ? AND mes = ?', d.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_deudas SET estado = ?, deleted_at = NULL WHERE deuda_id = ? AND mes = ?', pago.estado, d.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_deudas ("deuda_id", mes, estado) VALUES (?, ?, ?)', d.id, mes, pago.estado);
-              }
-            }
-          }
-        }
-      }
-
-      if (gastosFijos) {
-        const existingGastos = await tx.all('SELECT id FROM gastos_fijos WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = gastosFijos.map(g => g.id);
-        for (const g of existingGastos) {
-          if (!receivedIds.includes(g.id)) {
-            await tx.run('UPDATE gastos_fijos SET deleted_at = NOW() WHERE id = ?', g.id);
-          }
-        }
-        for (const g of gastosFijos) {
-          const existing = await tx.get('SELECT id FROM gastos_fijos WHERE id = ?', g.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE gastos_fijos SET descripcion = ?, "diaPago" = ?, "facturacionAuto" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              g.descripcion, g.diaPago || 1, g.facturacionAuto ? 1 : 0, g.iconType || 'preset', g.iconValue || 'layout', g.iconUrl || '', g.id);
-          } else {
-            await tx.run('INSERT INTO gastos_fijos (id, user_id, descripcion, "diaPago", "facturacionAuto", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-              g.id, userId, g.descripcion, g.diaPago || 1, g.facturacionAuto ? 1 : 0, g.iconType || 'preset', g.iconValue || 'layout', g.iconUrl || '');
-          }
-          if (g.pagos) {
-            await tx.run('UPDATE pagos_gastos SET deleted_at = NOW() WHERE gasto_id = ?', g.id);
-            for (const [mes, pago] of Object.entries(g.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_gastos WHERE gasto_id = ? AND mes = ?', g.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_gastos SET monto = ?, estado = ?, deleted_at = NULL WHERE gasto_id = ? AND mes = ?', pago.monto || 0, pago.estado, g.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_gastos ("gasto_id", mes, monto, estado) VALUES (?, ?, ?, ?)', g.id, mes, pago.monto || 0, pago.estado);
-              }
-            }
-          }
+        await tx.run(
+          `UPDATE meses SET deleted_at = NOW()
+           WHERE user_id = $1 AND deleted_at IS NULL AND NOT (mes = ANY($2))`,
+          userId, months
+        );
+        if (months.length > 0) {
+          const valores = months.flatMap(mes => [`month-${userId}-${mes.replace(/\s/g, '-')}`, userId, mes]);
+          const grupos = months.map((_, f) => `($${f * 3 + 1}, $${f * 3 + 2}, $${f * 3 + 3})`).join(', ');
+          // El conflicto va sobre (user_id, mes), no sobre el id: el id antiguo
+          // se derivaba de la posicion en el array y cambiaba al reordenar.
+          await tx.run(
+            `INSERT INTO meses (id, user_id, mes) VALUES ${grupos}
+             ON CONFLICT (user_id, mes) DO UPDATE SET deleted_at = NULL`,
+            ...valores
+          );
         }
       }
 
       if (sueldos) {
-        const existingSueldos = await tx.all('SELECT id FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedMes = Object.keys(sueldos);
-        for (const s of existingSueldos) {
-          if (!receivedMes.includes(s.mes)) {
-            await tx.run('UPDATE sueldos SET deleted_at = NOW() WHERE id = ?', s.id);
-          }
-        }
-        for (const [mes, monto] of Object.entries(sueldos)) {
-          const existing = await tx.get('SELECT id FROM sueldos WHERE user_id = ? AND mes = ?', userId, mes);
-          if (existing) {
-            await tx.run('UPDATE sueldos SET monto = ?, deleted_at = NULL WHERE id = ?', monto, existing.id);
-          } else {
-            await tx.run('INSERT INTO sueldos (id, user_id, mes, monto) VALUES (?, ?, ?, ?)', `sueldo-${userId}-${mes.replace(/\s/g, '-')}`, userId, mes, monto);
-          }
-        }
-      }
-
-      if (cuentasAhorro !== undefined || ahorrosData !== undefined) {
-        if (cuentasAhorro !== undefined) {
-          const existingCuentas = await tx.all('SELECT id FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId);
-          const receivedIds = cuentasAhorro.map(c => c.id);
-          for (const c of existingCuentas) {
-            if (!receivedIds.includes(c.id)) {
-              await tx.run('UPDATE cuentas_ahorro SET deleted_at = NOW() WHERE id = ?', c.id);
-            }
-          }
-
-          if (cuentasAhorro.length > 0) {
-            for (const c of cuentasAhorro) {
-              const existing = await tx.get('SELECT id FROM cuentas_ahorro WHERE id = ?', c.id);
-              if (existing) {
-                await tx.run('UPDATE cuentas_ahorro SET nombre = ?, banco = ?, deleted_at = NULL WHERE id = ?', c.nombre, c.banco, c.id);
-              } else {
-                await tx.run('INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES (?, ?, ?, ?)', c.id, userId, c.nombre, c.banco);
-              }
-            }
-            console.log(`[SYNC] cuentasAhorro: ${cuentasAhorro.length} cuentas saved`);
-          } else {
-            console.log(`[SYNC] cuentasAhorro: cleared (empty array)`);
-          }
-        }
-
-        if (ahorrosData !== undefined) {
-          await tx.run('UPDATE ahorros_data SET deleted_at = NOW() WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = ?)', userId);
-
-          if (Object.keys(ahorrosData).length > 0) {
-            let i = 0;
-            for (const [cuentaId, data] of Object.entries(ahorrosData)) {
-              for (const [mes, a] of Object.entries(data)) {
-                const existing = await tx.get('SELECT id FROM ahorros_data WHERE cuenta_id = ? AND mes = ?', cuentaId, mes);
-                if (existing) {
-                  await tx.run('UPDATE ahorros_data SET deposito = ?, gasto = ?, deleted_at = NULL WHERE id = ?', a.deposito || 0, a.gasto || 0, existing.id);
-                } else {
-                  await tx.run('INSERT INTO ahorros_data (id, cuenta_id, mes, deposito, gasto) VALUES (?, ?, ?, ?, ?)',
-                    `ahorro-${userId}-${cuentaId}-${mes.replace(/\s/g, '-')}`, cuentaId, mes, a.deposito || 0, a.gasto || 0);
-                }
-                i++;
-              }
-            }
-            console.log(`[SYNC] ahorrosData: ${i} entries saved`);
-          } else {
-            console.log(`[SYNC] ahorrosData: cleared (empty object)`);
-          }
+        const meses = Object.keys(sueldos);
+        await tx.run(
+          `UPDATE sueldos SET deleted_at = NOW()
+           WHERE user_id = $1 AND deleted_at IS NULL AND NOT (mes = ANY($2))`,
+          userId, meses
+        );
+        if (meses.length > 0) {
+          const valores = meses.flatMap(mes => [
+            `sueldo-${userId}-${mes.replace(/\s/g, '-')}`, userId, mes, sueldos[mes] || 0,
+          ]);
+          const grupos = meses.map((_, f) => `($${f * 4 + 1}, $${f * 4 + 2}, $${f * 4 + 3}, $${f * 4 + 4})`).join(', ');
+          await tx.run(
+            `INSERT INTO sueldos (id, user_id, mes, monto) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET monto = EXCLUDED.monto, deleted_at = NULL`,
+            ...valores
+          );
         }
       }
 
-      if (suscripciones) {
-        const existingSubs = await tx.all('SELECT id FROM suscripciones WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = suscripciones.map(s => s.id);
-        for (const s of existingSubs) {
-          if (!receivedIds.includes(s.id)) {
-            await tx.run('UPDATE suscripciones SET deleted_at = NOW() WHERE id = ?', s.id);
-          }
-        }
-        for (const s of suscripciones) {
-          const existing = await tx.get('SELECT id FROM suscripciones WHERE id = ?', s.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE suscripciones SET descripcion = ?, valor = ?, "billingCycle" = ?, "diaPago" = ?, "mesInicio" = ?, "durationYears" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              s.descripcion, s.valor, s.billingCycle, s.diaPago || null, s.mesInicio, s.durationYears, s.iconType || 'default', s.iconValue || '', s.iconUrl || '', s.id);
-          } else {
-            await tx.run('INSERT INTO suscripciones (id, user_id, descripcion, valor, "billingCycle", "diaPago", "mesInicio", "durationYears", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-              s.id, userId, s.descripcion, s.valor, s.billingCycle, s.diaPago || null, s.mesInicio, s.durationYears, s.iconType || 'default', s.iconValue || '', s.iconUrl || '');
-          }
-          if (s.pagos) {
-            await tx.run('UPDATE pagos_suscripciones SET deleted_at = NOW() WHERE suscripcion_id = ?', s.id);
-            for (const [mes, pago] of Object.entries(s.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_suscripciones WHERE suscripcion_id = ? AND mes = ?', s.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_suscripciones SET monto = ?, estado = ?, deleted_at = NULL WHERE suscripcion_id = ? AND mes = ?', pago.monto || s.valor || 0, pago.estado, s.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_suscripciones ("suscripcion_id", mes, monto, estado) VALUES (?, ?, ?, ?)', s.id, mes, pago.monto || s.valor || 0, pago.estado);
-              }
-            }
-          }
+      if (cuentasAhorro !== undefined) {
+        const ids = cuentasAhorro.map(c => c.id);
+        await tx.run(
+          `UPDATE cuentas_ahorro SET deleted_at = NOW()
+           WHERE user_id = $1 AND deleted_at IS NULL AND NOT (id = ANY($2))`,
+          userId, ids
+        );
+        if (cuentasAhorro.length > 0) {
+          const valores = cuentasAhorro.flatMap(c => [c.id, userId, c.nombre, c.banco]);
+          const grupos = cuentasAhorro.map((_, f) => `($${f * 4 + 1}, $${f * 4 + 2}, $${f * 4 + 3}, $${f * 4 + 4})`).join(', ');
+          await tx.run(
+            `INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, banco = EXCLUDED.banco, deleted_at = NULL`,
+            ...valores
+          );
         }
       }
 
-      if (abonos) {
-        const existingAbonos = await tx.all('SELECT id FROM abonos WHERE user_id = ? AND deleted_at IS NULL', userId);
-        const receivedIds = abonos.map(a => a.id);
-        for (const a of existingAbonos) {
-          if (!receivedIds.includes(a.id)) {
-            await tx.run('UPDATE abonos SET deleted_at = NOW() WHERE id = ?', a.id);
+      if (ahorrosData !== undefined) {
+        const filas = [];
+        for (const [cuentaId, meses] of Object.entries(ahorrosData)) {
+          for (const [mes, valores] of Object.entries(meses || {})) {
+            filas.push([
+              `ahorro-${cuentaId}-${mes.replace(/\s/g, '-')}`,
+              cuentaId, mes, valores.deposito || 0, valores.gasto || 0,
+            ]);
           }
         }
-        for (const a of abonos) {
-          const existing = await tx.get('SELECT id FROM abonos WHERE id = ?', a.id);
-          if (existing) {
-            await tx.run(
-              'UPDATE abonos SET descripcion = ?, "diaPago" = ?, "facturacionAuto" = ?, "iconType" = ?, "iconValue" = ?, "iconUrl" = ?, deleted_at = NULL WHERE id = ?',
-              a.descripcion, a.diaPago || 1, a.facturacionAuto ? 1 : 0, a.iconType || 'preset', a.iconValue || 'layout', a.iconUrl || '', a.id);
-          } else {
-            await tx.run('INSERT INTO abonos (id, user_id, descripcion, "diaPago", "facturacionAuto", "iconType", "iconValue", "iconUrl") VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-              a.id, userId, a.descripcion, a.diaPago || 1, a.facturacionAuto ? 1 : 0, a.iconType || 'preset', a.iconValue || 'layout', a.iconUrl || '');
-          }
-          if (a.pagos) {
-            await tx.run('UPDATE pagos_abonos SET deleted_at = NOW() WHERE abono_id = ?', a.id);
-            for (const [mes, pago] of Object.entries(a.pagos)) {
-              const existingPago = await tx.get('SELECT 1 FROM pagos_abonos WHERE abono_id = ? AND mes = ?', a.id, mes);
-              if (existingPago) {
-                await tx.run('UPDATE pagos_abonos SET monto = ?, estado = ?, deleted_at = NULL WHERE abono_id = ? AND mes = ?', pago.monto || 0, pago.estado, a.id, mes);
-              } else {
-                await tx.run('INSERT INTO pagos_abonos ("abono_id", mes, monto, estado) VALUES (?, ?, ?, ?)', a.id, mes, pago.monto || 0, pago.estado);
-              }
-            }
-          }
+
+        await tx.run(
+          `DELETE FROM ahorros_data
+           WHERE cuenta_id IN (SELECT id FROM cuentas_ahorro WHERE user_id = $1)`,
+          userId
+        );
+
+        if (filas.length > 0) {
+          const grupos = filas
+            .map((_, f) => `($${f * 5 + 1}, $${f * 5 + 2}, $${f * 5 + 3}, $${f * 5 + 4}, $${f * 5 + 5})`)
+            .join(', ');
+          await tx.run(
+            `INSERT INTO ahorros_data (id, cuenta_id, mes, deposito, gasto) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET deposito = EXCLUDED.deposito, gasto = EXCLUDED.gasto`,
+            ...filas.flat()
+          );
         }
       }
+
+      await guardarCompromisos(tx, userId, req.body);
+      await tx.run('UPDATE users SET sync_version = sync_version + 1 WHERE id = ?', userId);
     });
 
+    res.json({ success: true, syncVersion: await leerVersion(userId) });
+  } catch (err) {
+    console.error('[POST /api/sync]', err.message);
+    res.status(500).json({ error: 'Sync failed' });
+  }
+});
 
+// --- Escrituras por recurso ---
+//
+// Alternativa a /api/sync para operaciones sueltas: en vez de reenviar todo el
+// estado, el cliente manda solo lo que cambio. El Dashboard las ira adoptando a
+// medida que se descomponga.
+
+const TIPOS_VALIDOS = new Set(Object.values(TIPOS));
+
+app.put('/api/compromisos/:tipo/:id', authenticateToken, async (req, res) => {
+  try {
+    const { tipo, id } = req.params;
+    if (!TIPOS_VALIDOS.has(tipo)) {
+      return res.status(400).json({ error: 'Tipo no valido' });
+    }
+
+    const guardado = await guardarUno(db, req.user.id, tipo, { ...req.body, id });
+    if (!guardado) return res.status(404).json({ error: 'Compromiso no encontrado' });
+
+    await tocarVersion(req.user.id);
+    cache.del(`data:${req.user.id}`);
     res.json({ success: true });
   } catch (err) {
-    console.error('Error syncing data:', err);
-    res.status(500).json({ error: 'Sync failed' });
+    console.error('[PUT /api/compromisos]', err.message);
+    res.status(500).json({ error: 'Error al guardar' });
+  }
+});
+
+app.delete('/api/compromisos/:id', authenticateToken, async (req, res) => {
+  try {
+    const borrado = await borrarUno(db, req.user.id, req.params.id);
+    if (!borrado) return res.status(404).json({ error: 'Compromiso no encontrado' });
+
+    await tocarVersion(req.user.id);
+    cache.del(`data:${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[DELETE /api/compromisos]', err.message);
+    res.status(500).json({ error: 'Error al eliminar' });
+  }
+});
+
+app.put('/api/compromisos/:id/pagos/:mes', authenticateToken, async (req, res) => {
+  try {
+    const aplicado = await fijarPago(db, req.user.id, req.params.id, req.params.mes, req.body);
+    if (!aplicado) return res.status(404).json({ error: 'Compromiso no encontrado' });
+
+    await tocarVersion(req.user.id);
+    cache.del(`data:${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[PUT /api/compromisos/:id/pagos]', err.message);
+    res.status(500).json({ error: 'Error al guardar el pago' });
   }
 });
 
@@ -956,7 +924,6 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order, fecha_desde, fecha_hasta })}`;
     const cached = cache.get(cacheKey);
     if (cached) {
-      console.log(`[CACHE] HIT tx:${userId}`);
       return res.json(cached);
     }
 
@@ -1046,7 +1013,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
       db.run(
         "UPDATE transacciones_extraidas SET categoria = ? WHERE user_id = ? AND LOWER(comercio) = LOWER(?) AND id != ?",
         categoria, tx.user_id, finalComercio, req.params.id)
-        .then(result => console.log(`[BACKGROUND] Bulk categorized ${result.changes} transactions with comercio=${finalComercio}`))
+        .then(result => logDebug(`[BACKGROUND] Bulk categorized ${result.changes} transactions with comercio=${finalComercio}`))
         .catch(err => console.error('[BACKGROUND] Bulk categorize error:', err.message));
     }
     if (comercio !== undefined) {
@@ -1134,14 +1101,17 @@ app.post('/api/transacciones/manual', authenticateToken, async (req, res) => {
 app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const job = await createJob('revisar-correos', async () => {
+    // El trabajo se completa dentro de la peticion. Se sigue devolviendo un
+    // jobId para no romper al cliente, que consulta el estado a continuacion y
+    // lo encuentra ya terminado.
+    const job = await runJob('revisar-correos', async () => {
       const result = await fetchLatestTransactions(userId);
       cache.delByPattern(`tx:*:${userId}`);
       cache.del(`tx:meses:${userId}`);
       cache.delByPattern(`tx:pendientes:${userId}`);
       return result;
     });
-    res.json({ jobId: job.id });
+    res.json({ jobId: job.id, status: 'completed', result: job.result });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -1170,8 +1140,15 @@ app.post('/api/transacciones/reprocesar', authenticateToken, async (req, res) =>
 // Webhook de Cloudflare Email Worker
 app.post('/api/webhook/email', async (req, res) => {
   try {
-    const secret = req.headers['x-webhook-secret'];
-    if (secret !== process.env.WEBHOOK_SECRET) {
+    // Fallo cerrado: sin secreto configurado el endpoint no acepta nada. Antes
+    // ambos lados valian undefined cuando faltaba la variable y la peticion
+    // pasaba sin autenticar.
+    const expectedSecret = process.env.WEBHOOK_SECRET;
+    if (!expectedSecret) {
+      console.error('[Webhook] WEBHOOK_SECRET no definida: se rechazan las peticiones');
+      return res.status(503).json({ error: 'Webhook no configurado' });
+    }
+    if (!secretsMatch(req.headers['x-webhook-secret'], expectedSecret)) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -1190,7 +1167,7 @@ app.post('/api/webhook/email', async (req, res) => {
       const fromMatch = rawStr.match(/^From:\s*(.+)$/mi);
       if (fromMatch && fromMatch[1]) {
         originalFrom = fromMatch[1].trim();
-        console.log(`[Webhook] Original From extracted from raw: ${originalFrom}`);
+        logDebug(`[Webhook] Original From extracted from raw: ${originalFrom}`);
       }
     }
 
@@ -1207,7 +1184,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
     // Check if this is a Gmail authorization email (using original From to avoid false positives from Gmail-forwarded emails)
     if (isGmailAuthorizationEmail(originalFrom, subject, html, text)) {
-      console.log(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject} from ${from}`);
+      logDebug(`[GmailAuth] Detected authorization email for user ${actualUserId}: ${subject} from ${from}`);
 
       // Get user's personal email to forward the authorization request
       const user = await db.get('SELECT email FROM users WHERE id = ?', actualUserId);
@@ -1227,7 +1204,7 @@ app.post('/api/webhook/email', async (req, res) => {
             html: emailContent.includes('<') ? emailContent : `<pre>${emailContent}</pre>`,
             text: emailContent,
           });
-          console.log(`[GmailAuth] Forwarded authorization email to ${user.email}`);
+          logDebug(`[GmailAuth] Forwarded authorization email to ${user.email}`);
         } catch (emailErr) {
           console.error(`[GmailAuth] Error forwarding email: ${emailErr.message}`);
         }
@@ -1237,7 +1214,7 @@ app.post('/api/webhook/email', async (req, res) => {
 
       return res.json({ success: true, type: 'gmail_authorization_forwarded', forwardedTo: user.email });
     } else {
-      console.log(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
+      logDebug(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
     }
 
     const headers = {
@@ -1255,7 +1232,7 @@ app.post('/api/webhook/email', async (req, res) => {
     }
 
     if (!parsed || !parsed.monto || !parsed.fecha) {
-      console.log(`[Webhook] Could not parse transaction from ${from}: ${subject} - monto=${parsed?.monto}, fecha=${parsed?.fecha}`);
+      logDebug(`[Webhook] Could not parse transaction from ${from}: ${subject} - monto=${parsed?.monto}, fecha=${parsed?.fecha}`);
       return res.json({ success: false, reason: 'no_parsed_data' });
     }
 
@@ -1439,7 +1416,7 @@ app.post('/api/filtros/replace', authenticateToken, async (req, res) => {
       })
       .then(() => {
         cache.del(`filtros:${userId}`);
-        console.log(`[BACKGROUND] Replaced ${filtered.length} filters for user ${userId}`);
+        logDebug(`[BACKGROUND] Replaced ${filtered.length} filters for user ${userId}`);
       })
       .catch(err => console.error('[BACKGROUND] Filter replace error:', err.message));
 
@@ -1606,7 +1583,8 @@ app.post('/api/restore/:table/:id', authenticateToken, async (req, res) => {
     const { table, id } = req.params;
     const userId = req.user.id;
 
-    const allowedTables = ['deudas', 'gastos_fijos', 'suscripciones', 'abonos', 'cuentas_ahorro', 'sueldos', 'meses', 'transacciones_extraidas', 'filtros_correo', 'categorias'];
+    // deudas, gastos_fijos, suscripciones y abonos viven ahora en compromisos.
+    const allowedTables = ['compromisos', 'cuentas_ahorro', 'sueldos', 'meses', 'transacciones_extraidas', 'filtros_correo', 'categorias'];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: 'Tabla no permitida' });
     }

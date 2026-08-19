@@ -11,11 +11,11 @@ export default function UpdateBanner() {
 
   return (
     <div className="fixed top-16 inset-x-4 z-30 flex justify-center pointer-events-none">
-      <div className="pointer-events-auto bg-kk-primary text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center justify-between gap-3 max-w-sm w-full animate-in slide-in-from-top-2 fade-in duration-300">
+      <div className="pointer-events-auto bg-kk-primary text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center justify-between gap-3 max-w-sm w-full animate-slide-down">
         <p className="text-sm font-bold">Nueva versión disponible</p>
         <button
           onClick={() => updateServiceWorker(true)}
-          className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex-shrink-0"
+          className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex-shrink-0"
         >
           <RefreshCw size={14} />
           Actualizar

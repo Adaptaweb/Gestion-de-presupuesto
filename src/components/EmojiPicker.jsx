@@ -65,13 +65,13 @@ export default function EmojiPicker({ value, onChange, onClose }) {
       <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-2">
         {filtered.map(group => (
           <div key={group.label}>
-            <p className="text-[9px] font-black uppercase text-slate-400 mb-1 px-0.5">{group.label}</p>
+            <p className="text-xs font-black uppercase text-slate-400 mb-1 px-0.5">{group.label}</p>
             <div className="grid grid-cols-8 gap-1">
               {group.emojis.map(emoji => (
                 <button
                   key={emoji}
                   onClick={() => { onChange(emoji); onClose?.(); }}
-                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-base hover:bg-slate-100 dark:hover:bg-dark-lighter transition-all ${
+                  className={`w-7 h-7 flex items-center justify-center rounded-lg text-base hover:bg-slate-100 dark:hover:bg-dark-lighter transition ${
                     value === emoji ? 'bg-slate-200 dark:bg-dark-lighter ring-1 ring-slate-300' : ''
                   }`}
                 >

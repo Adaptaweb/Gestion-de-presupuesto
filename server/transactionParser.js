@@ -3,6 +3,7 @@ import db from './db.js';
 import { generarFingerprint, calcularConfianza } from './fingerprint.js';
 import { seleccionarParser, usarParser } from './parsers/index.js';
 import { encontrarComercioSimilar } from './embeddings.js';
+import { logDebug } from './logger.js';
 
 const BANK_DOMAINS = {
   'bci.cl': 'BCI',
@@ -166,7 +167,7 @@ async function parseHTML(html, headers = {}, userId = null) {
   if (parser) {
     parserResult = usarParser(parser, html, headers);
     if (parserResult) {
-      console.log(`[Parser] Usando ${parser.nombre} para ${headers['subject']?.substring(0, 50)}`);
+      logDebug(`[Parser] Usando ${parser.nombre} para ${headers['subject']?.substring(0, 50)}`);
     }
   }
 
@@ -383,7 +384,7 @@ async function parseHTML(html, headers = {}, userId = null) {
     } else {
       const similar = await encontrarComercioSimilar(comercio, userId);
       if (similar) {
-        console.log(`[Embeddings] ${comercio} → ${similar.comercio} (score: ${similar.score.toFixed(2)})`);
+        logDebug(`[Embeddings] ${comercio} → ${similar.comercio} (score: ${similar.score.toFixed(2)})`);
         categoria = similar.categoria;
         comercioConocido = true;
       }

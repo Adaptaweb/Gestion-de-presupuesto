@@ -35,7 +35,7 @@ const Step1 = ({ emailData, user, onNext, onOpcional, onBack, onClose }) => {
           </button>
         </div>
         <div className="w-full bg-[#e6e8ea] h-1">
-          <div className="h-full rounded-full bg-[#2dbc8b] transition-all duration-500" style={{ width: '33%' }} />
+          <div className="h-full rounded-full bg-[#2dbc8b] transition duration-500" style={{ width: '33%' }} />
         </div>
       </header>
 
@@ -57,7 +57,7 @@ const Step1 = ({ emailData, user, onNext, onOpcional, onBack, onClose }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+          <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
             <div className="flex flex-col gap-3">
               <div className="flex gap-3 items-start">
                 <div className="bg-[#2dbc8b] text-white w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">1</div>
@@ -73,7 +73,7 @@ const Step1 = ({ emailData, user, onNext, onOpcional, onBack, onClose }) => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition-all">
+          <div className="bg-white rounded-xl shadow-[0_4px_12px_rgba(10,25,47,0.05)] p-4 border-l-4 border-[#2dbc8b] hover:shadow-[0_8px_24px_rgba(10,25,47,0.1)] hover:-translate-y-0.5 transition">
             <div className="flex flex-col gap-3">
               <div className="flex gap-3 items-start">
                 <div className="bg-[#2dbc8b] text-white w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">3</div>
@@ -103,7 +103,7 @@ const Step1 = ({ emailData, user, onNext, onOpcional, onBack, onClose }) => {
 
         <button
           onClick={onOpcional}
-          className="w-full mt-4 p-3 bg-[#d2e0fe] border border-[#d2e0fe] rounded-xl flex items-center justify-center gap-3 text-[#55637d] hover:bg-[#d2e0fe]/50 transition-all"
+          className="w-full mt-4 p-3 bg-[#d2e0fe] border border-[#d2e0fe] rounded-xl flex items-center justify-center gap-3 text-[#55637d] hover:bg-[#d2e0fe]/50 transition"
         >
           <Shield size={18} />
           <p className="font-semibold text-sm">{MESSAGES.step1.opcionalButton}</p>
@@ -113,14 +113,14 @@ const Step1 = ({ emailData, user, onNext, onOpcional, onBack, onClose }) => {
       <footer className="flex-shrink-0 flex justify-between items-center px-4 py-3 border-t border-[#f1f5f9]">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition-all"
+          className="flex items-center gap-2 text-[#515f78] px-4 py-2 rounded-lg hover:bg-[#6de0b3]/10 transition"
         >
           <ArrowLeft size={20} />
           <span className="text-sm font-semibold">Anterior</span>
         </button>
         <button
           onClick={onNext}
-          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition-all"
+          className="flex items-center gap-2 bg-[#2dbc8b] text-white px-8 py-3 rounded-xl shadow hover:brightness-110 transition"
         >
           <span className="text-sm font-semibold">Siguiente</span>
           <ArrowLeft size={20} className="rotate-180" />

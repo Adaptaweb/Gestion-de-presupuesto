@@ -147,12 +147,12 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
   return (
     <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 transition-opacity duration-300" style={{ opacity: visible ? 1 : 0 }}>
       <div
-        className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 ${
+        className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden transition duration-300 ${
           visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
-          <button onClick={handleClose} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-all px-2 py-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-dark-lightest">
+          <button onClick={handleClose} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition px-2 py-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-dark-lightest">
             <X size={18} /> <span className="text-xs font-bold">Cancelar</span>
           </button>
           <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
@@ -165,7 +165,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setTipo('gasto')}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all border ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition border ${
                 tipo === 'gasto'
                   ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/50 shadow-sm'
                   : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
@@ -175,7 +175,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
             </button>
             <button
               onClick={() => setTipo('ingreso')}
-              className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition-all border ${
+              className={`flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-bold transition border ${
                 tipo === 'ingreso'
                   ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/50 shadow-sm'
                   : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
@@ -186,7 +186,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Monto *</label>
+            <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Monto *</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">$</span>
               <input
@@ -194,39 +194,39 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
                 value={monto}
                 onChange={e => setMonto(e.target.value)}
                 placeholder="0"
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-7 pr-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl pl-7 pr-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Comercio</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Comercio</label>
               <input
                 value={comercio}
                 onChange={e => setComercio(e.target.value)}
                 placeholder="Ej: Starbucks"
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
               />
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Fecha</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Fecha</label>
               <input
                 type="date"
                 value={fecha}
                 onChange={e => setFecha(e.target.value)}
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Banco</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Banco</label>
               <select
                 value={banco}
                 onChange={e => setBanco(e.target.value)}
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
               >
                 <option value="">—</option>
                 {Object.keys(BANK_ICONS).map(b => (
@@ -236,11 +236,11 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Tipo tarjeta</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-1 block">Tipo tarjeta</label>
               <select
                 value={tipoTarjeta}
                 onChange={e => setTipoTarjeta(e.target.value)}
-                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition-all dark:text-slate-200"
+                className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
               >
                 <option value="">—</option>
                 <option value="Débito">Débito</option>
@@ -251,13 +251,13 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
 
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Categoría</label>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[categoria] || CATEGORY_COLORS['Otros']}`}>{categoria}</span>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Categoría</label>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${CATEGORY_COLORS[categoria] || CATEGORY_COLORS['Otros']}`}>{categoria}</span>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => sliderRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
-                className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
+                className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition"
               >
                 <ChevronLeft size={14} />
               </button>
@@ -268,21 +268,21 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
                     <button
                       key={cat}
                       onClick={() => setCategoria(cat)}
-                      className={`flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl transition-all duration-200 border ${
+                      className={`flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl transition duration-200 border ${
                         selected
                           ? `${CATEGORY_ICON_BG[cat]} border-current shadow-sm scale-105`
                           : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
                       }`}
                     >
                       <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                      <span className={`text-[8px] font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-200'}`}>{cat}</span>
+                      <span className={`text-xs font-bold leading-tight text-center ${selected ? CATEGORY_ICON_COLOR[cat] : 'text-slate-500 dark:text-slate-200'}`}>{cat}</span>
                     </button>
                   );
                 })}
               </div>
               <button
                 onClick={() => sliderRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
-                className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition-all"
+                className="flex-shrink-0 p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-dark-lightest transition"
               >
                 <ChevronRight size={14} />
               </button>
@@ -291,7 +291,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
 
           {isGasto && (
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {[
                   { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
@@ -303,7 +303,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
                     <button
                       key={opt.key}
                       onClick={() => setTipoGasto(tipoGasto === opt.key ? null : opt.key)}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition-all duration-200 border ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition duration-200 border ${
                         selected
                           ? `${opt.bg} ${opt.color} ${opt.border} shadow-sm`
                           : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
@@ -327,7 +327,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
           <button
             onClick={handleConfirm}
             disabled={saving}
-            className={`w-full flex items-center justify-center gap-2 py-2.5 ${theme.btnPrimary} text-white rounded-xl font-bold text-sm shadow-lg transition-all disabled:opacity-50 active:scale-95`}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 ${theme.btnPrimary} text-white rounded-xl font-bold text-sm shadow-lg transition disabled:opacity-50 active:scale-95`}
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
             {isGasto ? 'Confirmar gasto' : 'Confirmar ingreso'}
@@ -335,7 +335,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token }) => {
           <button
             onClick={handleConfirmNoEs}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition disabled:opacity-50"
           >
             {isGasto ? 'No es Gasto' : 'No es Ingreso'}
           </button>

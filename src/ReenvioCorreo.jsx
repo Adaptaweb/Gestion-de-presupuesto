@@ -47,7 +47,7 @@ const ReenvioCorreo = ({ onBack }) => {
       <div className="max-w-2xl mx-auto">
         <button
           onClick={onBack}
-          className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition-all shadow-sm"
+          className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm"
         >
           <ArrowLeft size={20} />
         </button>
@@ -74,7 +74,7 @@ const ReenvioCorreo = ({ onBack }) => {
                   </code>
                   <button
                     onClick={handleCopy}
-                    className="p-2 bg-white dark:bg-dark-lighter border border-indigo-200 dark:border-indigo-700 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all flex-shrink-0"
+                    className="p-2 bg-white dark:bg-dark-lighter border border-indigo-200 dark:border-indigo-700 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition flex-shrink-0"
                   >
                     {copied ? <Check size={18} className="text-emerald-600" /> : <Copy size={18} className="text-indigo-600" />}
                   </button>

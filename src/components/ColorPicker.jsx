@@ -28,14 +28,14 @@ export default function ColorPicker({ value, onChange }) {
           onChange={e => onChange(e.target.value)}
           className="sr-only"
         />
-        <span className="text-[10px] font-mono text-slate-400">{value}</span>
+        <span className="text-xs font-mono text-slate-400">{value}</span>
       </div>
       <div className="grid grid-cols-10 gap-1.5">
         {PRESET_COLORS.map(color => (
           <button
             key={color}
             onClick={() => onChange(color)}
-            className={`w-7 h-7 rounded-lg transition-all hover:scale-110 ${
+            className={`w-7 h-7 rounded-lg transition hover:scale-110 ${
               value === color ? 'ring-2 ring-offset-1 ring-slate-400 dark:ring-offset-dark-normal scale-110' : ''
             }`}
             style={{ backgroundColor: color }}
