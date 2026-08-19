@@ -56,3 +56,6 @@ coverage/
 PLAN-AUTH.md
 .backup/
 
+
+# Cache local de wrangler
+cloudflare/.wrangler/
