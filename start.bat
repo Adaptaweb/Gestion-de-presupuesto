@@ -100,11 +100,13 @@ REM de arriba, asi que no hace falta repetirlo dentro de las comillas.
 start "KK backend" cmd /k "set DEBUG_PARSING=1&& set NODE_ENV=development&& npm run dev:server"
 
 REM Un margen para que el backend levante antes de que Vite empiece a proxiar.
-timeout /t 3 /nobreak >nul
+REM Se usa ping y no timeout: timeout aborta si la entrada esta redirigida, que
+REM es lo que pasa al lanzar el .bat desde otro shell en vez de un doble clic.
+"%SystemRoot%\System32\ping.exe" -n 4 127.0.0.1 >nul
 
 start "KK frontend" cmd /k "npm run dev"
 
-timeout /t 5 /nobreak >nul
+"%SystemRoot%\System32\ping.exe" -n 6 127.0.0.1 >nul
 start "" http://localhost:5173
 
 echo.
