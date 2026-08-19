@@ -15,7 +15,7 @@ import { setDb as setEmbeddingsDb } from './embeddings.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
 import { rateLimit, secretsMatch } from './rateLimit.js';
-import { cargarCompromisos, guardarCompromisos } from './compromisos.js';
+import { cargarCompromisos, guardarCompromisos, guardarUno, borrarUno, fijarPago, TIPOS } from './compromisos.js';
 import { logDebug } from './logger.js';
 
 setEmbeddingsDb(db);
@@ -631,6 +631,21 @@ app.put('/api/admin/users/:id/password', authenticateToken, requireAdmin, async 
   }
 });
 
+// Version de sincronizacion del usuario. Sube en cada escritura para que un
+// cliente con datos viejos no pise los cambios de otra pestana.
+async function leerVersion(userId) {
+  const row = await db.get('SELECT sync_version FROM users WHERE id = ?', userId);
+  return row?.sync_version ?? 0;
+}
+
+async function tocarVersion(userId) {
+  const row = await db.get(
+    'UPDATE users SET sync_version = sync_version + 1 WHERE id = ? RETURNING sync_version',
+    userId
+  );
+  return row?.sync_version ?? 0;
+}
+
 app.get('/api/data', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -638,7 +653,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
     const cached = cache.get(cacheKey);
     if (cached) return res.json(cached);
 
-    const [monthRows, sueldosRows, cuentasAhorro, ahorrosDataRows, compromisos] = await Promise.all([
+    const [monthRows, sueldosRows, cuentasAhorro, ahorrosDataRows, compromisos, syncVersion] = await Promise.all([
       db.all('SELECT mes FROM meses WHERE user_id = ? AND deleted_at IS NULL', userId),
       db.all('SELECT mes, monto FROM sueldos WHERE user_id = ? AND deleted_at IS NULL', userId),
       db.all('SELECT * FROM cuentas_ahorro WHERE user_id = ? AND deleted_at IS NULL', userId),
@@ -649,6 +664,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
         userId
       ),
       cargarCompromisos(db, userId),
+      leerVersion(userId),
     ]);
 
     const sueldos = {};
@@ -665,6 +681,7 @@ app.get('/api/data', authenticateToken, async (req, res) => {
       sueldos,
       cuentasAhorro,
       ahorrosData,
+      syncVersion,
       ...compromisos,
     };
 
@@ -678,11 +695,24 @@ app.get('/api/data', authenticateToken, async (req, res) => {
 
 app.post('/api/sync', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-  const { months, sueldos, cuentasAhorro, ahorrosData } = req.body;
+  const { months, sueldos, cuentasAhorro, ahorrosData, syncVersion } = req.body;
 
   cache.del(`data:${userId}`);
 
   try {
+    // Concurrencia optimista: si el cliente trae una version que ya no es la
+    // actual, otro dispositivo guardo entre medias. Antes ganaba el ultimo en
+    // escribir y el otro perdia sus cambios sin aviso.
+    if (syncVersion !== undefined) {
+      const actual = await leerVersion(userId);
+      if (syncVersion !== actual) {
+        return res.status(409).json({
+          error: 'Los datos cambiaron en otra sesion',
+          syncVersion: actual,
+        });
+      }
+    }
+
     await db.transaction(async (tx) => {
       if (months) {
         await tx.run(
@@ -771,12 +801,68 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
       }
 
       await guardarCompromisos(tx, userId, req.body);
+      await tx.run('UPDATE users SET sync_version = sync_version + 1 WHERE id = ?', userId);
     });
 
-    res.json({ success: true });
+    res.json({ success: true, syncVersion: await leerVersion(userId) });
   } catch (err) {
     console.error('[POST /api/sync]', err.message);
     res.status(500).json({ error: 'Sync failed' });
+  }
+});
+
+// --- Escrituras por recurso ---
+//
+// Alternativa a /api/sync para operaciones sueltas: en vez de reenviar todo el
+// estado, el cliente manda solo lo que cambio. El Dashboard las ira adoptando a
+// medida que se descomponga.
+
+const TIPOS_VALIDOS = new Set(Object.values(TIPOS));
+
+app.put('/api/compromisos/:tipo/:id', authenticateToken, async (req, res) => {
+  try {
+    const { tipo, id } = req.params;
+    if (!TIPOS_VALIDOS.has(tipo)) {
+      return res.status(400).json({ error: 'Tipo no valido' });
+    }
+
+    const guardado = await guardarUno(db, req.user.id, tipo, { ...req.body, id });
+    if (!guardado) return res.status(404).json({ error: 'Compromiso no encontrado' });
+
+    await tocarVersion(req.user.id);
+    cache.del(`data:${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[PUT /api/compromisos]', err.message);
+    res.status(500).json({ error: 'Error al guardar' });
+  }
+});
+
+app.delete('/api/compromisos/:id', authenticateToken, async (req, res) => {
+  try {
+    const borrado = await borrarUno(db, req.user.id, req.params.id);
+    if (!borrado) return res.status(404).json({ error: 'Compromiso no encontrado' });
+
+    await tocarVersion(req.user.id);
+    cache.del(`data:${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[DELETE /api/compromisos]', err.message);
+    res.status(500).json({ error: 'Error al eliminar' });
+  }
+});
+
+app.put('/api/compromisos/:id/pagos/:mes', authenticateToken, async (req, res) => {
+  try {
+    const aplicado = await fijarPago(db, req.user.id, req.params.id, req.params.mes, req.body);
+    if (!aplicado) return res.status(404).json({ error: 'Compromiso no encontrado' });
+
+    await tocarVersion(req.user.id);
+    cache.del(`data:${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[PUT /api/compromisos/:id/pagos]', err.message);
+    res.status(500).json({ error: 'Error al guardar el pago' });
   }
 });
 

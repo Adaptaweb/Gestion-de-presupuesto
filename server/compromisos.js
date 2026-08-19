@@ -75,6 +75,73 @@ const ACTUALIZABLES = COLUMNAS
   .map(c => `"${c}" = EXCLUDED."${c}"`)
   .join(', ');
 
+const TIPO_POR_CLAVE = { cuota: 'deudas', fijo: 'gastosFijos', suscripcion: 'suscripciones', abono: 'abonos' };
+
+/** Alta o actualizacion de un solo compromiso. */
+export async function guardarUno(db, userId, tipo, item) {
+  const valores = fila(item, userId, tipo);
+  const res = await db.run(
+    `INSERT INTO compromisos (${COLUMNAS_CITADAS})
+     VALUES (${COLUMNAS.map((_, i) => `$${i + 1}`).join(', ')})
+     ON CONFLICT (id) DO UPDATE SET ${ACTUALIZABLES}, deleted_at = NULL, "updated_at" = NOW()
+     WHERE compromisos.user_id = $2`,
+    ...valores
+  );
+
+  // 0 filas significa que el id existe pero es de otro usuario.
+  if (res.changes === 0) return false;
+
+  if (item.pagos) {
+    await reemplazarPagos(db, item.id, item.pagos);
+  }
+  return true;
+}
+
+/** Borrado logico de un compromiso del usuario. */
+export async function borrarUno(db, userId, id) {
+  const res = await db.run(
+    `UPDATE compromisos SET deleted_at = NOW(), "updated_at" = NOW()
+     WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL`,
+    id, userId
+  );
+  return res.changes > 0;
+}
+
+/** Fija el pago de un mes concreto. Con estado null, lo borra. */
+export async function fijarPago(db, userId, compromisoId, mes, pago) {
+  const propio = await db.get(
+    'SELECT 1 FROM compromisos WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+    compromisoId, userId
+  );
+  if (!propio) return false;
+
+  if (!pago || pago.estado == null) {
+    await db.run('DELETE FROM pagos WHERE compromiso_id = ? AND mes = ?', compromisoId, mes);
+    return true;
+  }
+
+  await db.run(
+    `INSERT INTO pagos (compromiso_id, mes, monto, estado) VALUES ($1, $2, $3, $4)
+     ON CONFLICT (compromiso_id, mes) DO UPDATE SET monto = EXCLUDED.monto, estado = EXCLUDED.estado`,
+    compromisoId, mes, pago.monto ?? null, pago.estado
+  );
+  return true;
+}
+
+async function reemplazarPagos(db, compromisoId, pagos) {
+  await db.run('DELETE FROM pagos WHERE compromiso_id = ?', compromisoId);
+  const filas = Object.entries(pagos)
+    .filter(([, pago]) => pago)
+    .map(([mes, pago]) => [compromisoId, mes, pago.monto ?? null, pago.estado ?? null]);
+  if (filas.length === 0) return;
+  await db.run(
+    `INSERT INTO pagos (compromiso_id, mes, monto, estado) VALUES ${marcadores(filas.length, 4)}`,
+    ...filas.flat()
+  );
+}
+
+export { TIPOS, TIPO_POR_CLAVE };
+
 /** Devuelve el estado completo del usuario con la forma que espera el cliente. */
 export async function cargarCompromisos(db, userId) {
   const items = await db.all(
@@ -99,12 +166,10 @@ export async function cargarCompromisos(db, userId) {
   }
 
   const salida = { deudas: [], gastosFijos: [], suscripciones: [], abonos: [] };
-  const porTipo = { cuota: 'deudas', fijo: 'gastosFijos', suscripcion: 'suscripciones', abono: 'abonos' };
-
   for (const item of items) {
-    const destino = porTipo[item.tipo];
+    const destino = TIPO_POR_CLAVE[item.tipo];
     if (!destino) continue;
-    const { tipo, user_id, deleted_at, created_at, ...campos } = item;
+    const { tipo, user_id, deleted_at, created_at, updated_at, ...campos } = item;
     salida[destino].push({ ...campos, pagos: pagosPorItem.get(item.id) || {} });
   }
 
@@ -141,7 +206,7 @@ export async function guardarCompromisos(tx, userId, payload) {
       await tx.run(
         `INSERT INTO compromisos (${COLUMNAS_CITADAS})
          VALUES ${marcadores(lote.length, COLUMNAS.length)}
-         ON CONFLICT (id) DO UPDATE SET ${ACTUALIZABLES}, deleted_at = NULL`,
+         ON CONFLICT (id) DO UPDATE SET ${ACTUALIZABLES}, deleted_at = NULL, "updated_at" = NOW()`,
         ...valores
       );
     }

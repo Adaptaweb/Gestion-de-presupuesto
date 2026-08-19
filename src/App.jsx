@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Landing from './landing/Landing.jsx';
 import TerminosCondiciones from './components/TerminosCondiciones';
@@ -135,6 +135,10 @@ import { usePushNotifications } from './hooks/usePushNotifications.js';
 import { useInstallPrompt } from './hooks/useInstallPrompt.js';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+// Claves que viajan a /api/sync. Se comparan una a una para enviar solo las
+// que cambiaron desde el ultimo guardado confirmado.
+const CLAVES_SINCRONIZADAS = ['months', 'deudas', 'gastosFijos', 'abonos', 'sueldos', 'cuentasAhorro', 'ahorrosData', 'suscripciones'];
 
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -692,29 +696,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     updateThemeColor(isDarkMode);
   }, [isDarkMode]);
 
+  // Version que el servidor tenia cuando cargamos. Se envia en cada guardado
+  // para detectar que otra pestana o dispositivo escribio entre medias.
+  const syncVersionRef = useRef(undefined);
+
+  // Ultimo estado confirmado por el servidor, serializado por clave. Sirve para
+  // enviar solo lo que cambio en vez de todo el conjunto de datos.
+  const ultimoGuardadoRef = useRef({});
+
+  const aplicarDatos = useCallback((data) => {
+    if (data.months && data.months.length > 0) setMonths(expandToFullYearMonths(data.months));
+    if (data.deudas && data.deudas.length > 0) setDeudas(data.deudas);
+    if (data.gastosFijos && data.gastosFijos.length > 0) setGastosFijos(data.gastosFijos);
+    if (data.abonos && data.abonos.length > 0) setAbonos(data.abonos);
+    if (data.sueldos && Object.keys(data.sueldos).length > 0) setSueldos(data.sueldos);
+    setCuentasAhorro(data.cuentasAhorro || []);
+    if (data.ahorrosData && Object.keys(data.ahorrosData).length > 0) setAhorrosData(data.ahorrosData);
+    if (data.suscripciones && data.suscripciones.length > 0) setSuscripciones(data.suscripciones);
+
+    syncVersionRef.current = data.syncVersion;
+    ultimoGuardadoRef.current = {};
+    for (const clave of CLAVES_SINCRONIZADAS) {
+      ultimoGuardadoRef.current[clave] = JSON.stringify(data[clave] ?? null);
+    }
+  }, []);
+
   useEffect(() => {
     fetch('/api/data', { headers: getHeaders() })
       .then(res => res.json())
       .then(data => {
-        if (data.months && data.months.length > 0) setMonths(expandToFullYearMonths(data.months));
-        if (data.deudas && data.deudas.length > 0) setDeudas(data.deudas);
-        if (data.gastosFijos && data.gastosFijos.length > 0) setGastosFijos(data.gastosFijos);
-        if (data.abonos && data.abonos.length > 0) setAbonos(data.abonos);
-        if (data.sueldos && Object.keys(data.sueldos).length > 0) setSueldos(data.sueldos);
-        if (data.cuentasAhorro && data.cuentasAhorro.length > 0) {
-          setCuentasAhorro(data.cuentasAhorro);
-          console.log('[LOAD] cuentasAhorro:', data.cuentasAhorro);
-        } else {
-          setCuentasAhorro([]);
-          console.log('[LOAD] No cuentasAhorro in DB');
-        }
-        if (data.ahorrosData && Object.keys(data.ahorrosData).length > 0) {
-          setAhorrosData(data.ahorrosData);
-          console.log('[LOAD] ahorrosData loaded:', JSON.stringify(data.ahorrosData));
-        } else {
-          console.log('[LOAD] No ahorrosData in DB');
-        }
-        if (data.suscripciones && data.suscripciones.length > 0) setSuscripciones(data.suscripciones);
+        aplicarDatos(data);
         setLoadingData(false);
         onDashboardReady?.();
       })
@@ -928,47 +939,53 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     syncTimeoutRef.current = setTimeout(() => {
-      const syncPayload = {
-        deudas,
-        months,
-        gastosFijos,
-        abonos,
-        sueldos,
-        cuentasAhorro,
-        ahorrosData,
-        suscripciones
-      };
+      const estado = { deudas, months, gastosFijos, abonos, sueldos, cuentasAhorro, ahorrosData, suscripciones };
 
-      console.log('[SYNC] Sending payload:', JSON.stringify({
-        deudasCount: deudas.length,
-        monthsCount: months.length,
-        gastosFijosCount: gastosFijos.length,
-        abonosCount: abonos.length,
-        sueldosKeys: Object.keys(sueldos).length,
-        cuentasAhorroCount: cuentasAhorro.length,
-        ahorrosDataKeys: Object.keys(ahorrosData).length,
-        suscripcionesCount: suscripciones.length
-      }));
+      // Solo viaja lo que cambio desde el ultimo guardado confirmado. Antes se
+      // reenviaba el conjunto completo en cada pulsacion.
+      const cambios = {};
+      const serializado = {};
+      for (const clave of CLAVES_SINCRONIZADAS) {
+        const json = JSON.stringify(estado[clave] ?? null);
+        serializado[clave] = json;
+        if (json !== ultimoGuardadoRef.current[clave]) cambios[clave] = estado[clave];
+      }
+
+      if (Object.keys(cambios).length === 0) return;
 
       setSyncStatus('saving');
       fetch('/api/sync', {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify(syncPayload)
+        body: JSON.stringify({ ...cambios, syncVersion: syncVersionRef.current }),
       })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) {
-            console.error('[SYNC] Server error:', data.error);
-            setSyncStatus('error');
-          } else {
-            console.log('[SYNC] Success:', data);
-            setSyncStatus('saved');
+        .then(async res => {
+          const data = await res.json().catch(() => ({}));
+
+          // 409: otro dispositivo guardo primero. Se recarga desde el servidor
+          // en vez de sobrescribir sus cambios.
+          if (res.status === 409) {
+            setSyncStatus('conflict');
+            const recarga = await fetch('/api/data', { headers: getHeaders() }).then(r => r.json());
+            aplicarDatos(recarga);
+            setTimeout(() => setSyncStatus('idle'), 3000);
+            return;
           }
+
+          if (!res.ok || data.error) {
+            console.error('[SYNC] Error del servidor:', data.error || res.status);
+            setSyncStatus('error');
+            setTimeout(() => setSyncStatus('idle'), 3000);
+            return;
+          }
+
+          syncVersionRef.current = data.syncVersion;
+          Object.assign(ultimoGuardadoRef.current, serializado);
+          setSyncStatus('saved');
           setTimeout(() => setSyncStatus('idle'), 2000);
         })
         .catch(err => {
-          console.error('[SYNC] Network error:', err);
+          console.error('[SYNC] Error de red:', err);
           setSyncStatus('error');
           setTimeout(() => setSyncStatus('idle'), 3000);
         });
@@ -1512,9 +1529,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
           <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
             {syncStatus !== 'idle' && (
-              <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}>
-                {syncStatus === 'saving' ? <Loader2 size={14} className="animate-spin" /> : syncStatus === 'saved' ? <ClipboardCheck size={14} /> : <X size={14} />}
-                {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : 'Error'}
+              <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : syncStatus === 'conflict' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}>
+                {syncStatus === 'saving' ? <Loader2 size={14} className="animate-spin" /> : syncStatus === 'saved' ? <ClipboardCheck size={14} /> : syncStatus === 'conflict' ? <RefreshCw size={14} /> : <X size={14} />}
+                {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
               </div>
             )}
             <button
