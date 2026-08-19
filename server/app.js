@@ -7,7 +7,7 @@ import { fetchLatestTransactions, getLastCheckTime, reprocessPendingTransactions
 import { getAuthUrl, exchangeCode, hasValidTokens } from './gmailAuth.js';
 import { parseHTML, extractGmailAuthUrl, isGmailAuthorizationEmail } from './transactionParser.js';
 import cache from './cache.js';
-import { createJob, getJob } from './jobQueue.js';
+import { runJob, getJob } from './jobs.js';
 import { Resend } from 'resend';
 import crypto from 'crypto';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
@@ -1150,14 +1150,17 @@ app.post('/api/transacciones/manual', authenticateToken, async (req, res) => {
 app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const job = await createJob('revisar-correos', async () => {
+    // El trabajo se completa dentro de la peticion. Se sigue devolviendo un
+    // jobId para no romper al cliente, que consulta el estado a continuacion y
+    // lo encuentra ya terminado.
+    const job = await runJob('revisar-correos', async () => {
       const result = await fetchLatestTransactions(userId);
       cache.delByPattern(`tx:*:${userId}`);
       cache.del(`tx:meses:${userId}`);
       cache.delByPattern(`tx:pendientes:${userId}`);
       return result;
     });
-    res.json({ jobId: job.id });
+    res.json({ jobId: job.id, status: 'completed', result: job.result });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

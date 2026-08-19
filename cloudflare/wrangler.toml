@@ -5,4 +5,18 @@ compatibility_date = "2024-12-01"
 [vars]
 VERCEL_URL = "https://gastos.adaptaweb.cl"
 
-# Run: wrangler secret put WEBHOOK_SECRET
+# Secreto compartido con el backend:
+#   wrangler secret put WEBHOOK_SECRET
+
+# El correo entrante se encola en vez de entregarse en linea, para que un
+# backend caido o lento no pierda transacciones.
+[[queues.producers]]
+queue = "email-ingest"
+binding = "EMAIL_QUEUE"
+
+[[queues.consumers]]
+queue = "email-ingest"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "email-ingest-dlq"
