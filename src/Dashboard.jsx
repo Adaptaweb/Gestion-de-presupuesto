@@ -9,6 +9,9 @@ import {
   Building2,
   Calendar,
   CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   CreditCard,
   LayoutDashboard,
@@ -63,6 +66,35 @@ const NAV_ITEMS = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Resumen', short: 'Resumen' },
 ];
 
+// Selector de mes compartido entre Resumen, Detalle General y Ahorros: antes
+// cada tab tenia su propio <select>, ahora navegan el mismo dashboardMonth.
+const MonthNav = ({ value, months, onChange }) => {
+  const idx = months.indexOf(value);
+  return (
+    <div className="flex items-center justify-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
+      <button
+        type="button"
+        onClick={() => idx > 0 && onChange(months[idx - 1])}
+        disabled={idx <= 0}
+        aria-label="Mes anterior"
+        className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+      >
+        <ChevronLeft size={18} />
+      </button>
+      <span className="min-w-[140px] text-center font-black text-sm text-slate-800 dark:text-slate-200">{value || '—'}</span>
+      <button
+        type="button"
+        onClick={() => idx >= 0 && idx < months.length - 1 && onChange(months[idx + 1])}
+        disabled={idx < 0 || idx >= months.length - 1}
+        aria-label="Mes siguiente"
+        className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+      >
+        <ChevronRight size={18} />
+      </button>
+    </div>
+  );
+};
+
 const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall, onDashboardReady }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
   // Acciones que dispara la navegacion global pero ejecuta Transacciones, que
@@ -77,6 +109,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   }, []);
   const openManualEntry = useCallback(() => requestTxAction('manual'), [requestTxAction]);
   const [dashboardMonth, setDashboardMonth] = useState('');
+  const [expandedGeneralItems, setExpandedGeneralItems] = useState({});
+  const [expandedAhorroCuentas, setExpandedAhorroCuentas] = useState({});
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState(null);
   const [syncStatus, setSyncStatus] = useState('idle');
@@ -1142,20 +1176,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
               </h2>
-              <div className="relative">
-                <select
-                  value={dashboardMonth}
-                  onChange={(e) => setDashboardMonth(e.target.value)}
-                  className={`appearance-none bg-white dark:bg-dark-normal border-2 ${theme.borderAccent} rounded-xl px-3 sm:px-4 py-2 pr-10 font-bold text-xs sm:text-sm outline-none cursor-pointer ${theme.tabText}`}
-                >
-                  {filteredMonths.map(mes => (
-                    <option key={mes} value={mes}>{mes}</option>
-                  ))}
-                </select>
-                <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <MonthNav value={dashboardMonth} months={filteredMonths} onChange={setDashboardMonth} />
             </div>
 
             {(() => {
@@ -1694,364 +1715,256 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
             </div>
 
-            <div className="bg-white dark:bg-dark-normal rounded-[2.5rem] shadow-2xl shadow-slate-200 dark:shadow-dark-darker/50 border border-slate-200 dark:border-dark-lighter overflow-hidden mb-12">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left min-w-[900px]">
-                  <thead>
-                    <tr className="bg-slate-50/50 dark:bg-dark-normal/50 border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-3 sm:p-4 font-black text-slate-400 dark:text-slate-500 uppercase text-xs sm:text-xs tracking-widest sticky left-0 bg-white dark:bg-dark-normal z-20 border-r border-slate-100 dark:border-dark-lighter w-[55px] min-w-[55px] sm:min-w-[280px] sm:w-auto">
-                        <span className="hidden sm:inline">Detalle de Gastos</span><span className="sm:hidden">Detalle</span>
-                      </th>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <th key={mes} className={`p-3 min-w-[100px] text-center border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white dark:bg-dark-lighter/20'}`}>
-                            <div className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
-                            <div className="text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
-                          </th>
-                        );
-                      })}
-                          <th className={`hidden portrait:table-cell sm:table-cell p-3 min-w-[140px] text-center border-l border-slate-100 dark:border-dark-lighter ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sm:sticky right-0 z-20`}>
-                        <div className="flex items-center justify-center gap-1">
-                          <TrendingUp size={12} className={theme.tabText} />
-                          <span className={`text-xs font-white uppercase tracking-tighter`}>Progreso</span>
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {itemsUnificados.length > 0 ? (
-                      itemsUnificados.map(item => (
-                        <tr key={item.id} className="border-b border-slate-50 dark:border-dark-lighter/50 group hover:bg-slate-50/30 dark:hover:bg-dark-lighter/20">
-                          <td className="p-1.5 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal group-hover:bg-slate-50 dark:group-hover:bg-dark-lighter/50 z-10 border-r border-slate-100 dark:border-dark-lighter">
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                 <div className="relative p-1 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden hidden sm:flex w-7 h-7 sm:w-10 sm:h-10 items-center justify-center flex-shrink-0">
-                                   {item.tipo === 'cuota' ? renderDebtIcon(item) : item.tipo === 'suscripcion' ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
-                                   {item.tipo === 'cuota' && item.bancoLogo && (
-                                     <img src={item.bancoLogo} alt={item.banco} className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 object-contain bg-white dark:bg-dark-normal rounded-full p-0.5 border border-slate-200 dark:border-dark-lightest" onError={(e) => { e.target.style.display = 'none'; }} />
-                                   )}
-                                 </div>
-                                 <div className="flex flex-col min-w-0 cursor-pointer" onClick={() => setViewingItem({ tipo: item.tipo, data: item })}>
-                                  <div className="flex items-center gap-1 sm:gap-2">
-                                    <span className="font-black text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title={item.descripcion}>{item.descripcion}</span>
-                                    {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
-                                    {item.tipo === 'suscripcion' && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5 hidden sm:inline-flex"><RefreshCw size={10} /> Sub</span>}
-                                    {item.tipo === 'abono' && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">ABONO</span>}
-                                    {item.tipo === 'cuota' && item.tipoTarjeta && <span className={`text-[11px] sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
-                                  </div>
-                                  <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
-                                    {item.tipo === 'cuota' ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : item.tipo === 'suscripcion' ? `Día ${item.diaPago || 1}` : item.tipo === 'abono' ? 'Abono' : 'Fijo'}
-                                  </span>
-                                </div>
-                              </div>
-<div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition flex-shrink-0">
-                                <button onClick={() => handleEditItem(item)} aria-label={`Editar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:p-1.5 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={16} /></button>
-                                <button onClick={() => {
-                                  const itemType = item.tipo === 'cuota' ? 'deuda' : item.tipo === 'suscripcion' ? 'suscripción' : item.tipo === 'abono' ? 'abono' : 'gasto fijo';
-                                  confirmDelete({
-                                    title: `¿Eliminar ${itemType}?`,
-                                    itemName: item.descripcion,
-                                    itemType: itemType,
-                                    onConfirm: async () => {
-                                      if (item.tipo === 'cuota') setDeudas(deudas.filter(x => x.id !== item.id));
-                                      else if (item.tipo === 'suscripcion') setSuscripciones(suscripciones.filter(x => x.id !== item.id));
-                                      else if (item.tipo === 'abono') setAbonos(abonos.filter(x => x.id !== item.id));
-                                      else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
-                                      return Promise.resolve();
-                                    }
-                                  });
-                                }} aria-label={`Eliminar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:p-1.5 text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
-                              </div>
-                            </div>
-                          </td>
-                          {filteredMonths.map((mes, idx) => {
-                            const isEven = idx % 2 === 0;
-                            const cellBgBase = isEven ? 'bg-slate-50/30 dark:bg-dark-normal/30' : 'bg-white dark:bg-dark-lighter/10';
-                            if (item.tipo === 'cuota') {
-                              const inRange = isMonthInRange(mes, item.mesInicio, item.mesTermino, item.isContribuciones);
-                              const isPagado = item.pagos?.[mes]?.estado === 'PAGADA';
-                              return (
-                                <td key={mes} className={`p-[9px] border-l border-slate-50 dark:border-dark-lighter/50 text-center ${!inRange ? 'bg-slate-50/40 dark:bg-dark-darker/20 opacity-20' : cellBgBase}`}>
-                                  {inRange && (
-                                    <button
-                                      onClick={() => {
-                                        const next = isPagado ? 'PENDIENTE' : 'PAGADA';
-                                        setDeudas(deudas.map(x => x.id === item.id ? { ...x, pagos: { ...x.pagos, [mes]: { estado: next } } } : x));
-                                      }}
-                                      className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm'}`}
-                                    >
-                                      <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
-                                      <span className="text-[18px] font-mono font-black">{isPagado ? formatCurrency(item.valorCuota) : formatCurrency(item.valorCuota)}</span>
-                                    </button>
-                                  )}
-                                </td>
-                              );
-                            } else if (item.tipo === 'suscripcion') {
-                              const isActive = item.activeMonths && item.activeMonths.includes(mes);
-                              const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
-                              const isPagado = pago.estado === 'PAGADA';
-                              const hasValue = (pago.monto || item.valor) > 0;
-                              return (
-                                <td key={mes} className={`p-[9px] border-l border-slate-50 dark:border-dark-lighter/50 ${!isActive ? 'bg-slate-50/40 dark:bg-dark-darker/20 opacity-20' : cellBgBase}`}>
-                                  {isActive && (
-                                    <div
-                                      onClick={() => {
-                                        if (hasValue) {
-                                          const next = isPagado ? 'PENDIENTE' : 'PAGADA';
-                                          setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, pagos: { ...s.pagos, [mes]: { ...(s.pagos?.[mes] || { monto: s.valor || 0 }), estado: next } } } : s));
-                                        }
-                                      }}
-                                      className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : hasValue ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
-                                    >
-                                      <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
-                                      <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
-                                        <span className="absolute left-1 top-1/2 -translate-y-1/2 text-sm font-bold opacity-60">$</span>
-                                        <input
-                                          type="text"
-                                          placeholder="0"
-                                          value={pago.monto || item.valor ? new Intl.NumberFormat('es-CL').format(pago.monto || item.valor) : ''}
-                                          onChange={(e) => {
-                                            const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                                            const val = parseInt(raw) || 0;
-                                            setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, pagos: { ...s.pagos, [mes]: { ...(s.pagos?.[mes] || { estado: 'PENDIENTE' }), monto: val } } } : s));
-                                          }}
-                                          className="w-full bg-transparent text-center font-mono font-black text-[18px] outline-none pl-3 dark:text-white"
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-                                </td>
-                              );
-                            } else if (item.tipo === 'abono') {
-                              const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
-                              const isPagado = pago.estado === 'PAGADA';
-                              return (
-                                <td key={mes} className={`p-[9px] border-l border-slate-50 dark:border-dark-lighter/50 ${cellBgBase}`}>
-                                  <div
-                                    onClick={() => {
-                                      if (pago.monto > 0) {
-                                        updateAbonoPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA');
-                                      }
-                                    }}
-                                    className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
-                                  >
-                                    <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
-                                    <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
-                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-sm font-bold opacity-60">$</span>
-                                      <input
-                                        type="text"
-                                        placeholder="0"
-                                        value={pago.monto ? new Intl.NumberFormat('es-CL').format(pago.monto) : ''}
-                                        onChange={(e) => {
-                                          const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                                          updateAbonoPayment(item.id, mes, 'monto', parseInt(raw) || 0);
-                                        }}
-                                        className="w-full bg-transparent text-center font-mono font-black text-[18px] outline-none pl-3 dark:text-white"
-                                      />
-                                    </div>
-                                  </div>
-                                </td>
-                              );
-                            } else {
-                              const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
-                              const isPagado = pago.estado === 'PAGADA';
-                              return (
-                                <td key={mes} className={`p-[9px] border-l border-slate-50 dark:border-dark-lighter/50 ${cellBgBase}`}>
-                                  <div
-                                    onClick={() => {
-                                      if (pago.monto > 0) {
-                                        updateFixedPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA');
-                                      }
-                                    }}
-                                    className={`w-full py-0.5 rounded-2xl transition flex flex-col items-center gap-1 cursor-pointer ${isPagado ? 'bg-emerald-500 text-white shadow-lg' : pago.monto > 0 ? 'bg-slate-300 dark:bg-dark-lightest text-slate-800 dark:text-slate-100 hover:bg-slate-400 dark:hover:bg-dark-lightest shadow-sm' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
-                                  >
-                                    <span className="text-xs font-black uppercase tracking-tighter opacity-80">{isPagado ? 'Pagado' : 'Pendiente'}</span>
-                                    <div className="relative w-full max-w-[110px]" onClick={(e) => e.stopPropagation()}>
-                                      <span className="absolute left-1 top-1/2 -translate-y-1/2 text-sm font-bold opacity-60">$</span>
-                                      <input
-                                        type="text"
-                                        placeholder="0"
-                                        value={pago.monto ? new Intl.NumberFormat('es-CL').format(pago.monto) : ''}
-                                        onChange={(e) => {
-                                          const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                                          updateFixedPayment(item.id, mes, 'monto', parseInt(raw) || 0);
-                                        }}
-                                        className="w-full bg-transparent text-center font-mono font-black text-[18px] outline-none pl-3 dark:text-white"
-                                      />
-                                    </div>
-                                  </div>
-                                </td>
-                              );
-                            }
-                          })}
-                          {item.tipo === 'cuota' ? (
-                            <td className={`hidden portrait:table-cell sm:table-cell p-1.5 sm:p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sm:sticky right-0 z-10`}>
-                              {(() => {
-                                const mesTermino = calculateEndDate(item.mesInicio, item.cuotasTotales, item.isContribuciones);
-                                let cur = toDateVal(item.mesInicio);
-                                const end = toDateVal(mesTermino);
-                                let pagadas = 0;
-                                while (cur <= end) {
-                                  const mName = fromDateVal(cur);
-                                  if (!item.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(mName.split(' ')[0])) {
-                                    if (item.pagos?.[mName]?.estado === 'PAGADA') pagadas++;
-                                  }
-                                  cur++;
-                                }
-                                const totalCuotas = item.cuotasTotales;
-                                const faltantes = totalCuotas - pagadas;
-                                const pct = totalCuotas > 0 ? (pagadas / totalCuotas) * 100 : 0;
-                                return (
-                                  <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-                                    <span className={`text-xs sm:text-xs font-black whitespace-nowrap`}>{pagadas}/{totalCuotas} <span className="hidden sm:inline">pagadas</span></span>
-                                    <div className="w-full h-0.5 sm:h-2 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
-                                      <div className={`h-full rounded-full transition duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
-                                    </div>
-                                    <span className={`text-[11px] sm:text-xs font-bold whitespace-nowrap`}>{faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
-                                  </div>
-                                );
-                              })()}
-                            </td>
-                          ) : (
-                            <td className={`hidden portrait:table-cell sm:table-cell p-1.5 sm:p-3 border-l border-slate-50 dark:border-dark-lighter/50 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sm:sticky right-0 z-10`}>
-                              <span className={`text-xs sm:text-xs ${theme.tabText} opacity-30`}>—</span>
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    ) : (
-                      <tr><td colSpan={filteredMonths.length + 1} className="p-24 text-center text-slate-300 font-bold italic">No hay registros para mostrar</td></tr>
-                    )}
-                  </tbody>
-                  <tfoot className="bg-slate-900 text-white font-black">
-                    <tr className={`border-t-4 ${theme.borderAccent} divide-x divide-slate-800`}>
-                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
-                        <div className="flex items-center gap-2 text-slate-300">
-                          <CreditCard size={18} />
-                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Cuotas</span><span className="sm:hidden">Cuotas</span></span>
-                        </div>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
-                            <div className="text-base font-mono text-slate-300">{formatCurrency(totalesMensuales[mes].cuotas)}</div>
-                          </td>
-                        );
-                      })}
-                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
-                      </td>
-                    </tr>
-                    <tr className="divide-x divide-slate-800 border-t border-slate-800">
-                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <Receipt size={18} />
-                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Gastos Fijos</span><span className="sm:hidden">G. Fijos</span></span>
-                        </div>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
-                            <div className="text-base font-mono text-slate-400">{formatCurrency(totalesMensuales[mes].gastos)}</div>
-                          </td>
-                        );
-                      })}
-                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
-                      </td>
-                    </tr>
-                    <tr className="divide-x divide-slate-800 border-t border-slate-800">
-                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
-                        <div className="flex items-center gap-2 text-rose-400">
-                          <RefreshCw size={18} />
-                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Suscripciones</span><span className="sm:hidden">Subs</span></span>
-                        </div>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
-                            <div className="text-base font-mono text-rose-400">{formatCurrency(totalesMensuales[mes].suscripciones)}</div>
-                          </td>
-                        );
-                      })}
-                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
-                      </td>
-                    </tr>
-                    <tr className="divide-x divide-slate-800 border-t border-slate-800">
-                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
-                        <div className="flex items-center gap-2 text-emerald-400">
-                          <TrendingUp size={18} />
-                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Total Abonos</span><span className="sm:hidden">Abonos</span></span>
-                        </div>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
-                            <div className="text-base font-mono text-emerald-400">{formatCurrency(totalesMensuales[mes].abonos)}</div>
-                          </td>
-                        );
-                      })}
-                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
-                      </td>
-                    </tr>
-                    <tr className={`border-t-4 ${theme.borderAccent} divide-x divide-slate-800`}>
-                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-900 z-30 border-r border-slate-800">
-                        <div className="flex items-center gap-2 text-cyan-400">
-                          <ArrowUpCircle size={18} />
-                          <span className="uppercase text-xs sm:text-xs tracking-widest"><span className="hidden sm:inline">Sueldo del Mes</span><span className="sm:hidden">Sueldo</span></span>
-                        </div>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 ${isEven ? 'bg-slate-900' : 'bg-slate-800/90'}`}>
-                            <input
-                              type="text"
-                              value={sueldos[mes] ? new Intl.NumberFormat('es-CL').format(sueldos[mes]) : ''}
-                              onChange={(e) => {
-                                const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                                setSueldos({ ...sueldos, [mes]: parseInt(raw) || 0 });
-                              }}
-                              placeholder="$ Monto"
-                              className="w-full bg-slate-700/50 rounded-xl py-2 px-3 text-center text-cyan-400 font-mono outline-none border border-slate-600 focus:border-cyan-500 transition placeholder:text-slate-500"
-                            />
-                          </td>
-                        );
-                      })}
-                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
-                      </td>
-                    </tr>
-                    <tr className="divide-x divide-slate-800 border-t border-slate-800 bg-slate-950">
-                      <td className="p-2 sm:p-4 sticky left-0 bg-slate-950 z-30 border-r border-slate-800 flex items-center gap-2 sm:gap-3">
-                        <Wallet className="text-emerald-400" size={20} />
-                        <span className="uppercase text-xs sm:text-sm"><span className="hidden sm:inline">Disponible</span><span className="sm:hidden">Libre</span></span>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 text-center ${isEven ? 'bg-slate-950' : 'bg-slate-900/80'}`}>
-                            <div className={`text-lg font-mono ${totalesMensuales[mes].neto >= 0 ? 'text-emerald-400' : 'text-rose-500 animate-pulse'}`}>
-                              {formatCurrency(totalesMensuales[mes].neto)}
-                            </div>
-                          </td>
-                        );
-                      })}
-                      <td className={`hidden portrait:table-cell sm:table-cell p-3 text-center ${theme.bgLightSolid} ${theme.bgLightDarkSolid} sticky right-0 z-20`}>
-                        <span className={`text-xs font-bold ${theme.tabText} opacity-30`}>—</span>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+            <div className="mb-4 sm:mb-5">
+              <MonthNav value={dashboardMonth} months={filteredMonths} onChange={setDashboardMonth} />
             </div>
+
+            {(() => {
+              const mes = dashboardMonth;
+              const tot = totalesMensuales[mes] || { cuotas: 0, gastos: 0, suscripciones: 0, abonos: 0, sueldo: 0, neto: 0 };
+              return (
+                <div className="bg-slate-900 rounded-3xl shadow-xl p-4 sm:p-5 space-y-2.5 mb-4 sm:mb-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-cyan-300"><ArrowUpCircle size={14} /> Sueldo del Mes</span>
+                    <div className="relative w-36 sm:w-40">
+                      <input
+                        type="text"
+                        value={sueldos[mes] ? new Intl.NumberFormat('es-CL').format(sueldos[mes]) : ''}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^0-9\-]/g, '');
+                          setSueldos({ ...sueldos, [mes]: parseInt(raw) || 0 });
+                        }}
+                        placeholder="$ Monto"
+                        className="w-full bg-slate-700/50 rounded-xl py-2 px-3 text-right text-cyan-300 font-mono font-black text-sm outline-none border border-slate-600 focus:border-cyan-500 transition placeholder:text-slate-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-400 font-bold flex items-center gap-1.5"><CreditCard size={13} /> Cuotas</span>
+                    <span className="font-mono font-black text-slate-200">{formatCurrency(tot.cuotas)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-400 font-bold flex items-center gap-1.5"><Receipt size={13} /> Gastos Fijos</span>
+                    <span className="font-mono font-black text-slate-200">{formatCurrency(tot.gastos)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-rose-400 font-bold flex items-center gap-1.5"><RefreshCw size={13} /> Suscripciones</span>
+                    <span className="font-mono font-black text-rose-300">{formatCurrency(tot.suscripciones)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5"><TrendingUp size={13} /> Abonos</span>
+                    <span className="font-mono font-black text-emerald-300">{formatCurrency(tot.abonos)}</span>
+                  </div>
+                  <div className="pt-2.5 mt-1 border-t border-slate-700 flex items-center justify-between">
+                    <span className="text-sm font-black uppercase tracking-wide text-white flex items-center gap-1.5"><Wallet size={15} className="text-emerald-400" /> Disponible</span>
+                    <span className={`font-mono font-black text-lg ${tot.neto >= 0 ? 'text-emerald-400' : 'text-rose-500 animate-pulse'}`}>{formatCurrency(tot.neto)}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {itemsUnificados.length === 0 ? (
+              <div className="py-16 text-center text-slate-300 dark:text-slate-600 font-bold italic">No hay registros para mostrar</div>
+            ) : (
+              <div className="space-y-2.5 sm:space-y-3 mb-12">
+                {itemsUnificados.map(item => {
+                  const mes = dashboardMonth;
+                  const isCuota = item.tipo === 'cuota';
+                  const isSub = item.tipo === 'suscripcion';
+                  const isAbono = item.tipo === 'abono';
+
+                  let active = true;
+                  let isPagado = false;
+                  let amount = 0;
+                  let hasValue = true;
+                  let onTogglePagado = () => {};
+                  let onChangeMonto = null;
+
+                  if (isCuota) {
+                    active = isMonthInRange(mes, item.mesInicio, item.mesTermino, item.isContribuciones);
+                    isPagado = item.pagos?.[mes]?.estado === 'PAGADA';
+                    amount = item.valorCuota;
+                    onTogglePagado = () => {
+                      const next = isPagado ? 'PENDIENTE' : 'PAGADA';
+                      setDeudas(deudas.map(x => x.id === item.id ? { ...x, pagos: { ...x.pagos, [mes]: { estado: next } } } : x));
+                    };
+                  } else if (isSub) {
+                    active = item.activeMonths && item.activeMonths.includes(mes);
+                    const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
+                    isPagado = pago.estado === 'PAGADA';
+                    amount = pago.monto || item.valor;
+                    hasValue = amount > 0;
+                    onTogglePagado = () => {
+                      if (!hasValue) return;
+                      const next = isPagado ? 'PENDIENTE' : 'PAGADA';
+                      setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, pagos: { ...s.pagos, [mes]: { ...(s.pagos?.[mes] || { monto: s.valor || 0 }), estado: next } } } : s));
+                    };
+                    onChangeMonto = (val) => setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, pagos: { ...s.pagos, [mes]: { ...(s.pagos?.[mes] || { estado: 'PENDIENTE' }), monto: val } } } : s));
+                  } else if (isAbono) {
+                    const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
+                    isPagado = pago.estado === 'PAGADA';
+                    amount = pago.monto;
+                    hasValue = amount > 0;
+                    onTogglePagado = () => { if (pago.monto > 0) updateAbonoPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA'); };
+                    onChangeMonto = (val) => updateAbonoPayment(item.id, mes, 'monto', val);
+                  } else {
+                    const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
+                    isPagado = pago.estado === 'PAGADA';
+                    amount = pago.monto;
+                    hasValue = amount > 0;
+                    onTogglePagado = () => { if (pago.monto > 0) updateFixedPayment(item.id, mes, 'estado', isPagado ? 'PENDIENTE' : 'PAGADA'); };
+                    onChangeMonto = (val) => updateFixedPayment(item.id, mes, 'monto', val);
+                  }
+
+                  const isExpanded = !!expandedGeneralItems[item.id];
+
+                  return (
+                    <div key={item.id} className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 sm:p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="relative p-1.5 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden flex w-9 h-9 items-center justify-center flex-shrink-0">
+                            {isCuota ? renderDebtIcon(item) : isSub ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
+                            {isCuota && item.bancoLogo && (
+                              <img src={item.bancoLogo} alt={item.banco} className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 object-contain bg-white dark:bg-dark-normal rounded-full p-0.5 border border-slate-200 dark:border-dark-lightest" onError={(e) => { e.target.style.display = 'none'; }} />
+                            )}
+                          </div>
+                          <div className="flex flex-col min-w-0 cursor-pointer" onClick={() => setViewingItem({ tipo: item.tipo, data: item })}>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-black text-slate-800 dark:text-slate-200 text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title={item.descripcion}>{item.descripcion}</span>
+                              {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">Legal</span>}
+                              {isSub && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5"><RefreshCw size={9} /> Sub</span>}
+                              {isAbono && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">ABONO</span>}
+                              {isCuota && item.tipoTarjeta && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
+                            </div>
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-tight mt-0.5 truncate">
+                              {isCuota ? (item.banco ? `${item.banco}` : `${item.mesInicio.split(' ')[0]}`) : isSub ? `Día ${item.diaPago || 1}` : isAbono ? 'Abono' : 'Fijo'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-0.5 flex-shrink-0">
+                          <button onClick={() => handleEditItem(item)} aria-label={`Editar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={16} /></button>
+                          <button onClick={() => {
+                            const itemType = isCuota ? 'deuda' : isSub ? 'suscripción' : isAbono ? 'abono' : 'gasto fijo';
+                            confirmDelete({
+                              title: `¿Eliminar ${itemType}?`,
+                              itemName: item.descripcion,
+                              itemType: itemType,
+                              onConfirm: async () => {
+                                if (isCuota) setDeudas(deudas.filter(x => x.id !== item.id));
+                                else if (isSub) setSuscripciones(suscripciones.filter(x => x.id !== item.id));
+                                else if (isAbono) setAbonos(abonos.filter(x => x.id !== item.id));
+                                else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
+                                return Promise.resolve();
+                              }
+                            });
+                          }} aria-label={`Eliminar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
+                        </div>
+                      </div>
+
+                      {isCuota && (() => {
+                        let cur = toDateVal(item.mesInicio);
+                        const end = toDateVal(item.mesTermino);
+                        let pagadas = 0;
+                        while (cur <= end) {
+                          const mName = fromDateVal(cur);
+                          if (!item.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(mName.split(' ')[0])) {
+                            if (item.pagos?.[mName]?.estado === 'PAGADA') pagadas++;
+                          }
+                          cur++;
+                        }
+                        const totalCuotas = item.cuotasTotales;
+                        const faltantes = totalCuotas - pagadas;
+                        const pct = totalCuotas > 0 ? (pagadas / totalCuotas) * 100 : 0;
+                        return (
+                          <div className="flex items-center gap-2 mt-2.5">
+                            <div className="flex-1 h-1.5 bg-slate-200/60 dark:bg-dark-lightest/60 rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full transition-all duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pct}%` }}></div>
+                            </div>
+                            <span className="text-xs font-black text-slate-500 dark:text-slate-400 whitespace-nowrap">{pagadas}/{totalCuotas} · {faltantes} faltante{faltantes !== 1 ? 's' : ''}</span>
+                          </div>
+                        );
+                      })()}
+
+                      <div className="mt-3 rounded-xl border border-slate-100 dark:border-dark-lighter bg-slate-50/60 dark:bg-dark-lighter/20 p-2.5">
+                        {!active ? (
+                          <div className="text-center text-xs font-bold text-slate-300 dark:text-slate-600 py-1.5">No aplica en {mes}</div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={onTogglePagado}
+                              className={`text-xs font-black uppercase tracking-tighter px-2.5 py-1.5 rounded-lg transition flex-shrink-0 ${isPagado ? 'bg-emerald-500 text-white shadow' : hasValue ? 'bg-slate-200 dark:bg-dark-lightest text-slate-700 dark:text-slate-200' : 'bg-slate-100 dark:bg-dark-normal text-slate-300 dark:text-slate-600'}`}
+                            >
+                              {isPagado ? 'Pagado' : 'Pendiente'}
+                            </button>
+                            {onChangeMonto ? (
+                              <div className="relative flex-1">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">$</span>
+                                <input
+                                  type="text"
+                                  placeholder="0"
+                                  value={amount ? new Intl.NumberFormat('es-CL').format(amount) : ''}
+                                  onChange={(e) => { const raw = e.target.value.replace(/[^0-9\-]/g, ''); onChangeMonto(parseInt(raw) || 0); }}
+                                  className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-lg py-1.5 pl-6 pr-2 text-right font-mono font-black text-sm outline-none focus:border-indigo-400 dark:text-white transition"
+                                />
+                              </div>
+                            ) : (
+                              <span className="ml-auto font-mono font-black text-sm text-slate-700 dark:text-slate-200">{formatCurrency(amount)}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setExpandedGeneralItems(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                        className="w-full mt-2 flex items-center justify-center gap-1.5 text-xs font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 py-1.5 transition"
+                      >
+                        {isExpanded ? 'Ocultar año completo' : 'Ver año completo'}
+                        <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {isExpanded && (
+                        <div className="grid grid-cols-3 gap-1.5 mt-1">
+                          {filteredMonths.map(m => {
+                            let mActive = true, mPagado = false, mAmount = 0;
+                            if (isCuota) {
+                              mActive = isMonthInRange(m, item.mesInicio, item.mesTermino, item.isContribuciones);
+                              mPagado = item.pagos?.[m]?.estado === 'PAGADA';
+                              mAmount = item.valorCuota;
+                            } else if (isSub) {
+                              mActive = item.activeMonths && item.activeMonths.includes(m);
+                              const pago = item.pagos?.[m] || { monto: 0, estado: 'PENDIENTE' };
+                              mPagado = pago.estado === 'PAGADA';
+                              mAmount = pago.monto || item.valor;
+                            } else if (isAbono) {
+                              const pago = item.pagos?.[m] || { monto: 0, estado: 'PENDIENTE' };
+                              mPagado = pago.estado === 'PAGADA';
+                              mAmount = pago.monto;
+                            } else {
+                              const pago = item.pagos?.[m] || { monto: 0, estado: 'PENDIENTE' };
+                              mPagado = pago.estado === 'PAGADA';
+                              mAmount = pago.monto;
+                            }
+                            return (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => setDashboardMonth(m)}
+                                className={`rounded-lg px-1.5 py-1.5 text-center transition ${!mActive ? 'opacity-25 bg-slate-50 dark:bg-dark-darker/20' : mPagado ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-dark-lightest text-slate-600 dark:text-slate-300'} ${m === mes ? 'ring-2 ring-indigo-400' : ''}`}
+                              >
+                                <div className="text-[9px] font-black uppercase opacity-70">{m.split(' ')[0].substring(0, 3)}</div>
+                                <div className="text-[11px] font-mono font-black">{mActive ? formatCurrency(mAmount) : '—'}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )} {activeTab === 'ahorros' && (
           <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 lg:px-8">
@@ -2088,136 +2001,123 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
             </div>
 
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse min-w-[600px]">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-dark-normal border-b border-slate-100 dark:border-dark-lighter">
-                      <th className="p-2 sm:p-4 text-left font-black text-slate-400 uppercase text-xs sm:text-xs tracking-widest sticky left-0 bg-slate-50 dark:bg-dark-normal z-20 min-w-[55px] sm:min-w-[200px]"><span className="hidden sm:inline">Cuentas / Bancos</span><span className="sm:hidden">Cuenta</span></th>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <th key={mes} className={`p-2 sm:p-3 text-center min-w-[80px] sm:min-w-[100px] border-l border-slate-100 dark:border-dark-lighter ${isEven ? 'bg-slate-50/80 dark:bg-dark-normal/80' : 'bg-white/50 dark:bg-dark-lighter/30'}`}>
-                            <div className="text-xs sm:text-xs font-black text-slate-400 uppercase tracking-tighter">{mes.split(' ')[1]}</div>
-                            <div className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">{mes.split(' ')[0]}</div>
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cuentasAhorro.map(cuenta => (
-                      <React.Fragment key={cuenta.id}>
-                        <tr className="border-b border-slate-100 dark:border-dark-lighter">
-                          <td className="p-2 sm:p-3 sticky left-0 bg-white dark:bg-dark-normal z-10 border-r border-slate-100 dark:border-dark-lighter font-black text-xs sm:text-xs uppercase tracking-widest" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>
-                            <div className="flex justify-between items-center w-full">
-                              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                                {(() => { const bi = getAhorroBankInfo(cuenta.banco); return bi ? <img src={bi.logo} alt={cuenta.banco} className="w-6 h-4 sm:w-8 sm:h-5 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} /> : <Building2 size={10} />; })()}
-                                <span className="truncate">{cuenta.banco} - {cuenta.nombre}</span>
-                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded uppercase">Ahorro</span>
-                              </div>
-                              <div className="flex items-center gap-0.5 flex-shrink-0">
-                                <button onClick={() => {
-                                  setNewAccount({ nombre: cuenta.nombre, banco: cuenta.banco });
-                                  setAccountBancoSearch('');
-                                  setEditingAccount(cuenta);
-                                  setIsAddingAccount(true);
-                                }} className="text-slate-300 hover:text-emerald-500 transition-colors p-1" title="Editar">
-                                  <Pencil size={14} />
-                                </button>
-                                <button onClick={() => {
-                                  setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
-                                  const { [cuenta.id]: _, ...rest } = ahorrosData;
-                                  setAhorrosData(rest);
-                                }} className="text-slate-300 hover:text-rose-500 transition-colors p-1" title="Eliminar">
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          {filteredMonths.map((mes, idx) => {
-                            const isEven = idx % 2 === 0;
-                            const cellBgBase = isEven ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/50 dark:bg-dark-lighter/20';
-                            return (
-                              <td key={mes} className={`p-2 sm:p-3 border-l border-slate-100 dark:border-dark-lighter ${cellBgBase}`}>
-                                <input
-                                  type="text"
-                                  placeholder="+$"
-                                  value={ahorrosData[cuenta.id]?.[mes]?.deposito ? new Intl.NumberFormat('es-CL').format(ahorrosData[cuenta.id][mes].deposito) : ''}
-                                  onChange={(e) => {
-                                    const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                                    updateSavingData(cuenta.id, mes, 'deposito', parseInt(raw) || 0);
-                                  }}
-                                  className="w-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-center font-mono font-black text-base py-1.5 sm:py-2 rounded-lg border-2 border-transparent focus:border-emerald-400 outline-none transition"
-                                />
-                              </td>
-                            );
-                          })}
-                        </tr>
-                        <tr className="border-b border-slate-100 dark:border-dark-lighter">
-                          <td className="p-2 sm:p-3 sticky left-0 bg-slate-50 dark:bg-dark-normal/50 z-10 border-r border-slate-100 dark:border-dark-lighter font-black text-xs sm:text-xs uppercase tracking-widest text-rose-500 pl-8 sm:pl-12">
-                            <div className="flex items-center gap-1.5">
-                              <ArrowDownCircle size={14} />
-                              <span>Gasto / Retiro</span>
-                            </div>
-                          </td>
-                          {filteredMonths.map((mes, idx) => {
-                            const isEven = idx % 2 === 0;
-                            const cellBgBase = isEven ? 'bg-white dark:bg-dark-normal' : 'bg-slate-50/50 dark:bg-dark-lighter/20';
-                            return (
-                              <td key={mes} className={`p-2 sm:p-3 border-l border-slate-100 dark:border-dark-lighter ${cellBgBase}`}>
-                                <input
-                                  type="text"
-                                  placeholder="-$"
-                                  value={ahorrosData[cuenta.id]?.[mes]?.gasto ? new Intl.NumberFormat('es-CL').format(ahorrosData[cuenta.id][mes].gasto) : ''}
-                                  onChange={(e) => {
-                                    const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                                    updateSavingData(cuenta.id, mes, 'gasto', parseInt(raw) || 0);
-                                  }}
-                                  className="w-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-center font-mono font-black text-base py-1.5 sm:py-2 rounded-lg border-2 border-transparent focus:border-rose-400 outline-none transition"
-                                />
-                              </td>
-                            );
-                          })}
-                        </tr>
-                        <tr className="border-b border-slate-100 dark:border-dark-lighter">
-                          <td className="p-1.5 sm:p-2 sticky left-0 bg-slate-50 dark:bg-dark-normal z-10 border-r border-slate-100 dark:border-dark-lighter text-right pr-2 sm:pr-4">
-                            <span className="text-xs sm:text-xs font-black text-slate-400 uppercase">Saldo {cuenta.nombre}</span>
-                          </td>
-                          {filteredMonths.map((mes, idx) => {
-                            const isEven = idx % 2 === 0;
-                            const cellBgBase = isEven ? 'bg-slate-50/50 dark:bg-dark-normal/50' : 'bg-slate-100/30 dark:bg-dark-lighter/30';
-                            return (
-                              <td key={mes} className={`p-1.5 sm:p-2 border-l border-slate-100 dark:border-dark-lighter text-center ${cellBgBase}`}>
-                                <div className="text-sm font-mono font-black text-slate-600 dark:text-slate-400">
-                                  {formatCurrency(balancesPorCuenta[cuenta.id]?.[mes]?.acumulado)}
-                                </div>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                  <tfoot className={`${theme.btnPrimary} text-white font-black`}>
-                    <tr>
-                      <td className={`p-2 sm:p-4 sticky left-0 ${theme.btnPrimary} z-30 flex items-center gap-2 sm:gap-3`}>
-                        <TrendingUp size={18} />
-                        <span className="uppercase text-xs sm:text-sm"><span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span></span>
-                      </td>
-                      {filteredMonths.map((mes, idx) => {
-                        const isEven = idx % 2 === 0;
-                        return (
-                          <td key={mes} className={`p-3 text-center text-lg font-mono ${isEven ? '' : ''}`}>
-                            {formatCurrency(totalAhorroMensual[mes])}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+            <MonthNav value={dashboardMonth} months={filteredMonths} onChange={setDashboardMonth} />
+
+            <div className={`${theme.btnPrimary} rounded-3xl shadow-xl p-4 sm:p-5 flex items-center justify-between gap-3`}>
+              <span className="text-sm font-black uppercase tracking-wide text-white flex items-center gap-2">
+                <TrendingUp size={16} /> <span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span>
+              </span>
+              <span className="font-mono font-black text-lg text-white">{formatCurrency(totalAhorroMensual[dashboardMonth])}</span>
             </div>
+
+            {cuentasAhorro.length === 0 ? (
+              <div className="py-16 text-center text-slate-300 dark:text-slate-600 font-bold italic">Sin cuentas de ahorro</div>
+            ) : (
+              <div className="space-y-2.5 sm:space-y-3">
+                {cuentasAhorro.map(cuenta => {
+                  const mes = dashboardMonth;
+                  const bi = getAhorroBankInfo(cuenta.banco);
+                  const dep = ahorrosData[cuenta.id]?.[mes]?.deposito || 0;
+                  const gas = ahorrosData[cuenta.id]?.[mes]?.gasto || 0;
+                  const saldo = balancesPorCuenta[cuenta.id]?.[mes]?.acumulado;
+                  const isExpanded = !!expandedAhorroCuentas[cuenta.id];
+                  return (
+                    <div key={cuenta.id} className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 sm:p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {bi ? (
+                            <img src={bi.logo} alt={cuenta.banco} className="w-10 h-7 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0"><Building2 size={16} /></div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-black text-sm truncate" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>{cuenta.banco} - {cuenta.nombre}</span>
+                              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded uppercase">Ahorro</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-0.5 flex-shrink-0">
+                          <button onClick={() => {
+                            setNewAccount({ nombre: cuenta.nombre, banco: cuenta.banco });
+                            setAccountBancoSearch('');
+                            setEditingAccount(cuenta);
+                            setIsAddingAccount(true);
+                          }} aria-label={`Editar ${cuenta.nombre}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-emerald-500 transition-colors"><Pencil size={16} /></button>
+                          <button onClick={() => {
+                            setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
+                            const { [cuenta.id]: _, ...rest } = ahorrosData;
+                            setAhorrosData(rest);
+                          }} aria-label={`Eliminar ${cuenta.nombre}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        <div>
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-wide">Depósito</label>
+                          <div className="relative mt-1">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-bold text-emerald-500 opacity-70">+$</span>
+                            <input
+                              type="text"
+                              placeholder="0"
+                              value={dep ? new Intl.NumberFormat('es-CL').format(dep) : ''}
+                              onChange={(e) => { const raw = e.target.value.replace(/[^0-9\-]/g, ''); updateSavingData(cuenta.id, mes, 'deposito', parseInt(raw) || 0); }}
+                              className="w-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-right font-mono font-black text-sm py-2 pl-7 pr-2.5 rounded-lg border-2 border-transparent focus:border-emerald-400 outline-none transition"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-wide flex items-center gap-1"><ArrowDownCircle size={11} /> Gasto / Retiro</label>
+                          <div className="relative mt-1">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-bold text-rose-500 opacity-70">-$</span>
+                            <input
+                              type="text"
+                              placeholder="0"
+                              value={gas ? new Intl.NumberFormat('es-CL').format(gas) : ''}
+                              onChange={(e) => { const raw = e.target.value.replace(/[^0-9\-]/g, ''); updateSavingData(cuenta.id, mes, 'gasto', parseInt(raw) || 0); }}
+                              className="w-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-right font-mono font-black text-sm py-2 pl-7 pr-2.5 rounded-lg border-2 border-transparent focus:border-rose-400 outline-none transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2.5 px-0.5">
+                        <span className="text-xs font-black uppercase text-slate-400">Saldo {mes}</span>
+                        <span className="font-mono font-black text-sm text-slate-700 dark:text-slate-200">{formatCurrency(saldo)}</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setExpandedAhorroCuentas(prev => ({ ...prev, [cuenta.id]: !prev[cuenta.id] }))}
+                        className="w-full mt-2 flex items-center justify-center gap-1.5 text-xs font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 py-1.5 transition"
+                      >
+                        {isExpanded ? 'Ocultar año completo' : 'Ver año completo'}
+                        <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {isExpanded && (
+                        <div className="grid grid-cols-3 gap-1.5 mt-1">
+                          {filteredMonths.map(m => {
+                            const acc = balancesPorCuenta[cuenta.id]?.[m]?.acumulado;
+                            return (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => setDashboardMonth(m)}
+                                className={`rounded-lg px-1.5 py-1.5 text-center transition bg-slate-100 dark:bg-dark-lightest text-slate-600 dark:text-slate-300 ${m === mes ? 'ring-2 ring-indigo-400' : ''}`}
+                              >
+                                <div className="text-[9px] font-black uppercase opacity-70">{m.split(' ')[0].substring(0, 3)}</div>
+                                <div className="text-[11px] font-mono font-black">{formatCurrency(acc)}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
         <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
