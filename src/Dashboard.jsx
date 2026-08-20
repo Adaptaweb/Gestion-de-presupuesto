@@ -7,7 +7,6 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Building2,
-  Calendar,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
@@ -67,30 +66,97 @@ const NAV_ITEMS = [
 ];
 
 // Selector de mes compartido entre Resumen, Detalle General y Ahorros: antes
-// cada tab tenia su propio <select>, ahora navegan el mismo dashboardMonth.
-const MonthNav = ({ value, months, onChange }) => {
+// cada tab tenia su propio <select> de ano ademas de este nav; ahora el ano
+// se elige desde el mismo desplegable, igual que el selector de mes de
+// Transacciones (flechas de mes + panel con flechas de ano y grilla de meses).
+const MonthNav = ({ value, months, years, onChange }) => {
   const idx = months.indexOf(value);
+  const [isOpen, setIsOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(() => (value ? value.split(' ')[1] : years[years.length - 1]));
+  const yearIdx = years.indexOf(pickerYear);
+
+  const openPicker = () => {
+    setPickerYear(value ? value.split(' ')[1] : years[years.length - 1]);
+    setIsOpen(true);
+  };
+
   return (
-    <div className="flex items-center justify-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
-      <button
-        type="button"
-        onClick={() => idx > 0 && onChange(months[idx - 1])}
-        disabled={idx <= 0}
-        aria-label="Mes anterior"
-        className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
-      >
-        <ChevronLeft size={18} />
-      </button>
-      <span className="min-w-[140px] text-center font-black text-sm text-slate-800 dark:text-slate-200">{value || '—'}</span>
-      <button
-        type="button"
-        onClick={() => idx >= 0 && idx < months.length - 1 && onChange(months[idx + 1])}
-        disabled={idx < 0 || idx >= months.length - 1}
-        aria-label="Mes siguiente"
-        className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
-      >
-        <ChevronRight size={18} />
-      </button>
+    <div className="relative">
+      <div className="flex items-center justify-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
+        <button
+          type="button"
+          onClick={() => idx > 0 && onChange(months[idx - 1])}
+          disabled={idx <= 0}
+          aria-label="Mes anterior"
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <button
+          type="button"
+          onClick={() => (isOpen ? setIsOpen(false) : openPicker())}
+          className="min-w-[140px] text-center font-black text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl px-2 py-1.5 transition"
+        >
+          {value || '—'}
+        </button>
+        <button
+          type="button"
+          onClick={() => idx >= 0 && idx < months.length - 1 && onChange(months[idx + 1])}
+          disabled={idx < 0 || idx >= months.length - 1}
+          aria-label="Mes siguiente"
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3 min-w-[220px]">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <button
+                type="button"
+                onClick={() => yearIdx > 0 && setPickerYear(years[yearIdx - 1])}
+                disabled={yearIdx <= 0}
+                aria-label="Año anterior"
+                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
+              <button
+                type="button"
+                onClick={() => yearIdx >= 0 && yearIdx < years.length - 1 && setPickerYear(years[yearIdx + 1])}
+                disabled={yearIdx < 0 || yearIdx >= years.length - 1}
+                aria-label="Año siguiente"
+                className="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-4 gap-1">
+              {MONTH_NAMES.map(name => {
+                const monthStr = `${name} ${pickerYear}`;
+                const isCurrent = monthStr === value;
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => { onChange(monthStr); setIsOpen(false); }}
+                    className={`px-2 py-2 rounded-lg text-xs font-bold transition ${
+                      isCurrent
+                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                        : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    {name.substring(0, 3)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -260,6 +326,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const filteredMonths = useMemo(() => {
     return months.filter(m => m.endsWith(selectedYear)).sort((a, b) => toDateVal(a) - toDateVal(b));
   }, [months, selectedYear]);
+
+  // Todos los meses ordenados cronologicamente, cruzando años: alimenta las
+  // flechas de MonthNav para que puedan avanzar de Diciembre a Enero sin
+  // pasar por el selector de año (que ya no existe como control aparte).
+  const sortedMonths = useMemo(() => {
+    return [...months].sort((a, b) => toDateVal(a) - toDateVal(b));
+  }, [months]);
+
+  // selectedYear ya no lo controla un <select>: sigue al año de dashboardMonth,
+  // sea cual sea el origen del cambio (flechas de mes o el panel de MonthNav).
+  useEffect(() => {
+    if (!dashboardMonth) return;
+    const year = dashboardMonth.split(' ')[1];
+    if (year && year !== selectedYear) setSelectedYear(year);
+  }, [dashboardMonth]);
 
   useEffect(() => {
     if (filteredMonths.length > 0 && !dashboardMonth) {
@@ -1242,7 +1323,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
               </h2>
-              <MonthNav value={dashboardMonth} months={filteredMonths} onChange={setDashboardMonth} />
+              <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
             </div>
 
             {(() => {
@@ -1749,19 +1830,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {activeTab === 'general' && (
           <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-              <div className="flex items-center gap-2">
-                <Calendar size={16} className="text-slate-400 flex-shrink-0" />
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter px-3 py-2 rounded-xl text-xs font-black text-slate-700 dark:text-slate-300 outline-none cursor-pointer appearance-none"
-                >
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 sm:mb-5">
+              <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
               <div className="hidden sm:flex flex-wrap gap-2">
                 <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
@@ -1776,10 +1846,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <RefreshCw size={16} /> Suscripciones <Plus size={16} />
                 </button>
               </div>
-            </div>
-
-            <div className="mb-4 sm:mb-5">
-              <MonthNav value={dashboardMonth} months={filteredMonths} onChange={setDashboardMonth} />
             </div>
 
             {(() => {
@@ -2036,18 +2102,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                   <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
                 </h2>
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-slate-400 flex-shrink-0" />
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className={`${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} border ${theme.borderAccent} ${theme.badgeBgDark} px-3 py-2 rounded-xl text-xs font-black outline-none cursor-pointer appearance-none`}
-                  >
-                    {availableYears.map(year => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
               <div className="flex gap-2 w-full md:w-auto">
                 <button
@@ -2064,7 +2118,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
             </div>
 
-            <MonthNav value={dashboardMonth} months={filteredMonths} onChange={setDashboardMonth} />
+            <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
 
             <div className={`${theme.btnPrimary} rounded-3xl shadow-xl p-4 sm:p-5 flex items-center justify-between gap-3`}>
               <span className="text-sm font-black uppercase tracking-wide text-white flex items-center gap-2">
