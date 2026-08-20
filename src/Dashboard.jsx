@@ -82,20 +82,20 @@ const MonthNav = ({ value, months, years, onChange }) => {
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-center gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
+      <div className="flex items-center justify-between gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
         <button
           type="button"
           onClick={() => idx > 0 && onChange(months[idx - 1])}
           disabled={idx <= 0}
           aria-label="Mes anterior"
-          className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
         >
           <ChevronLeft size={18} />
         </button>
         <button
           type="button"
           onClick={() => (isOpen ? setIsOpen(false) : openPicker())}
-          className="min-w-[140px] text-center font-black text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl px-2 py-1.5 transition"
+          className="flex-1 text-center font-black text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl px-2 py-1.5 transition"
         >
           {value || '—'}
         </button>
@@ -104,7 +104,7 @@ const MonthNav = ({ value, months, years, onChange }) => {
           onClick={() => idx >= 0 && idx < months.length - 1 && onChange(months[idx + 1])}
           disabled={idx < 0 || idx >= months.length - 1}
           aria-label="Mes siguiente"
-          className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
         >
           <ChevronRight size={18} />
         </button>
@@ -1830,22 +1830,23 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {activeTab === 'general' && (
           <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 sm:mb-5">
+            <div className="hidden sm:flex flex-wrap justify-end gap-2 mb-3">
+              <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
+              </button>
+              <button onClick={openAddFixed} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <Receipt size={16} /> Gasto Fijo <Plus size={16} />
+              </button>
+              <button onClick={openAddAbono} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <TrendingUp size={16} /> Abono <Plus size={16} />
+              </button>
+              <button onClick={openAddSub} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <RefreshCw size={16} /> Suscripciones <Plus size={16} />
+              </button>
+            </div>
+
+            <div className="mb-4 sm:mb-5">
               <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
-              <div className="hidden sm:flex flex-wrap gap-2">
-                <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
-                  <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
-                </button>
-                <button onClick={openAddFixed} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
-                  <Receipt size={16} /> Gasto Fijo <Plus size={16} />
-                </button>
-                <button onClick={openAddAbono} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
-                  <TrendingUp size={16} /> Abono <Plus size={16} />
-                </button>
-                <button onClick={openAddSub} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
-                  <RefreshCw size={16} /> Suscripciones <Plus size={16} />
-                </button>
-              </div>
             </div>
 
             {(() => {
