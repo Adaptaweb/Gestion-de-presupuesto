@@ -1360,7 +1360,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 return false;
               }).sort((a, b) => (a.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0) - (b.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0));
 
-              const proximosCobros = subsActivas.map(s => ({ nombre: s.descripcion, monto: s.pagos?.[mes]?.monto || s.valor || 0, dia: s.diaPago || 1 }))
+              const proximosCobros = subsActivas.filter(s => s.pagos?.[mes]?.estado !== 'PAGADA')
+                .map(s => ({ nombre: s.descripcion, monto: s.pagos?.[mes]?.monto || s.valor || 0, dia: s.diaPago || 1 }))
                 .sort((a, b) => a.dia - b.dia);
               const cobrosPorDia = {};
               proximosCobros.forEach(c => { if (!cobrosPorDia[c.dia]) cobrosPorDia[c.dia] = []; cobrosPorDia[c.dia].push(c); });
@@ -1574,6 +1575,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
                           {subsActivas.map(s => {
                             const monto = s.pagos?.[mes]?.monto || s.valor || 0;
+                            const subPagado = s.pagos?.[mes]?.estado === 'PAGADA';
                             return (
                               <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
@@ -1582,6 +1584,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
+                                    <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full flex-shrink-0 ${subPagado ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 dark:bg-dark-lightest text-slate-500 dark:text-slate-400'}`}>{subPagado ? 'Pagado' : 'Pendiente'}</span>
                                   </div>
                                   <span className="text-xs sm:text-xs font-bold text-slate-400">Día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
                                 </div>
@@ -1591,20 +1594,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           })}
                           {subsActivas.length > 0 && (
                             <>
-                              <div className="pt-2 sm:pt-3 border-t border-slate-100 dark:border-dark-lighter">
-                                <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                                  <CalendarDays size={12} className="text-slate-400" />
-                                  <span className="text-xs sm:text-xs font-black text-slate-400 uppercase">Próximos cobros</span>
+                              {Object.keys(cobrosPorDia).length > 0 && (
+                                <div className="pt-2 sm:pt-3 border-t border-slate-100 dark:border-dark-lighter">
+                                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                                    <CalendarDays size={12} className="text-slate-400" />
+                                    <span className="text-xs sm:text-xs font-black text-slate-400 uppercase">Próximos cobros</span>
+                                  </div>
+                                  <div className="space-y-1 sm:space-y-1.5">
+                                    {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
+                                      <div key={dia} className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs">
+                                        <span className="w-full sm:w-16 font-bold text-slate-500 dark:text-slate-400">Día {dia}</span>
+                                        <span className="text-slate-400 text-xs">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
-                                <div className="space-y-1 sm:space-y-1.5">
-                                  {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
-                                    <div key={dia} className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs">
-                                      <span className="w-full sm:w-16 font-bold text-slate-500 dark:text-slate-400">Día {dia}</span>
-                                      <span className="text-slate-400 text-xs">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
+                              )}
                               <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-dark-lighter">
                                 <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
                                 <span className="text-xs sm:text-sm font-mono font-black text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</span>
@@ -1946,6 +1951,25 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     onChangeMonto = (val) => updateFixedPayment(item.id, mes, 'monto', val);
                   }
 
+                  let cuotaPagadas = 0;
+                  let cuotaTotal = 0;
+                  if (isCuota) {
+                    let cur = toDateVal(item.mesInicio);
+                    const end = toDateVal(item.mesTermino);
+                    while (cur <= end) {
+                      const mName = fromDateVal(cur);
+                      if (!item.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(mName.split(' ')[0])) {
+                        if (item.pagos?.[mName]?.estado === 'PAGADA') cuotaPagadas++;
+                      }
+                      cur++;
+                    }
+                    cuotaTotal = item.cuotasTotales;
+                  }
+
+                  if (isCuota && !active && cuotaTotal > 0 && cuotaPagadas >= cuotaTotal && toDateVal(item.mesTermino) < toDateVal(mes)) {
+                    return null;
+                  }
+
                   const isExpanded = !!expandedGeneralItems[item.id];
 
                   return (
@@ -1992,17 +2016,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </div>
 
                       {isCuota && (() => {
-                        let cur = toDateVal(item.mesInicio);
-                        const end = toDateVal(item.mesTermino);
-                        let pagadas = 0;
-                        while (cur <= end) {
-                          const mName = fromDateVal(cur);
-                          if (!item.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(mName.split(' ')[0])) {
-                            if (item.pagos?.[mName]?.estado === 'PAGADA') pagadas++;
-                          }
-                          cur++;
-                        }
-                        const totalCuotas = item.cuotasTotales;
+                        const pagadas = cuotaPagadas;
+                        const totalCuotas = cuotaTotal;
                         const faltantes = totalCuotas - pagadas;
                         const pct = totalCuotas > 0 ? (pagadas / totalCuotas) * 100 : 0;
                         return (
