@@ -425,7 +425,7 @@ const TransactionCardSkeleton = () => (
 
 const TransactionCard = ({
   tx, hex, emoji, badge, isDarkMode,
-  formatCurrency, formatDate, formatTime, onEdit, onDelete,
+  formatCurrency, formatDate, formatTime, onEdit, onDelete, onOpenDetail,
 }) => {
   const isMuted = tx.tipo_transaccion === 'no_es_gasto'
     || tx.tipo_transaccion === 'no_es_ingreso'
@@ -436,7 +436,12 @@ const TransactionCard = ({
 
   return (
     <div
-      className={`group relative flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-2 sm:pr-3 py-3 sm:py-3.5 rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30 ${
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenDetail(tx)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(tx); } }}
+      aria-label={`Ver detalle de ${tx.comercio || 'transacción'}`}
+      className={`group relative flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-2 sm:pr-3 py-3 sm:py-3.5 rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30 active:scale-[0.99] ${
         isMuted
           ? 'bg-slate-50 dark:bg-dark-lighter/30 border-slate-100 dark:border-dark-lighter'
           : 'bg-white dark:bg-dark-lighter/50'
@@ -543,6 +548,193 @@ const TransactionCard = ({
   );
 };
 
+const TIPO_TRANSACCION_LABEL = {
+  ingreso: 'Ingreso',
+  interno: 'Movimiento interno',
+  no_es_gasto: 'No es gasto',
+  no_es_ingreso: 'No es ingreso',
+};
+
+// Reusa el gradiente/color de la card (mismo hex de categoria) para que el
+// modal se sienta como una continuacion de la card, no como una ventana
+// aparte. Cierra con la misma curva con la que abre: se mantiene montado
+// (guardando la ultima tx) hasta que termina la transicion de salida.
+const TransactionDetailModal = ({
+  tx, hex, emoji, badge, isDarkMode,
+  formatCurrency, onClose, onEdit, onDelete,
+}) => {
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [renderData, setRenderData] = useState(null);
+  const closeTimer = useRef(null);
+
+  useEffect(() => {
+    if (tx) {
+      clearTimeout(closeTimer.current);
+      setRenderData({ tx, hex, emoji, badge });
+      setMounted(true);
+      const t = setTimeout(() => setOpen(true), 20);
+      return () => clearTimeout(t);
+    }
+    setOpen(false);
+    closeTimer.current = setTimeout(() => setMounted(false), 200);
+    return () => clearTimeout(closeTimer.current);
+  }, [tx, hex, emoji, badge]);
+
+  if (!mounted || !renderData) return null;
+
+  const { tx: t, hex: h, emoji: e, badge: b } = renderData;
+  const isMuted = t.tipo_transaccion === 'no_es_gasto'
+    || t.tipo_transaccion === 'no_es_ingreso'
+    || t.tipo_transaccion === 'interno';
+  const isIngreso = t.tipo_transaccion === 'ingreso';
+  const movimiento = t.tipo_movimiento || t.tipo_tarjeta || '';
+  const mutedChip = 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500';
+  const tipoLabel = TIPO_TRANSACCION_LABEL[t.tipo_transaccion] || 'Gasto';
+  const fechaLarga = t.fecha
+    ? new Date(`${t.fecha.split('T')[0]}T00:00:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+  const procesadoEl = t.fecha_extraccion
+    ? new Date(t.fecha_extraccion).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  const ease = 'cubic-bezier(0.23,1,0.32,1)';
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+      <div
+        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+        style={{ transition: `opacity 220ms ${ease}`, opacity: open ? 1 : 0 }}
+        onClick={onClose}
+      />
+      <div
+        className={`relative w-full sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar rounded-t-3xl sm:rounded-[28px] border shadow-2xl ${
+          isMuted
+            ? 'bg-slate-50 dark:bg-dark-normal border-slate-100 dark:border-dark-lighter'
+            : 'bg-white dark:bg-dark-normal'
+        }`}
+        style={{
+          ...(isMuted ? {} : { borderColor: hexToRgba(h, isDarkMode ? 0.28 : 0.2) }),
+          transition: `opacity ${open ? 260 : 200}ms ${ease}, transform ${open ? 260 : 200}ms ${ease}`,
+          opacity: open ? 1 : 0,
+          transform: open ? 'translateY(0) scale(1)' : 'translateY(16px) scale(0.96)',
+        }}
+        onClick={(ev) => ev.stopPropagation()}
+      >
+        <div
+          className="px-5 sm:px-6 pt-6 pb-5"
+          style={isMuted ? undefined : { backgroundImage: catCardGradient(h, isDarkMode) }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div
+              className={`w-14 h-14 rounded-2xl flex-shrink-0 grid place-items-center text-2xl leading-none ${
+                isMuted ? 'bg-slate-100 dark:bg-dark-lightest grayscale opacity-60' : ''
+              }`}
+              style={isMuted ? undefined : {
+                backgroundImage: catIconGradient(h, isDarkMode),
+                border: `1px solid ${hexToRgba(h, isDarkMode ? 0.32 : 0.24)}`,
+              }}
+            >
+              {e}
+            </div>
+            <button
+              onClick={onClose}
+              aria-label="Cerrar"
+              className="p-2 -mt-1 -mr-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <h3 className={`mt-4 text-xl font-black leading-tight ${
+            isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'
+          }`}>
+            {t.comercio || 'Sin comercio'}
+          </h3>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+              isMuted ? mutedChip : BANK_COLORS[t.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+            }`}>
+              {BANK_ICONS[t.banco] && (
+                <img
+                  src={BANK_ICONS[t.banco]}
+                  alt=""
+                  className={`w-3.5 h-3.5 rounded-full ${isMuted ? 'opacity-50' : ''} ${isDarkMode && t.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`}
+                />
+              )}
+              {t.banco || '-'}
+            </span>
+            {movimiento && (
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                isMuted ? mutedChip : MOVIMIENTO_COLORS[movimiento] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+              }`}>{movimiento}</span>
+            )}
+            <span
+              className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isMuted ? mutedChip : b.className || ''}`}
+              style={isMuted ? undefined : { ...(b.style || {}), backgroundImage: catChipGradient(h, isDarkMode) }}
+            >
+              {t.categoria}
+            </span>
+          </div>
+        </div>
+
+        <div className="px-5 sm:px-6 py-5 space-y-5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{tipoLabel}</span>
+            <span className={`text-3xl font-black tabular-nums leading-none ${
+              isMuted
+                ? 'text-slate-400 dark:text-slate-500'
+                : isIngreso
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-slate-800 dark:text-white'
+            }`}>
+              {!isMuted && isIngreso ? '+' : ''}{formatCurrency(t.monto)}
+            </span>
+          </div>
+
+          <dl className="grid grid-cols-1 gap-3">
+            {fechaLarga && (
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <dt className="text-slate-400 dark:text-slate-500 font-bold">Fecha</dt>
+                <dd className="text-slate-700 dark:text-slate-200 font-bold capitalize text-right">{fechaLarga}</dd>
+              </div>
+            )}
+            {procesadoEl && (
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <dt className="text-slate-400 dark:text-slate-500 font-bold">Procesado</dt>
+                <dd className="text-slate-500 dark:text-slate-400 font-medium text-right">{procesadoEl}</dd>
+              </div>
+            )}
+          </dl>
+
+          {t.asunto && (
+            <div className="rounded-xl bg-slate-50 dark:bg-dark-lighter/40 border border-slate-100 dark:border-dark-lighter px-3.5 py-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Asunto del correo</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words">{t.asunto}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="px-5 sm:px-6 pb-6 pt-1 flex gap-2.5">
+          <button
+            onClick={() => { onClose(); onEdit(t); }}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+          >
+            <Edit3 size={15} /> Reclasificar
+          </button>
+          <button
+            onClick={() => { onClose(); onDelete(t.id); }}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+          >
+            <Trash2 size={15} /> Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
@@ -601,6 +793,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     return { style: { backgroundColor: val.backgroundColor } };
   };
 
+  const [selectedTx, setSelectedTx] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState([]);
   const [bankTotals, setBankTotals] = useState([]);
@@ -1509,6 +1702,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                     formatTime={formatTime}
                     onEdit={handleReclasificarTx}
                     onDelete={handleDeleteTx}
+                    onOpenDetail={setSelectedTx}
                   />
                 ))}
               </div>
@@ -1782,6 +1976,17 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         itemType={deleteModal.itemType}
         message={deleteModal.message}
         isDeleting={isDeleting}
+      />
+      <TransactionDetailModal
+        tx={selectedTx}
+        hex={selectedTx ? catHex(selectedTx.categoria) : null}
+        emoji={selectedTx ? (CATEGORY_EMOJI[selectedTx.categoria] || CATEGORY_EMOJI_DEFAULT[selectedTx.categoria] || '💳') : null}
+        badge={selectedTx ? catBadgeStyle(selectedTx.categoria) : null}
+        isDarkMode={isDarkMode}
+        formatCurrency={formatCurrency}
+        onClose={() => setSelectedTx(null)}
+        onEdit={handleReclasificarTx}
+        onDelete={handleDeleteTx}
       />
     </>
   );
