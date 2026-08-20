@@ -108,6 +108,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     setTxAction({ type, seq: txActionSeq.current });
   }, []);
   const openManualEntry = useCallback(() => requestTxAction('manual'), [requestTxAction]);
+  const [isFabDialOpen, setIsFabDialOpen] = useState(false);
+  useEffect(() => { setIsFabDialOpen(false); }, [activeTab]);
   const [dashboardMonth, setDashboardMonth] = useState('');
   const [expandedGeneralItems, setExpandedGeneralItems] = useState({});
   const [expandedAhorroCuentas, setExpandedAhorroCuentas] = useState({});
@@ -488,8 +490,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
     return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); };
   }, [deudas, months, gastosFijos, abonos, sueldos, cuentasAhorro, ahorrosData, suscripciones]);
-
-  const getNextMonthStr = (monthStr) => fromDateVal(toDateVal(monthStr) + 1);
 
   const expandToFullYearMonths = (monthArr) => {
     const years = [...new Set(monthArr.map(m => m.split(' ')[1]))];
@@ -936,6 +936,35 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     }));
   };
 
+  // Comparten toolbar de escritorio y speed-dial del FAB movil en Detalle General.
+  const openAddDebt = () => {
+    setEditingItem(null);
+    setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
+    setDebtIconSearch('');
+    setBancoSearch('');
+    setIsAddingDebt(true);
+  };
+  const openAddFixed = () => {
+    setEditingItem(null);
+    setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+    setFixedBancoSearch('');
+    setIsAddingFixed(true);
+  };
+  const openAddAbono = () => {
+    setEditingItem(null);
+    setAbonoBancoSearch('');
+    setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+    setAbonoIconSearch('');
+    setIsAddingAbono(true);
+  };
+  const openAddSub = () => {
+    setEditingItem(null);
+    setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+    setSubBancoSearch('');
+    setSubscriptionIconSearch('');
+    setIsAddingSub(true);
+  };
+
   const updateSavingData = (cuentaId, mes, field, value) => {
     const val = parseInt(value) || 0;
     setAhorrosData(prev => ({
@@ -1011,6 +1040,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     if (SubIcon) return <SubIcon size={18} />;
     return <RefreshCw size={18} className="text-violet-400" />;
   };
+
+  // Orden de abajo hacia arriba: la mas cercana al FAB es la mas usada.
+  const fabDialActions = [
+    { key: 'sub', label: 'Suscripciones', icon: RefreshCw, color: theme.btnSub, onClick: openAddSub },
+    { key: 'abono', label: 'Abono', icon: TrendingUp, color: theme.btnPrimary, onClick: openAddAbono },
+    { key: 'fixed', label: 'Gasto Fijo', icon: Receipt, color: theme.btnFixed, onClick: openAddFixed },
+    { key: 'debt', label: 'Nueva Cuota', icon: CreditCard, color: theme.btnDebt, onClick: openAddDebt },
+  ];
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
@@ -1130,14 +1167,42 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </button>
         </div>
 
-        {/* Barra flotante con FAB central. El FAB reemplaza al boton flotante
-            que Transacciones dibujaba en la esquina y que se solapaba con esta
-            barra en pantallas cortas. */}
+        {/* Scrim del speed-dial: solo existe en Detalle General, con el dial abierto. */}
+        {activeTab === 'general' && isFabDialOpen && (
+          <div
+            className="md:hidden fixed inset-0 z-40 bg-slate-950/35 dark:bg-black/55 animate-fade-in"
+            onClick={() => setIsFabDialOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Barra flotante con FAB central. El FAB abre Ingreso Manual en
+            cualquier tab, salvo en Detalle General donde despliega un
+            speed-dial con las acciones de esa tab (Nueva Cuota/Gasto Fijo/
+            Abono/Suscripciones), que en movil ya no tienen su propio toolbar. */}
         <div
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pointer-events-none"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
         >
           <div className="relative max-w-md mx-auto pointer-events-auto animate-slide-in-from-bottom">
+            {activeTab === 'general' && isFabDialOpen && (
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-[6.5rem] w-11 flex flex-col items-center gap-2.5">
+                {fabDialActions.map(({ key, label, icon: Icon, color, onClick }) => (
+                  <div key={key} className="relative animate-scale-in">
+                    <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-200 text-xs font-black px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                      {label}
+                    </span>
+                    <button
+                      onClick={() => { onClick(); setIsFabDialOpen(false); }}
+                      aria-label={label}
+                      className={`w-11 h-11 rounded-full ${color} text-white grid place-items-center shadow-xl transition active:scale-90`}
+                    >
+                      <Icon size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex items-center h-16 rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60">
               {NAV_ITEMS.map(({ id, icon: Icon, short }, i) => (
                 <React.Fragment key={id}>
@@ -1160,11 +1225,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               ))}
             </div>
             <button
-              onClick={openManualEntry}
-              aria-label="Ingreso manual"
+              onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
+              aria-label={activeTab === 'general' ? 'Agregar en Detalle General' : 'Ingreso manual'}
+              aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
               className={`absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} ring-8 ring-kk-background dark:ring-dark-darker transition active:scale-90`}
             >
-              <Plus size={26} strokeWidth={2.75} />
+              <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
             </button>
           </div>
         </div>
@@ -1696,21 +1762,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   ))}
                 </select>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={() => { setEditingItem(null); setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' }); setDebtIconSearch(''); setBancoSearch(''); setIsAddingDebt(true); }} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+              <div className="hidden sm:flex flex-wrap gap-2">
+                <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setFixedBancoSearch(''); setIsAddingFixed(true); }} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <button onClick={openAddFixed} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <Receipt size={16} /> Gasto Fijo <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setAbonoBancoSearch(''); setAbonoIconSearch(''); setIsAddingAbono(true); }} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <button onClick={openAddAbono} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <TrendingUp size={16} /> Abono <Plus size={16} />
                 </button>
-                <button onClick={() => { setEditingItem(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); setIsAddingSub(true); }} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <button onClick={openAddSub} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                   <RefreshCw size={16} /> Suscripciones <Plus size={16} />
-                </button>
-                <button onClick={() => { const sorted = [...months].sort((a, b) => toDateVal(a) - toDateVal(b)); setMonths([...months, getNextMonthStr(sorted[sorted.length - 1])]); }} className="flex items-center justify-center gap-2 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition">
-                  <Plus size={16} /> +1 Mes
                 </button>
               </div>
             </div>
