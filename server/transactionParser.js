@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import db from './db.js';
 import { generarFingerprint, calcularConfianza } from './fingerprint.js';
 import { seleccionarParser, usarParser } from './parsers/index.js';
+import { stripInvisibleChars } from './parsers/base.js';
 import { encontrarComercioSimilar } from './embeddings.js';
 import { logDebug } from './logger.js';
 
@@ -145,6 +146,7 @@ function hasRealDataTable($) {
 }
 
 async function parseHTML(html, headers = {}, userId = null) {
+  html = stripInvisibleChars(html);
   const $ = cheerio.load(html);
 
   // Remove boilerplate elements that pollute text with nav/footer labels
@@ -303,39 +305,6 @@ async function parseHTML(html, headers = {}, userId = null) {
     }
   }
 
-  if (usedTable && !comercio && !hasUsd) {
-    const lines = bodyText.split('\n').map(l => l.trim()).filter(Boolean);
-    const comercioLine = lines.find(l => l.toLowerCase().includes('comercio'));
-    if (comercioLine) {
-      comercio = simplifyComercio(comercioLine.replace(/comercio/i, '').replace(/:/, '').trim());
-    }
-    if (!comercio) {
-      const strongTags = $('strong').toArray();
-      for (const tag of strongTags) {
-        const text = $(tag).text().trim();
-        const lowerText = text.toLowerCase();
-        if (text.length > 3
-          && !lowerText.includes('débito')
-          && !lowerText.includes('debito')
-          && !lowerText.includes('transferencia')
-          && !lowerText.includes('comprobante')
-          && !lowerText.includes('comentario')
-          && !lowerText.includes('importante')
-          && !lowerText.includes('automático')
-          && !lowerText.includes('automatico')
-          && !lowerText.includes('contacte')
-          && !lowerText.includes('garantía')
-          && !lowerText.includes('garantia')
-          && !text.includes('@')
-          && !/\d{7,}/.test(text)
-        ) {
-          comercio = simplifyComercio(text);
-          break;
-        }
-      }
-    }
-  }
-
   if (!comercio && tipo_movimiento === 'Transferencia') {
     const nombreMatch = bodyText.match(/Nombre\s+(?:del\s+)?(?:destinatario|remitente|y\s+Apellido)[:\s]?(.*?)(?=\s*Monto|\s*Rut|\s*Email|\s*Banco|$)/i);
     if (nombreMatch && nombreMatch[1].trim()) {
@@ -368,6 +337,48 @@ async function parseHTML(html, headers = {}, userId = null) {
     if (clienteMatch3) comercio = simplifyComercio(clienteMatch3[1]);
   }
   } // fin else (!parserResult)
+
+  // Red de seguridad: si ningún método (parser especializado o tabla genérica)
+  // logró llenar comercio, intenta recuperarlo desde el texto libre del correo.
+  // Corre también cuando un parser especializado devolvió resultado pero dejó
+  // comercio vacío (p.ej. un correo con formato de oración en vez de tabla).
+  if (!comercio && !hasUsd) {
+    const lines = bodyText.split('\n').map(l => l.trim()).filter(Boolean);
+    const comercioLine = lines.find(l => l.toLowerCase().includes('comercio'));
+    if (comercioLine) {
+      comercio = simplifyComercio(comercioLine.replace(/comercio/i, '').replace(/:/, '').trim());
+    }
+    if (!comercio) {
+      const strongTags = $('strong').toArray();
+      for (const tag of strongTags) {
+        const text = $(tag).text().trim();
+        const lowerText = text.toLowerCase();
+        if (text.length > 3
+          && text.length <= 60
+          && !lowerText.includes('débito')
+          && !lowerText.includes('debito')
+          && !lowerText.includes('transferencia')
+          && !lowerText.includes('comprobante')
+          && !lowerText.includes('comentario')
+          && !lowerText.includes('importante')
+          && !lowerText.includes('automático')
+          && !lowerText.includes('automatico')
+          && !lowerText.includes('contacte')
+          && !lowerText.includes('garantía')
+          && !lowerText.includes('garantia')
+          && !lowerText.includes('realiza todo')
+          && !lowerText.includes('revisa saldos')
+          && !lowerText.includes('banco en línea')
+          && !lowerText.includes('banco en linea')
+          && !text.includes('@')
+          && !/\d{7,}/.test(text)
+        ) {
+          comercio = simplifyComercio(text);
+          break;
+        }
+      }
+    }
+  }
 
   const fingerprint = generarFingerprint(html, (headers['subject'] || ''));
 

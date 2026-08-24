@@ -1,5 +1,15 @@
 import * as cheerio from 'cheerio';
 
+// Bancos (Banco de Chile incluido) insertan caracteres invisibles Unicode
+// (zero-width joiner/space, BOM, marcas RTL/LTR) dentro del texto —
+// típicamente para ofuscar teléfonos contra scraping — pero a veces caen
+// dentro de palabras clave ("compra", "el DD/MM/YYYY"), rompiendo los
+// regex de extracción. Se limpian antes de parsear.
+export function stripInvisibleChars(html) {
+  if (!html) return html;
+  return html.replace(/[​-‏⁠﻿­]/g, '');
+}
+
 export class BaseParser {
   constructor(nombre) {
     this.nombre = nombre;
@@ -60,7 +70,7 @@ export class BaseParser {
   }
 
   loadHtml(html) {
-    const $ = cheerio.load(html);
+    const $ = cheerio.load(stripInvisibleChars(html));
     $('script, style, nav, footer, header, .footer, .navbar, .menu, [aria-hidden="true"], [hidden]').remove();
     $('br').replaceWith('\n');
     $('td, th, p, div, li, h1, h2, h3, h4, h5, h6, hr').each(function() {
