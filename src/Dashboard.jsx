@@ -177,6 +177,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [isFabDialOpen, setIsFabDialOpen] = useState(false);
   useEffect(() => { setIsFabDialOpen(false); }, [activeTab]);
   const [dashboardMonth, setDashboardMonth] = useState('');
+  const [resumenGastosMes, setResumenGastosMes] = useState({ total_gastos: 0, total_ingresos: 0, summary: [] });
+  const [loadingResumenGastos, setLoadingResumenGastos] = useState(false);
   const [expandedGeneralItems, setExpandedGeneralItems] = useState({});
   const [expandedAhorroCuentas, setExpandedAhorroCuentas] = useState({});
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -618,6 +620,26 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     const mIndex = MONTH_NAMES.indexOf(n) + 1;
     return `${y}-${mIndex.toString().padStart(2, '0')}`;
   };
+
+  useEffect(() => {
+    if (!dashboardMonth) return;
+    const mesParam = monthStrToMonthInput(dashboardMonth);
+    let cancelled = false;
+    setLoadingResumenGastos(true);
+    fetch(`/api/transacciones?mes=${mesParam}`, { headers: getHeaders() })
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return;
+        setResumenGastosMes({
+          total_gastos: data.total_gastos || 0,
+          total_ingresos: data.total_ingresos || 0,
+          summary: (data.summary || []).filter(s => s.tipo !== 'ingreso')
+        });
+      })
+      .catch(() => { if (!cancelled) setResumenGastosMes({ total_gastos: 0, total_ingresos: 0, summary: [] }); })
+      .finally(() => { if (!cancelled) setLoadingResumenGastos(false); });
+    return () => { cancelled = true; };
+  }, [dashboardMonth, token]);
 
   const ensureMonthsRange = (startMonth, endMonth) => {
     const startVal = toDateVal(startMonth);
@@ -1329,7 +1351,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             {(() => {
               const mes = dashboardMonth;
               const totalCuotas = totalesMensuales[mes]?.cuotas || 0;
-              const totalGastos = totalesMensuales[mes]?.gastos || 0;
+              const totalGastos = resumenGastosMes.total_gastos || 0;
+              const gastosPorCategoria = resumenGastosMes.summary || [];
               const totalSubs = totalesMensuales[mes]?.suscripciones || 0;
               const totalAbonos = totalesMensuales[mes]?.abonos || 0;
               const sueldo = totalesMensuales[mes]?.sueldo || 0;
@@ -1366,13 +1389,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               const cobrosPorDia = {};
               proximosCobros.forEach(c => { if (!cobrosPorDia[c.dia]) cobrosPorDia[c.dia] = []; cobrosPorDia[c.dia].push(c); });
 
-              const gastosFijosList = gastosFijos.map(g => ({ ...g, pagado: g.pagos?.[mes]?.estado === 'PAGADA', monto: g.pagos?.[mes]?.monto || 0 }))
-                .sort((a, b) => (a.pagado ? 1 : 0) - (b.pagado ? 1 : 0));
-              const gastosPagados = gastosFijosList.filter(g => g.pagado).length;
+              const catStyle = (catName) => {
+                const cat = categorias?.find(c => c.nombre === catName);
+                const val = cat ? getCatStyle(cat.color_hex) : null;
+                if (!val) return { className: 'bg-slate-100 dark:bg-dark-lighter text-slate-500 dark:text-slate-400' };
+                return typeof val === 'string' ? { className: val } : { style: { backgroundColor: val.backgroundColor, color: val.color } };
+              };
+              const catBar = (catName) => {
+                const cat = categorias?.find(c => c.nombre === catName);
+                const val = cat ? getCatBar(cat.color_hex) : null;
+                if (!val) return { className: 'bg-slate-300 dark:bg-slate-600' };
+                return typeof val === 'string' ? { className: val } : { style: { backgroundColor: val.backgroundColor } };
+              };
 
               const donutSegments = [
                 { label: 'Cuotas', value: totalCuotas, pct: pctCuotas, color: theme.bgLight.replace('/50', ''), darkColor: theme.bgLightDark },
-                { label: 'G. Fijos', value: totalGastos, pct: pctGastos, color: 'bg-slate-400', darkColor: 'dark:bg-slate-500' },
+                { label: 'Gastos', value: totalGastos, pct: pctGastos, color: 'bg-slate-400', darkColor: 'dark:bg-slate-500' },
                 { label: 'Suscripciones', value: totalSubs, pct: pctSubs, color: 'bg-rose-400', darkColor: 'dark:bg-rose-400' },
                 { label: 'Disponible', value: Math.max(0, disponibleExtras), pct: pctDisponible, color: 'bg-emerald-400', darkColor: 'dark:bg-emerald-400' }
               ].filter(s => s.value > 0);
@@ -1387,79 +1419,65 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               return (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white ${theme.btnPrimary.replace('hover:bg-', 'bg-').replace('hover:bg-', '')} relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card`}>
-                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
-                      <div className="relative">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <CreditCard className="text-white/90" size={14} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Cuotas</span>
+                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className={`p-1 sm:p-1.5 rounded-lg ${theme.bgLight} ${theme.bgLightDark}`}>
+                          <CreditCard className={theme.tabText} size={14} />
                         </div>
-                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalCuotas)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
-                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{cuotasPagadasMes} pagadas</span>
-                          <span>·</span>
-                          <span>{cuotasPendientesMes} pendientes</span>
-                        </div>
+                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Cuotas</span>
+                      </div>
+                      <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${theme.tabText}`}>{formatCurrency(totalCuotas)}</div>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                        <span>{cuotasPagadasMes} pagadas</span>
+                        <span>·</span>
+                        <span>{cuotasPendientesMes} pendientes</span>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-slate-600 dark:bg-dark-lighter relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
-                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
-                      <div className="relative">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <Receipt className="text-white/90" size={14} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Gastos Fijos</span>
+                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="p-1 sm:p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter">
+                          <Receipt className="text-slate-500 dark:text-slate-400" size={14} />
                         </div>
-                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalGastos)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
-                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{gastosPagados} pagados</span>
-                          <span>·</span>
-                          <span>{gastosFijos.length - gastosPagados} pendientes</span>
-                        </div>
+                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Gastos</span>
+                      </div>
+                      <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-slate-700 dark:text-slate-200">
+                        {loadingResumenGastos ? <span className="inline-block w-20 h-5 rounded skeleton" /> : formatCurrency(totalGastos)}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                        <span>{gastosPorCategoria.length} categorías</span>
+                        {gastosPorCategoria[0] && <span>·</span>}
+                        {gastosPorCategoria[0] && <span className="truncate">Top: {gastosPorCategoria[0].categoria}</span>}
                       </div>
                     </div>
 
-                    <div className="rounded-2xl p-3 sm:p-5 shadow-lg text-white bg-rose-600 dark:bg-rose-700 relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card">
-                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
-                      <div className="relative">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <RefreshCw className="text-white/90" size={14} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Suscripciones</span>
+                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="p-1 sm:p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30">
+                          <RefreshCw className="text-rose-500 dark:text-rose-400" size={14} />
                         </div>
-                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5">{formatCurrency(totalSubs)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
-                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{subsActivas.length} activas</span>
-                          {proximosCobros.length > 0 && <span>·</span>}
-                          {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
-                        </div>
+                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Suscripciones</span>
+                      </div>
+                      <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</div>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                        <span>{subsActivas.length} activas</span>
+                        {proximosCobros.length > 0 && <span>·</span>}
+                        {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
                       </div>
                     </div>
 
-                    <div className={`rounded-2xl p-3 sm:p-5 shadow-lg text-white relative overflow-hidden transition duration-300 hover:shadow-xl hover:-translate-y-1 cursor-default group/card ${disponibleExtras >= 0 ? 'bg-emerald-600 dark:bg-emerald-700' : 'bg-rose-600 dark:bg-rose-700'}`}>
-                      <div className="absolute top-0 right-0 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/10 -translate-y-4 sm:-translate-y-6 translate-x-4 sm:translate-x-6 group-hover/card:scale-125 transition-transform duration-500"></div>
-                      <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 translate-y-3 sm:translate-y-4 -translate-x-3 sm:-translate-x-4 group-hover/card:scale-150 transition-transform duration-500"></div>
-                      <div className="relative">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className="p-1 sm:p-1.5 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <Wallet className="text-white/90" size={14} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider opacity-90">Disponible</span>
+                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className={`p-1 sm:p-1.5 rounded-lg ${disponibleExtras >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'}`}>
+                          <Wallet className={disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'} size={14} />
                         </div>
-                        <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras < 0 ? 'animate-pulse' : ''}`}>{formatCurrency(disponibleExtras)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs opacity-85">
-                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/60"></span>{pctDisponible.toFixed(0)}% libre</span>
-                          <span>·</span>
-                          <span className="font-bold">{saludLabel}</span>
-                        </div>
+                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Disponible</span>
+                      </div>
+                      <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400 animate-pulse'}`}>{formatCurrency(disponibleExtras)}</div>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                        <span>{pctDisponible.toFixed(0)}% libre</span>
+                        <span>·</span>
+                        <span className="font-bold">{saludLabel}</span>
                       </div>
                     </div>
                   </div>
@@ -1627,30 +1645,37 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                             <Receipt className="text-slate-500 dark:text-slate-400" size={16} />
                           </div>
                           <div className="text-left">
-                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Gastos Fijos</span>
-                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300`}>{gastosFijos.length} activos</span>
+                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Gastos</span>
+                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300`}>{gastosPorCategoria.length} categorías</span>
                           </div>
                         </div>
                         <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.fijos ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                       </button>
                       {dashSections.fijos && (
                         <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
-                          {gastosFijosList.map(g => (
-                            <div key={g.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
-                              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark} overflow-hidden`}>
-                                <div className={theme.tabText}>{renderFixedIcon(g)}</div>
+                          {loadingResumenGastos ? (
+                            <div className="py-4 text-center text-xs font-bold text-slate-400">Cargando movimientos...</div>
+                          ) : gastosPorCategoria.length === 0 ? (
+                            <div className="py-4 text-center text-xs font-bold text-slate-400">Sin gastos registrados en Transacciones este mes</div>
+                          ) : (
+                            <>
+                              {(() => {
+                                const maxTotal = Math.max(...gastosPorCategoria.map(c => c.total), 1);
+                                return gastosPorCategoria.map(c => (
+                                  <div key={c.categoria} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                                    <span {...catStyle(c.categoria)} className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 truncate max-w-[40%] ${catStyle(c.categoria).className || ''}`}>{c.categoria}</span>
+                                    <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-dark-lighter overflow-hidden">
+                                      <div {...catBar(c.categoria)} className={`h-full rounded-full ${catBar(c.categoria).className || ''}`} style={{ width: `${(c.total / maxTotal) * 100}%`, ...(catBar(c.categoria).style || {}) }} />
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(c.total)}</span>
+                                  </div>
+                                ));
+                              })()}
+                              <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-dark-lighter">
+                                <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
+                                <span className="text-xs sm:text-sm font-mono font-black text-slate-500 dark:text-slate-400">{formatCurrency(totalGastos)}</span>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate block">{g.descripcion}</span>
-                              </div>
-                              <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(g.monto)}</span>
-                            </div>
-                          ))}
-                          {gastosFijosList.length > 0 && (
-                            <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-dark-lighter">
-                              <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                              <span className="text-xs sm:text-sm font-mono font-black text-slate-500 dark:text-slate-400">{formatCurrency(totalGastos)}</span>
-                            </div>
+                            </>
                           )}
                         </div>
                       )}
@@ -1692,10 +1717,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   </div>
 
                   {(() => {
-                    console.log('[PROJECTION] cuentasAhorro:', cuentasAhorro);
-                    console.log('[PROJECTION] ahorrosData:', JSON.stringify(ahorrosData));
-                    console.log('[PROJECTION] balancesPorCuenta keys:', Object.keys(balancesPorCuenta));
-
                     const totalAhorroActual = cuentasAhorro.reduce((acc, c) => {
                       return acc + (balancesPorCuenta[c.id]?.[mes]?.acumulado || 0);
                     }, 0);
@@ -1707,12 +1728,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     );
                     const activeDeposits = depositsByMonth.filter(d => d > 0);
                     const promedioMensual = activeDeposits.length > 0 ? activeDeposits.reduce((a, b) => a + b, 0) / activeDeposits.length : 0;
-
-                    console.log('[PROJECTION] totalAhorroActual:', totalAhorroActual);
-                    console.log('[PROJECTION] sortedMonths:', sortedMonths);
-                    console.log('[PROJECTION] last6Months:', last6Months);
-                    console.log('[PROJECTION] depositsByMonth:', depositsByMonth);
-                    console.log('[PROJECTION] promedioMensual:', promedioMensual);
 
                     const proyeccion3Meses = totalAhorroActual + (promedioMensual * 3);
                     const proyeccion6Meses = totalAhorroActual + (promedioMensual * 6);
