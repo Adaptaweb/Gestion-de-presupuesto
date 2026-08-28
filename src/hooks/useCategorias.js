@@ -54,8 +54,40 @@ function getTextStyle(hex, isDark) {
   };
 }
 
+// Las categorias (y sus colores) llegan por API, asi que la primera pintura
+// usaba los colores neutros de fallback y saltaba a los del usuario al
+// responder /api/categorias. Se cachean por usuario para partir con los suyos.
+const CACHE_PREFIX = 'categorias:';
+
+function cacheKey() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return CACHE_PREFIX + (user?.id || 'anon');
+  } catch {
+    return CACHE_PREFIX + 'anon';
+  }
+}
+
+function leerCache() {
+  try {
+    const raw = localStorage.getItem(cacheKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function guardarCache(categorias) {
+  try {
+    localStorage.setItem(cacheKey(), JSON.stringify(categorias));
+  } catch {
+    // Cuota llena o almacenamiento bloqueado: el cache es solo un adelanto.
+  }
+}
+
 export function useCategorias(token) {
-  const [categorias, setCategorias] = useState([]);
+  const [categorias, setCategorias] = useState(leerCache);
   const [loading, setLoading] = useState(true);
 
   const getHeaders = useCallback(() => ({
@@ -68,7 +100,11 @@ export function useCategorias(token) {
       setLoading(true);
       const res = await fetch('/api/categorias', { headers: getHeaders() });
       const data = await res.json();
-      if (res.ok) setCategorias(data.categorias || []);
+      if (res.ok) {
+        const lista = data.categorias || [];
+        setCategorias(lista);
+        guardarCache(lista);
+      }
     } catch (e) {
       console.error('Error fetching categories:', e);
     } finally {
@@ -143,6 +179,11 @@ export function useCategorias(token) {
     () => categorias.filter(c => c.tipo === 'ingreso' || c.tipo === 'ambos'),
     [categorias]
   );
+
+  // Mantiene el cache al dia tras crear, editar, borrar o reordenar.
+  useEffect(() => {
+    if (categorias.length > 0) guardarCache(categorias);
+  }, [categorias]);
 
   const getCatStyle = useCallback((hex) => getBadgeStyle(hex), []);
   const getCatBar = useCallback((hex) => getBarColor(hex), []);

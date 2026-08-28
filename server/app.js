@@ -13,6 +13,7 @@ import crypto from 'crypto';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 import { setDb as setEmbeddingsDb } from './embeddings.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
+import { esCorreoNoTransaccional } from './emailFilters.js';
 import { detectBankFromSender } from './bankMapping.js';
 import { rateLimit, secretsMatch } from './rateLimit.js';
 import { cargarCompromisos, guardarCompromisos, guardarUno, borrarUno, fijarPago, TIPOS } from './compromisos.js';
@@ -1213,9 +1214,17 @@ app.post('/api/webhook/email', async (req, res) => {
       }
 
       return res.json({ success: true, type: 'gmail_authorization_forwarded', forwardedTo: user.email });
-    } else {
-      logDebug(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
     }
+
+    // Estados de cuenta, cartolas y resumenes traen el total del periodo, no un
+    // movimiento: registrarlos como transaccion duplicaba el gasto del mes.
+    const motivoNoTx = esCorreoNoTransaccional(subject);
+    if (motivoNoTx) {
+      logDebug(`[Webhook] Ignorando correo no transaccional (${motivoNoTx}): ${subject}`);
+      return res.json({ success: false, reason: 'no_transaccional' });
+    }
+
+    logDebug(`[Webhook] Processing bank transaction: ${subject} from ${originalFrom}`);
 
     const headers = {
       from: from || '',

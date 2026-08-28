@@ -6,16 +6,13 @@ import HowItWorksSection from './HowItWorksSection';
 import CTASection from './CTASection';
 import { Sun, Moon } from 'lucide-react';
 import LandingFooter from '../components/LandingFooter';
+import { applyDarkMode, getInitialDarkMode } from '../lib/theme.js';
 
 const Landing = ({ onLogin, onRegister }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
 
   useEffect(() => {
-    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    applyDarkMode(isDarkMode, { persist: true });
   }, [isDarkMode]);
 
   useEffect(() => {

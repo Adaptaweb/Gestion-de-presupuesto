@@ -7,6 +7,7 @@ import { sendPushToUser } from './push.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { detectBankFromSender } from './bankMapping.js';
 import { logDebug } from './logger.js';
+import { esCorreoNoTransaccional } from './emailFilters.js';
 
 async function fetchLatestTransactions(userId) {
   if (!(await hasValidTokens(userId))) {
@@ -85,14 +86,9 @@ async function processEmail(msgId, gmail, userId, results) {
     const subject = (headers['subject'] || '').slice(0, 200);
     const from = headers['from'] || '';
 
-    const NO_TX_SUBJECT_PATTERNS = [
-      /cartola mensual/i,
-      /estado de cuenta/i,
-      /resumen mensual/i,
-      /tips para tu salud financiera/i,
-    ];
-    if (NO_TX_SUBJECT_PATTERNS.some(p => p.test(subject))) {
-      logDebug(`[GmailService] Skipping non-transaction email: "${subject}"`);
+    const motivoNoTx = esCorreoNoTransaccional(subject);
+    if (motivoNoTx) {
+      logDebug(`[GmailService] Skipping non-transaction email (${motivoNoTx}): "${subject}"`);
       return;
     }
 
@@ -334,6 +330,13 @@ async function reprocessPendingTransactions(userId) {
       const headers = {};
       for (const h of fullMsg.data.payload.headers || []) {
         headers[h.name.toLowerCase()] = h.value;
+      }
+
+      const motivoNoTxReproceso = esCorreoNoTransaccional(headers['subject']);
+      if (motivoNoTxReproceso) {
+        results.skipped++;
+        results.errors_detail.push(`${tx.id}: correo no transaccional (${motivoNoTxReproceso})`);
+        continue;
       }
 
       const body = getEmailBody(fullMsg.data.payload);

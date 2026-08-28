@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import { Loader2 } from 'lucide-react';
 import { usePushNotifications } from './hooks/usePushNotifications.js';
 import { useInstallPrompt } from './hooks/useInstallPrompt.js';
+import { applyDarkMode, getInitialDarkMode } from './lib/theme.js';
 
 // Cada ruta viaja en su propio paquete. Antes todo, incluido el panel de
 // administracion y el tablero de 2.958 lineas, iba en el mismo archivo que
@@ -33,11 +34,7 @@ const App = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialHasMailbox, setTutorialHasMailbox] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
 
   useEffect(() => {
     const stored = localStorage.getItem('theme');
@@ -45,6 +42,10 @@ const App = () => {
       setIsDarkMode(stored === 'dark');
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    applyDarkMode(isDarkMode);
+  }, [isDarkMode]);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');

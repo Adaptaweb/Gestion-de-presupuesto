@@ -6,7 +6,10 @@
   <title>Kuentas Klaras — Tus finanzas claras, bajo control</title>
   <link rel="icon" type="image/png" href="/KuentasKlaras_Logo.png" />
   <meta name="theme-color" content="#F8FFFC" />
-  <script>!function(){var t=localStorage.getItem('theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.querySelector('meta[name="theme-color"]').content='#0F0F0F'}}()</script>
+  <!-- Tema aplicado antes del primer pintado: React monta despues de descargar
+       el bundle, asi que poner la clase `dark` en el efecto del Dashboard hacia
+       que la pagina pintara en claro y saltara a oscuro a la vista. -->
+  <script>!function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;if(d)e.classList.add('dark');e.style.colorScheme=d?'dark':'light';e.style.backgroundColor=d?'#0F0F0F':'#F8FFFC';document.querySelector('meta[name="theme-color"]').content=d?'#0F0F0F':'#F8FFFC'}catch(_){}}()</script>
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

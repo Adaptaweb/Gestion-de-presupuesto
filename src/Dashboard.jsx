@@ -40,6 +40,7 @@ import FilterRulesModal from './components/FilterRulesModal.jsx';
 import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
+import { applyDarkMode, getInitialDarkMode } from './lib/theme.js';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import {
   BANCOS_CHILE,
@@ -205,10 +206,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   } = useCategorias(token);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  });
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
   const [themeColor, setThemeColor] = useState(() => localStorage.getItem('themeColor') || 'kk');
   const theme = THEMES[themeColor];
 
@@ -242,23 +240,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     'Authorization': `Bearer ${token}`
   });
 
-  const updateThemeColor = (dark) => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.content = dark ? '#0F0F0F' : '#F8FFFC';
-      meta.removeAttribute('media');
-    }
-  };
-
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
-    updateThemeColor(isDarkMode);
-  }, []); // runs once on mount only
-
-  useEffect(() => {
-    updateThemeColor(isDarkMode);
+    applyDarkMode(isDarkMode);
   }, [isDarkMode]);
 
   // Version que el servidor tenia cuando cargamos. Se envia en cada guardado
@@ -1183,8 +1166,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               onClick={() => {
                 const newMode = !isDarkMode
                 setIsDarkMode(newMode)
-                document.documentElement.classList.toggle('dark')
-                localStorage.setItem('theme', newMode ? 'dark' : 'light')
+                applyDarkMode(newMode, { persist: true })
               }}
               className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
               title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
