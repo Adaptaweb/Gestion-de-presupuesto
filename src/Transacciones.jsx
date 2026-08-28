@@ -424,7 +424,7 @@ const TransactionCardSkeleton = () => (
 );
 
 const TransactionCard = ({
-  tx, hex, emoji, badge, isDarkMode,
+  tx, idx, hex, emoji, badge, isDarkMode,
   formatCurrency, formatDate, formatTime, onEdit, onDelete, onOpenDetail,
 }) => {
   const isMuted = tx.tipo_transaccion === 'no_es_gasto'
@@ -441,14 +441,17 @@ const TransactionCard = ({
       onClick={() => onOpenDetail(tx)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(tx); } }}
       aria-label={`Ver detalle de ${tx.comercio || 'transacción'}`}
-      className={`group relative flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-2 sm:pr-3 py-3 sm:py-3.5 rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30 active:scale-[0.99] ${
+      className={`group relative flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-2 sm:pr-3 py-3 sm:py-3.5 rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30 active:scale-[0.99] animate-row-enter ${
         isMuted
           ? 'bg-slate-50 dark:bg-dark-lighter/30 border-slate-100 dark:border-dark-lighter'
           : 'bg-white dark:bg-dark-lighter/50'
       }`}
-      style={isMuted ? undefined : {
-        backgroundImage: catCardGradient(hex, isDarkMode),
-        borderColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.18),
+      style={{
+        animationDelay: `${Math.min(idx || 0, 8) * 35}ms`,
+        ...(isMuted ? {} : {
+          backgroundImage: catCardGradient(hex, isDarkMode),
+          borderColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.18),
+        }),
       }}
     >
       <span
@@ -1554,7 +1557,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {loading && !pageLoading ? (
         <div className="grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 animate-slide-fade">
-          <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-2.5 sm:p-3 space-y-2">
+          <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-2.5 sm:p-3 space-y-2">
             <SkeletonBar w="65px" h="12px" />
             <div className="space-y-1">
               <div className="flex items-center gap-1.5"><SkeletonBar w="100px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="50px" h="10px" /></div>
@@ -1566,7 +1569,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             </div>
           </div>
           {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-3 sm:p-4 space-y-3">
+            <div key={i} className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-3 sm:p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <SkeletonBar w="32px" h="32px" className="rounded-full" />
                 <SkeletonBar w="100px" h="14px" />
@@ -1594,7 +1597,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         return (
           <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {filteredSummary.length > 0 && (
-              <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-2.5 sm:p-3">
+              <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-2.5 sm:p-3">
                 <div className="text-xs sm:text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">Categorías</div>
                 <div className="space-y-0.5 max-h-[100px] overflow-y-auto custom-scrollbar">
                   {(() => {
@@ -1629,7 +1632,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               const totalBank = Object.values(tipos).reduce((acc, t) => acc + t.total, 0);
               const totalCount = Object.values(tipos).reduce((acc, t) => acc + t.count, 0);
               return (
-                <div key={bank} className={`bg-white dark:bg-dark-normal rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-3 sm:p-4 ${BANK_ACCENT[bank] || ''}`}>
+                <div key={bank} className={`bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-3 sm:p-4 ${BANK_ACCENT[bank] || ''}`}>
                   <div className="flex items-center gap-3 mb-2">
                     {BANK_ICONS[bank] && <img src={BANK_ICONS[bank]} alt="" className={`w-8 h-8 rounded-full ${isDarkMode && bank === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />}
                     <span className="text-xs font-black text-slate-700 dark:text-slate-300">{bank}</span>
@@ -1689,9 +1692,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 <SortChips sortConfig={sortConfig} onSort={handleSort} />
               </div>
               <div className="space-y-2 sm:space-y-2.5">
-                {transactions.map(tx => (
+                {transactions.map((tx, txIdx) => (
                   <TransactionCard
                     key={tx.id}
+                    idx={txIdx}
                     tx={tx}
                     hex={catHex(tx.categoria)}
                     emoji={CATEGORY_EMOJI[tx.categoria] || CATEGORY_EMOJI_DEFAULT[tx.categoria] || '💳'}

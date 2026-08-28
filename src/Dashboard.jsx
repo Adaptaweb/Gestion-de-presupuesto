@@ -1233,7 +1233,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 key={id}
                 onClick={() => setActiveTab(id)}
                 aria-current={activeTab === id ? 'page' : undefined}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-all duration-200 ease-fluid active:scale-95 ${
                   activeTab === id
                     ? `${theme.btnPrimary} text-white shadow-md ${theme.shadowBtn}`
                     : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter'
@@ -1401,71 +1401,79 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               return (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
-                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                        <div className={`p-1 sm:p-1.5 rounded-lg ${theme.bgLight} ${theme.bgLightDark}`}>
-                          <CreditCard className={theme.tabText} size={14} />
+                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '0ms' }}>
+                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className={`p-1 sm:p-1.5 rounded-lg ${theme.bgLight} ${theme.bgLightDark}`}>
+                            <CreditCard className={theme.tabText} size={14} strokeWidth={1.75} />
+                          </div>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Cuotas</span>
                         </div>
-                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Cuotas</span>
-                      </div>
-                      <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${theme.tabText}`}>{formatCurrency(totalCuotas)}</div>
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                        <span>{cuotasPagadasMes} pagadas</span>
-                        <span>·</span>
-                        <span>{cuotasPendientesMes} pendientes</span>
+                        <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${theme.tabText}`}>{formatCurrency(totalCuotas)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                          <span>{cuotasPagadasMes} pagadas</span>
+                          <span>·</span>
+                          <span>{cuotasPendientesMes} pendientes</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
-                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                        <div className="p-1 sm:p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter">
-                          <Receipt className="text-slate-500 dark:text-slate-400" size={14} />
+                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '60ms' }}>
+                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className="p-1 sm:p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter">
+                            <Receipt className="text-slate-500 dark:text-slate-400" size={14} strokeWidth={1.75} />
+                          </div>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Gastos</span>
                         </div>
-                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Gastos</span>
-                      </div>
-                      <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-slate-700 dark:text-slate-200">
-                        {loadingResumenGastos ? <span className="inline-block w-20 h-5 rounded skeleton" /> : formatCurrency(totalGastos)}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                        <span>{gastosPorCategoria.length} categorías</span>
-                        {gastosPorCategoria[0] && <span>·</span>}
-                        {gastosPorCategoria[0] && <span className="truncate">Top: {gastosPorCategoria[0].categoria}</span>}
+                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-slate-700 dark:text-slate-200">
+                          {loadingResumenGastos ? <span className="inline-block w-20 h-5 rounded skeleton" /> : formatCurrency(totalGastos)}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                          <span>{gastosPorCategoria.length} categorías</span>
+                          {gastosPorCategoria[0] && <span>·</span>}
+                          {gastosPorCategoria[0] && <span className="truncate">Top: {gastosPorCategoria[0].categoria}</span>}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
-                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                        <div className="p-1 sm:p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30">
-                          <RefreshCw className="text-rose-500 dark:text-rose-400" size={14} />
+                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '120ms' }}>
+                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className="p-1 sm:p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30">
+                            <RefreshCw className="text-rose-500 dark:text-rose-400" size={14} strokeWidth={1.75} />
+                          </div>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Suscripciones</span>
                         </div>
-                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Suscripciones</span>
-                      </div>
-                      <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</div>
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                        <span>{subsActivas.length} activas</span>
-                        {proximosCobros.length > 0 && <span>·</span>}
-                        {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
+                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                          <span>{subsActivas.length} activas</span>
+                          {proximosCobros.length > 0 && <span>·</span>}
+                          {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl p-3 sm:p-5 shadow-lg border border-slate-200 dark:border-dark-lighter transition duration-300 hover:shadow-xl hover:-translate-y-0.5">
-                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                        <div className={`p-1 sm:p-1.5 rounded-lg ${disponibleExtras >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'}`}>
-                          <Wallet className={disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'} size={14} />
+                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '180ms' }}>
+                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                          <div className={`p-1 sm:p-1.5 rounded-lg ${disponibleExtras >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'}`}>
+                            <Wallet className={disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'} size={14} strokeWidth={1.75} />
+                          </div>
+                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Disponible</span>
                         </div>
-                        <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Disponible</span>
-                      </div>
-                      <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400 animate-pulse'}`}>{formatCurrency(disponibleExtras)}</div>
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                        <span>{pctDisponible.toFixed(0)}% libre</span>
-                        <span>·</span>
-                        <span className="font-bold">{saludLabel}</span>
+                        <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400 animate-pulse'}`}>{formatCurrency(disponibleExtras)}</div>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
+                          <span>{pctDisponible.toFixed(0)}% libre</span>
+                          <span>·</span>
+                          <span className="font-bold">{saludLabel}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
                       <button onClick={() => toggleDashSection('cuotas')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-lighter/50 transition-colors group/section">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <div className={`p-1.5 sm:p-2 rounded-xl ${theme.bgLight} ${theme.bgLightDark}`}>
@@ -1480,14 +1488,14 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </button>
                       {dashSections.cuotas && (
                         <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
-                          {cuotasActivas.map(d => {
+                          {cuotasActivas.map((d, i) => {
                             const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
                             let pagadas = 0; let cur = toDateVal(d.mesInicio); const end = toDateVal(mesTermino);
                             while (cur <= end) { const m = fromDateVal(cur); if (!d.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(m.split(' ')[0])) { if (d.pagos?.[m]?.estado === 'PAGADA') pagadas++; } cur++; }
                             const totalD = d.isContribuciones ? 4 : d.cuotasTotales;
                             const pctD = totalD > 0 ? (pagadas / totalD) * 100 : 0;
                             return (
-                              <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                              <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all duration-300 ease-fluid hover:bg-slate-100 dark:hover:bg-dark-lighter/50 hover:translate-x-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
                                 <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 dark:bg-slate-300 overflow-hidden`}>
                                   <div className={theme.tabText}>{renderDebtIcon(d)}</div>
                                 </div>
@@ -1517,7 +1525,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       )}
                     </div>
 
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
                       <div className="p-3 sm:p-5">
                         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                           <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
@@ -1558,7 +1566,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
                       <button onClick={() => toggleDashSection('subs')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-lighter/50 transition-colors group/section">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <div className="p-1.5 sm:p-2 rounded-xl bg-rose-100 dark:bg-rose-900/30">
@@ -1573,11 +1581,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       </button>
                       {dashSections.subs && (
                         <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
-                          {subsActivas.map(s => {
+                          {subsActivas.map((s, i) => {
                             const monto = s.pagos?.[mes]?.monto || s.valor || 0;
                             const subPagado = s.pagos?.[mes]?.estado === 'PAGADA';
                             return (
-                              <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                              <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all duration-300 ease-fluid hover:bg-slate-100 dark:hover:bg-dark-lighter/50 hover:translate-x-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
                                   <div className="text-rose-500 dark:text-rose-400">{renderSubscriptionIcon(s)}</div>
                                 </div>
@@ -1620,7 +1628,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       )}
                     </div>
 
-                    <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
                       <button onClick={() => toggleDashSection('fijos')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-lighter/50 transition-colors group/section">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-dark-lighter">
@@ -1643,8 +1651,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                             <>
                               {(() => {
                                 const maxTotal = Math.max(...gastosPorCategoria.map(c => c.total), 1);
-                                return gastosPorCategoria.map(c => (
-                                  <div key={c.categoria} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition hover:bg-slate-100 dark:hover:bg-dark-lighter/50">
+                                return gastosPorCategoria.map((c, i) => (
+                                  <div key={c.categoria} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all duration-300 ease-fluid hover:bg-slate-100 dark:hover:bg-dark-lighter/50 hover:translate-x-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
                                     <span {...catStyle(c.categoria)} className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 truncate max-w-[40%] ${catStyle(c.categoria).className || ''}`}>{c.categoria}</span>
                                     <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-dark-lighter overflow-hidden">
                                       <div {...catBar(c.categoria)} className={`h-full rounded-full ${catBar(c.categoria).className || ''}`} style={{ width: `${(c.total / maxTotal) * 100}%`, ...(catBar(c.categoria).style || {}) }} />
@@ -1664,7 +1672,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter p-3 sm:p-5 hover:shadow-xl transition-shadow duration-300 animate-fade-in">
+                  <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter p-3 sm:p-5 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-fade-in">
                     <div className="flex items-center justify-between mb-3 sm:mb-4">
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div className={`p-1.5 sm:p-2 rounded-xl ${saludBg}`}>
@@ -1721,7 +1729,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
                     return (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-                        <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                        <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
                           <div className="p-3 sm:p-5">
                             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                               <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
@@ -1763,7 +1771,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                         </div>
 
-                        <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-lg border border-slate-200 dark:border-dark-lighter overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                        <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
                           <div className="p-3 sm:p-5">
                             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                               <div className="p-1.5 sm:p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
@@ -1899,7 +1907,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className="py-16 text-center text-slate-300 dark:text-slate-600 font-bold italic">No hay registros para mostrar</div>
             ) : (
               <div className="space-y-2.5 sm:space-y-3 mb-12">
-                {itemsUnificados.map(item => {
+                {itemsUnificados.map((item, itemIdx) => {
                   const mes = dashboardMonth;
                   const isCuota = item.tipo === 'cuota';
                   const isSub = item.tipo === 'suscripcion';
@@ -1970,7 +1978,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   const isExpanded = !!expandedGeneralItems[item.id];
 
                   return (
-                    <div key={item.id} className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 sm:p-4">
+                    <div key={item.id} className="bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-kk-2xl shadow-fluid shadow-fluid-hover p-3 sm:p-4 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(itemIdx, 10) * 35}ms` }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="relative p-1.5 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden flex w-9 h-9 items-center justify-center flex-shrink-0">
@@ -2144,7 +2152,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className="py-16 text-center text-slate-300 dark:text-slate-600 font-bold italic">Sin cuentas de ahorro</div>
             ) : (
               <div className="space-y-2.5 sm:space-y-3">
-                {cuentasAhorro.map(cuenta => {
+                {cuentasAhorro.map((cuenta, cuentaIdx) => {
                   const mes = dashboardMonth;
                   const bi = getAhorroBankInfo(cuenta.banco);
                   const dep = ahorrosData[cuenta.id]?.[mes]?.deposito || 0;
@@ -2152,7 +2160,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   const saldo = balancesPorCuenta[cuenta.id]?.[mes]?.acumulado;
                   const isExpanded = !!expandedAhorroCuentas[cuenta.id];
                   return (
-                    <div key={cuenta.id} className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 sm:p-4">
+                    <div key={cuenta.id} className="bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-kk-2xl shadow-fluid shadow-fluid-hover p-3 sm:p-4 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(cuentaIdx, 10) * 35}ms` }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           {bi ? (

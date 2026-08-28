@@ -73,10 +73,17 @@ export default {
         'kk-md': '12px',
         'kk-lg': '16px',
         'kk-xl': '20px',
+        'kk-2xl': '1.75rem',
       },
       boxShadow: {
         'kk-sm': '0 2px 8px rgba(0, 0, 0, 0.08)',
         'kk-md': '0 8px 24px rgba(0, 0, 0, 0.12)',
+      },
+      transitionTimingFunction: {
+        // Curva de entrada/salida "pesada" para tarjetas y listas premium —
+        // misma curva que ya usaba la animacion slide-fade, promovida a
+        // utilidad reusable para hover/press/entry en toda la app.
+        fluid: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
       animation: {
         'slide-down': 'slideDown 0.25s ease-out',
@@ -88,6 +95,8 @@ export default {
         // Se usaba en seis sitios sin estar definida en ningun lado: las vistas
         // que la llevaban aparecian de golpe.
         'slide-fade': 'slideFade 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        // Entrada escalonada por fila (usar con style={{ animationDelay }}).
+        'row-enter': 'rowEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
       },
       keyframes: {
         slideDown: {
@@ -116,6 +125,10 @@ export default {
         },
         slideFade: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        rowEnter: {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
