@@ -195,9 +195,9 @@ const ReviewCard = ({
   const cardVisible = reviewVisible && !isExiting;
 
   return (
-    <div className="relative w-full h-full sm:max-w-md sm:mx-auto">
-      <div aria-hidden="true" className={`absolute -inset-x-3.5 inset-y-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
-      <div aria-hidden="true" className={`absolute -inset-x-1.5 inset-y-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
+    <div className="relative w-full max-w-md mx-auto">
+      <div aria-hidden="true" className={`absolute left-2.5 right-2.5 -top-4 bottom-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
+      <div aria-hidden="true" className={`absolute left-1.5 right-1.5 -top-2 bottom-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
 
       <button
         onClick={handlePrev}
@@ -216,7 +216,7 @@ const ReviewCard = ({
       </button>
 
       <div
-        className={`relative w-full h-full flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden ${
+        className={`relative w-full max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden ${
           cardVisible ? 'opacity-100' : 'opacity-0'
         } ${cardVisible ? 'translate-y-0' : 'translate-y-6'}`}
         style={{
@@ -246,7 +246,7 @@ const ReviewCard = ({
           </div>
         </div>
 
-        <div className="flex-1 px-5 py-4 overflow-y-scroll no-scrollbar flex flex-col gap-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex-1 px-5 py-4 overflow-y-scroll no-scrollbar flex flex-col justify-center gap-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <div className="relative flex flex-col items-center text-center gap-1.5 pt-1">
             <div className={`absolute -top-3 w-52 h-52 rounded-full blur-2xl opacity-[0.15] dark:opacity-25 pointer-events-none ${accentText}`} style={{ background: 'radial-gradient(circle, currentColor 0%, transparent 70%)' }} />
             <div className="relative flex items-center gap-1.5">
@@ -2022,7 +2022,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center px-4 py-0 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
+        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center p-3 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}
