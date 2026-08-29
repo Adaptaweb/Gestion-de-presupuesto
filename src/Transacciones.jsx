@@ -119,221 +119,228 @@ const ReviewCard = ({
     });
   };
 
+  const accentText = theme.borderAccent.replace('border-', 'text-');
+  const ringCircumference = 97.389;
+  const ringOffset = ringCircumference * (1 - (reviewIdx + 1) / pendingCount);
+  const cardVisible = reviewVisible && !isExiting;
+
   return (
-    <div
-      className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter sm:rounded-3xl shadow-2xl overflow-hidden ${
-        reviewVisible && !isExiting ? 'opacity-100' : 'opacity-0'
-      } ${reviewVisible && !isExiting ? 'translate-y-0' : 'translate-y-6'}`}
-      style={{
-        transform: isExiting
-          ? (exitDir === 'right'
-              ? 'translateX(140%) rotate(14deg)'
-              : 'translateX(-140%) rotate(-14deg)')
-          : (reviewVisible && !isExiting)
-          ? 'translateX(0) translateY(0) rotate(0) scale(1)'
-          : 'translateX(0) translateY(8px) rotate(0) scale(0.97)',
-        opacity: isExiting ? 0 : (reviewVisible && !isExiting ? 1 : 0),
-        transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
-      }}
-    >
-      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0 border-b border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
-        <button onClick={onClose} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition px-2 py-1.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-dark-lightest">
-          <X size={18} /> <span className="text-xs font-bold">Salir</span>
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-slate-600 dark:text-slate-300 tabular-nums">{reviewIdx + 1} <span className="text-slate-400 dark:text-slate-500">/</span> {pendingCount}</span>
-        </div>
-      </div>
+    <div className="relative w-full max-w-md mx-auto">
+      <div aria-hidden="true" className={`absolute left-2.5 right-2.5 -top-4 bottom-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
+      <div aria-hidden="true" className={`absolute left-1.5 right-1.5 -top-2 bottom-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
 
-      <div className="w-full bg-slate-200/60 dark:bg-slate-800/40 h-1 flex-shrink-0">
-        <div className={`h-full rounded-full transition duration-500 ease-out ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${((reviewIdx + 1) / pendingCount) * 100}%` }} />
-      </div>
+      <button
+        onClick={handlePrev}
+        disabled={reviewIdx === 0}
+        aria-label="Transacción anterior"
+        className="absolute z-10 top-1/2 -translate-y-1/2 -left-2 w-7 h-14 rounded-r-2xl bg-slate-900/5 dark:bg-white/5 flex items-center justify-center text-slate-400 dark:text-slate-500 disabled:opacity-0 transition active:scale-90"
+      >
+        <ChevronLeft size={16} />
+      </button>
+      <button
+        onClick={handleNext}
+        aria-label="Siguiente transacción"
+        className="absolute z-10 top-1/2 -translate-y-1/2 -right-2 w-7 h-14 rounded-l-2xl bg-slate-900/5 dark:bg-white/5 flex items-center justify-center text-slate-400 dark:text-slate-500 transition active:scale-90"
+      >
+        <ChevronRight size={16} />
+      </button>
 
-      <div className="flex-1 px-4 py-4 overflow-y-scroll no-scrollbar flex flex-col gap-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-4 text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            {BANK_ICONS[tx.banco] && (
-              <img src={BANK_ICONS[tx.banco]} alt="" className={`w-8 h-8 rounded-full shadow ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />
-            )}
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{tx.banco || 'Banco'}</span>
+      <div
+        className={`relative w-full max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden ${
+          cardVisible ? 'opacity-100' : 'opacity-0'
+        } ${cardVisible ? 'translate-y-0' : 'translate-y-6'}`}
+        style={{
+          transform: isExiting
+            ? (exitDir === 'right'
+                ? 'translateX(140%) rotate(14deg)'
+                : 'translateX(-140%) rotate(-14deg)')
+            : cardVisible
+            ? 'translateX(0) translateY(0) rotate(0) scale(1)'
+            : 'translateX(0) translateY(8px) rotate(0) scale(0.97)',
+          opacity: isExiting ? 0 : (cardVisible ? 1 : 0),
+          transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
+        }}
+      >
+        <div className={`absolute top-0 left-0 right-0 h-56 pointer-events-none opacity-[0.09] dark:opacity-[0.18] ${accentText}`} style={{ background: 'linear-gradient(160deg, currentColor 0%, transparent 65%)' }} />
+
+        <div className="relative flex items-center justify-between px-4 pt-4 flex-shrink-0">
+          <button onClick={onClose} aria-label="Salir" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition active:scale-90">
+            <X size={16} />
+          </button>
+          <div className={`relative w-10 h-10 flex-shrink-0 ${accentText}`}>
+            <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90">
+              <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-slate-200 dark:stroke-white/10" />
+              <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" strokeLinecap="round" stroke="currentColor" strokeDasharray={ringCircumference} strokeDashoffset={ringOffset} className="transition-all duration-500" />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-700 dark:text-white tabular-nums">{reviewIdx + 1}/{pendingCount}</div>
           </div>
-          <div className={`text-3xl sm:text-4xl font-black tracking-tight ${amountColor}`}>
-            {amountSign}{formatCurrency2(tx.monto)}
-          </div>
-          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
-            <span>{formatDate2(tx.fecha)}</span>
-            {formatTime2(tx.fecha_extraccion) && (
-              <>
-                <span className="text-slate-300 dark:text-slate-600">·</span>
-                <Clock size={11} className="text-slate-400 dark:text-slate-500" />
-                <span className="tabular-nums">{formatTime2(tx.fecha_extraccion)}</span>
-              </>
-            )}
-          </div>
-          <div className="text-base font-bold text-slate-800 dark:text-white">
-            {tx.comercio || 'Comercio no detectado'}
-          </div>
-          {(() => {
-            const label = tx.tipo_movimiento || tx.tipo_tarjeta || '';
-            if (!label) return null;
-            const colorMap = {
-              Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-              Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-              Retiro: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-              Cargo: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-              Débito: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-              Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-            };
-            return (
-              <span className={`inline-block text-xs font-bold px-2.5 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
-            );
-          })()}
         </div>
-   
-        <div>
-          <div className="flex items-center justify-between mb-2 px-1">
-            <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">Categoria</label>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={CATEGORY_COLORS[reviewCat]?.backgroundColor ? { backgroundColor: CATEGORY_COLORS[reviewCat].backgroundColor, color: CATEGORY_COLORS[reviewCat].color, border: `1px solid ${CATEGORY_COLORS[reviewCat].borderColor || 'transparent'}` } : {}}>
-              <span className={!CATEGORY_COLORS[reviewCat]?.backgroundColor ? CATEGORY_COLORS[reviewCat] || CATEGORY_COLORS['Otros'] : ''}>{reviewCat}</span>
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {sortedCats.map(cat => {
-              const selected = reviewCat === cat;
-              const iconBg = CATEGORY_ICON_BG[cat];
-              const iconCol = CATEGORY_ICON_COLOR[cat];
-              const isStyle = iconBg?.backgroundColor !== undefined;
+
+        <div className="flex-1 px-5 py-4 overflow-y-scroll no-scrollbar flex flex-col gap-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="relative flex flex-col items-center text-center gap-1.5 pt-1">
+            <div className={`absolute -top-3 w-52 h-52 rounded-full blur-2xl opacity-[0.15] dark:opacity-25 pointer-events-none ${accentText}`} style={{ background: 'radial-gradient(circle, currentColor 0%, transparent 70%)' }} />
+            <div className="relative flex items-center gap-1.5">
+              {BANK_ICONS[tx.banco] && (
+                <img src={BANK_ICONS[tx.banco]} alt="" className={`w-7 h-7 rounded-full shadow ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />
+              )}
+              <span className="text-lg font-bold text-slate-700 dark:text-slate-200">{tx.banco || 'Banco'}</span>
+            </div>
+            <div className={`relative text-4xl sm:text-5xl font-black tracking-tight ${amountColor}`}>
+              {amountSign}{formatCurrency2(tx.monto)}
+            </div>
+            <div className="relative text-xl font-extrabold text-slate-800 dark:text-white">
+              {tx.comercio || 'Comercio no detectado'}
+            </div>
+            <div className="relative text-xl font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
+              <span>{formatDate2(tx.fecha)}</span>
+              {formatTime2(tx.fecha_extraccion) && (
+                <>
+                  <span className="text-slate-300 dark:text-slate-600">·</span>
+                  <Clock size={15} className="text-slate-400 dark:text-slate-500" />
+                  <span className="tabular-nums">{formatTime2(tx.fecha_extraccion)}</span>
+                </>
+              )}
+            </div>
+            {(() => {
+              const label = tx.tipo_movimiento || tx.tipo_tarjeta || '';
+              if (!label) return null;
+              const colorMap = {
+                Compra: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                Transferencia: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+                Retiro: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+                Cargo: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+                Débito: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+                Crédito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+              };
               return (
-                <button
-                  key={cat}
-                  onClick={() => setReviewCat(cat)}
-                  style={selected && isStyle ? { backgroundColor: iconBg.backgroundColor, color: iconCol.color, borderColor: iconCol.color } : {}}
-                  className={`flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl transition duration-200 border ${
-                    selected
-                      ? (isStyle ? 'shadow-sm scale-105' : `${iconBg} border-current shadow-sm scale-105`)
-                      : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter hover:border-slate-300 dark:hover:border-dark-lightest'
-                  }`}
-                >
-                  <span className="text-xl leading-none">{CATEGORY_EMOJI[cat]}</span>
-                  <span className={`text-xs font-bold leading-tight text-center ${selected && !isStyle ? iconCol : ''}`} style={selected && isStyle ? { color: iconCol.color } : {}}>
-                    {cat}
-                  </span>
-                </button>
+                <span className={`relative mt-0.5 inline-block text-xs font-bold px-2.5 py-0.5 rounded-full ${colorMap[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{label}</span>
               );
-            })}
-            {onCreateCategoria && (
-              <button
-                onClick={() => {
-                  const name = prompt('Nombre de la nueva categoría:');
-                  if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setReviewCat(c.nombre)).catch(e => alert(e.message));
-                }}
-                className="flex flex-col items-center text-center gap-1 flex-shrink-0 w-[4.5rem] min-h-[4rem] px-1 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:border-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition"
-                title="Agregar categoría"
-              >
-                <span className="text-xl leading-none">+</span>
-                <span className="text-xs font-bold leading-tight text-center">Nueva</span>
-              </button>
-            )}
+            })()}
           </div>
-        </div>
 
-        {isGasto && (
-          <div className="animate-fade-in slide-in-from-top-1 duration-200">
-            <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 mb-2 block px-1">Frecuencia</label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[
-                { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
-                { key: 'mensual', label: 'Mensual', icon: CalendarDays, color: 'text-sky-600 dark:text-sky-300', bg: 'bg-sky-100 dark:bg-sky-500/20', border: 'border-sky-300 dark:border-sky-500/50' },
-                { key: 'anual', label: 'Anual', icon: CalendarRange, color: 'text-violet-600 dark:text-violet-300', bg: 'bg-violet-100 dark:bg-violet-500/20', border: 'border-violet-300 dark:border-violet-500/50' },
-              ].map(tipo => {
-                const selected = reviewTipoGasto === tipo.key;
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between px-0.5">
+              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
+              <span className={`text-xs font-black ${accentText}`}>{reviewCat}</span>
+            </div>
+            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pb-1" style={{ scrollbarWidth: 'none' }}>
+              {sortedCats.map(cat => {
+                const selected = reviewCat === cat;
+                const iconBg = CATEGORY_ICON_BG[cat];
+                const iconCol = CATEGORY_ICON_COLOR[cat];
+                const isStyle = iconBg?.backgroundColor !== undefined;
                 return (
-                  <button
-                    key={tipo.key}
-                    onClick={() => setReviewTipoGasto(reviewTipoGasto === tipo.key ? null : tipo.key)}
-                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold transition duration-200 border ${
-                      selected
-                        ? `${tipo.bg} ${tipo.color} ${tipo.border} shadow-sm`
-                        : 'bg-slate-100 dark:bg-dark-lighter border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-dark-lightest'
-                    }`}
-                  >
-                    <tipo.icon size={13} />
-                    {tipo.label}
+                  <button key={cat} onClick={() => setReviewCat(cat)} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+                    <span
+                      style={selected && isStyle ? { backgroundColor: iconBg.backgroundColor, color: iconCol.color, boxShadow: `0 6px 14px ${hexToRgba(iconBg.backgroundColor, 0.35)}` } : {}}
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-xl leading-none transition duration-200 ${
+                        selected
+                          ? (isStyle ? 'scale-105' : `${iconBg} ${iconCol} scale-105 shadow-md`)
+                          : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500'
+                      }`}
+                    >
+                      {CATEGORY_EMOJI[cat]}
+                    </span>
+                    <span className={`text-[10px] font-bold leading-tight text-center whitespace-nowrap ${selected ? accentText : 'text-slate-400 dark:text-slate-500'}`}>
+                      {cat}
+                    </span>
                   </button>
                 );
               })}
-            </div>
-          </div>
-        )}
-
-        {detectedAsInterno && !reviewTipoTransaccion && (
-          <div className="space-y-2">
-            <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 text-center">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Detectado como traspaso entre cuentas</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Selecciona el tipo real de esta transacción</p>
-            </div>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[
-                { key: 'gasto', label: 'Es un Gasto', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
-                { key: 'ingreso', label: 'Es un Ingreso', icon: TrendingUp, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/20', border: 'border-emerald-300 dark:border-emerald-500/50' },
-                { key: 'interno', label: 'Es Interno', icon: ArrowLeftRight, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-dark-lighter', border: 'border-slate-300 dark:border-dark-lightest' },
-              ].map(tipo => (
+              {onCreateCategoria && (
                 <button
-                  key={tipo.key}
-                  onClick={() => setReviewTipoTransaccion(tipo.key === 'interno' ? null : tipo.key)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-xs font-bold transition border ${
-                    tipo.bg} ${tipo.color} ${tipo.border} hover:shadow-sm active:scale-95`}
+                  onClick={() => {
+                    const name = prompt('Nombre de la nueva categoría:');
+                    if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setReviewCat(c.nombre)).catch(e => alert(e.message));
+                  }}
+                  className="flex-shrink-0 flex flex-col items-center gap-1.5"
+                  title="Agregar categoría"
                 >
-                  <tipo.icon size={16} />
-                  {tipo.label}
+                  <span className="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 dark:text-slate-500 text-lg">+</span>
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">Nueva</span>
                 </button>
-              ))}
+              )}
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex-shrink-0 px-4 py-3 space-y-2 border-t border-slate-200 dark:border-dark-lighter bg-slate-50 dark:bg-dark-lighter">
-        <div className="flex gap-2">
-          <button
-            onClick={handlePrev}
-            disabled={reviewIdx === 0}
-            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition active:scale-90"
-            title="Anterior"
-          >
-            <ChevronLeft size={18} />
+          {isGasto && (
+            <div className="animate-fade-in slide-in-from-top-1 duration-200 flex flex-col gap-2">
+              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 px-0.5">Frecuencia</label>
+              <div className="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 gap-1">
+                {[
+                  { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300' },
+                  { key: 'mensual', label: 'Mensual', icon: CalendarDays, color: 'text-sky-600 dark:text-sky-300' },
+                  { key: 'anual', label: 'Anual', icon: CalendarRange, color: 'text-violet-600 dark:text-violet-300' },
+                ].map(tipo => {
+                  const selected = reviewTipoGasto === tipo.key;
+                  return (
+                    <button
+                      key={tipo.key}
+                      onClick={() => setReviewTipoGasto(reviewTipoGasto === tipo.key ? null : tipo.key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition duration-200 ${
+                        selected ? `bg-white dark:bg-dark-lighter shadow-sm ${tipo.color}` : 'text-slate-400 dark:text-slate-500'
+                      }`}
+                    >
+                      <tipo.icon size={13} />
+                      {tipo.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {detectedAsInterno && !reviewTipoTransaccion && (
+            <div className="space-y-2">
+              <div className="bg-slate-50 dark:bg-dark-lighter border border-slate-200 dark:border-dark-lighter rounded-2xl p-3 text-center">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Detectado como traspaso entre cuentas</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Selecciona el tipo real de esta transacción</p>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { key: 'gasto', label: 'Es un Gasto', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-500/20', border: 'border-amber-300 dark:border-amber-500/50' },
+                  { key: 'ingreso', label: 'Es un Ingreso', icon: TrendingUp, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/20', border: 'border-emerald-300 dark:border-emerald-500/50' },
+                  { key: 'interno', label: 'Es Interno', icon: ArrowLeftRight, color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-100 dark:bg-dark-lighter', border: 'border-slate-300 dark:border-dark-lightest' },
+                ].map(tipo => (
+                  <button
+                    key={tipo.key}
+                    onClick={() => setReviewTipoTransaccion(tipo.key === 'interno' ? null : tipo.key)}
+                    className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-xs font-bold transition border ${
+                      tipo.bg} ${tipo.color} ${tipo.border} hover:shadow-sm active:scale-95`}
+                  >
+                    <tipo.icon size={16} />
+                    {tipo.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="relative flex-shrink-0 flex items-center justify-center gap-6 px-5 pt-3.5 pb-[calc(14px+env(safe-area-inset-bottom,0px))] border-t border-slate-200 dark:border-white/5 bg-white/80 dark:bg-dark-normal/70 backdrop-blur-xl">
+          {!isInterno && (
+            <button
+              onClick={handleNoEs}
+              disabled={reviewSaving}
+              title={isGasto ? 'No es Gasto' : 'No es Ingreso'}
+              className="flex-shrink-0 w-14 h-14 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-400 flex items-center justify-center transition active:scale-90 disabled:opacity-40"
+            >
+              <X size={20} />
+            </button>
+          )}
+          <button onClick={onEdit} className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition">
+            <Edit3 size={15} />
+            <span className="text-[10px] font-bold">Editar</span>
           </button>
           <button
             onClick={handleConfirm}
             disabled={reviewSaving}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 ${theme.btnPrimary} text-white rounded-xl font-bold text-sm shadow-lg transition disabled:opacity-50 active:scale-95`}
+            title={isGasto ? 'Confirmar gasto' : isIngreso ? 'Confirmar ingreso' : 'Confirmar'}
+            className={`flex-shrink-0 w-[68px] h-[68px] rounded-full ${theme.btnPrimary} text-white flex items-center justify-center shadow-lg ${theme.shadowBtn} transition active:scale-90 disabled:opacity-50`}
           >
-            {reviewSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-            {isGasto ? 'Confirmar gasto' : isIngreso ? 'Confirmar ingreso' : 'Confirmar'}
-          </button>
-          <button
-            onClick={handleNext}
-            className="p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition active:scale-90"
-            title="Siguiente"
-          >
-            <ArrowRight size={18} />
+            {reviewSaving ? <Loader2 size={26} className="animate-spin" /> : <Check size={26} />}
           </button>
         </div>
-        {!isInterno && (
-          <button
-            onClick={handleNoEs}
-            disabled={reviewSaving}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition disabled:opacity-50"
-          >
-            {isGasto ? 'No es Gasto' : 'No es Ingreso'}
-          </button>
-        )}
-        <button
-          onClick={onEdit}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition"
-        >
-          <Edit3 size={12} /> Editar datos
-        </button>
       </div>
     </div>
   );
@@ -1929,7 +1936,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center p-0 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
+        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center p-3 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}
