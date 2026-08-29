@@ -5,7 +5,8 @@ import {
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
-  Bell, ArrowUpDown, ArrowUp, ArrowDown
+  Bell, ArrowUpDown, ArrowUp, ArrowDown,
+  GraduationCap, Smartphone, Plane, Gift, PiggyBank, Landmark, Percent, CreditCard, Minus, Gamepad2
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
@@ -21,6 +22,73 @@ import {
   CATEGORY_HEX as CATEGORY_HEX_DEFAULT, hexToRgba,
   BANK_COLORS, BANK_ACCENT, BANK_ICONS
 } from './constants.js';
+
+// Tailwind (JIT) solo genera una clase si aparece como texto literal en
+// el codigo fuente: theme.borderAccent.replace('border-','text-') nunca
+// produce ese literal, asi que el color quedaria sin generar. Mapa fijo
+// en vez de string-replace para que el escaneo lo encuentre.
+const THEME_ACCENT_TEXT = {
+  'border-kk-primary': 'text-kk-primary',
+  'border-indigo-600': 'text-indigo-600',
+  'border-blue-600': 'text-blue-600',
+  'border-emerald-600': 'text-emerald-600',
+  'border-purple-600': 'text-purple-600',
+  'border-rose-600': 'text-rose-600',
+  'border-amber-600': 'text-amber-600',
+  'border-teal-600': 'text-teal-600',
+  'border-slate-600': 'text-slate-600',
+};
+
+// Mismo motivo: color de anillo por categoria como mapa literal, no
+// derivado de CATEGORY_ICON_COLOR con string-replace.
+const CATEGORY_RING_COLOR = {
+  'Casa y cuentas': 'ring-amber-400 dark:ring-amber-300/60',
+  'Mercadería': 'ring-orange-400 dark:ring-orange-300/60',
+  'Gustitos': 'ring-rose-400 dark:ring-rose-300/60',
+  'Transporte': 'ring-blue-400 dark:ring-blue-300/60',
+  'Compras': 'ring-pink-400 dark:ring-pink-300/60',
+  'Salud y deportes': 'ring-green-400 dark:ring-green-300/60',
+  'Educación': 'ring-violet-400 dark:ring-violet-300/60',
+  'Suscripciones': 'ring-indigo-400 dark:ring-indigo-300/60',
+  'Viajes y vacaciones': 'ring-cyan-400 dark:ring-cyan-300/60',
+  'Donaciones y regalos': 'ring-fuchsia-400 dark:ring-fuchsia-300/60',
+  'Otros': 'ring-slate-400 dark:ring-slate-300/60',
+  'Ahorro': 'ring-emerald-500 dark:ring-emerald-300/60',
+  'Sueldo': 'ring-lime-400 dark:ring-lime-300/60',
+  'Inversiones / Renta': 'ring-emerald-400 dark:ring-emerald-300/60',
+  'Otros ingresos': 'ring-teal-400 dark:ring-teal-300/60',
+  'Gastos bancarios': 'ring-stone-400 dark:ring-stone-300/60',
+  'Intereses': 'ring-sky-400 dark:ring-sky-300/60',
+  'Créditos de consumo': 'ring-red-400 dark:ring-red-300/60',
+  'Sin categoría': 'ring-zinc-400 dark:ring-zinc-300/60',
+  'Juegos': 'ring-purple-400 dark:ring-purple-300/60',
+};
+
+// Iconos de línea para las categorías por defecto: refuerzan el estado
+// seleccionado mejor que el emoji plano. Una categoría creada por el
+// usuario (fuera de esta lista) sigue usando su emoji.
+const CATEGORY_ICON_MAP = {
+  'Casa y cuentas': Home,
+  'Mercadería': ShoppingCart,
+  'Gustitos': Utensils,
+  'Transporte': Bus,
+  'Compras': ShoppingBag,
+  'Salud y deportes': HeartPulse,
+  'Educación': GraduationCap,
+  'Suscripciones': Smartphone,
+  'Viajes y vacaciones': Plane,
+  'Donaciones y regalos': Gift,
+  'Otros': MoreHorizontal,
+  'Ahorro': PiggyBank,
+  'Sueldo': Wallet,
+  'Inversiones / Renta': TrendingUp,
+  'Otros ingresos': Banknote,
+  'Gastos bancarios': Landmark,
+  'Intereses': Percent,
+  'Créditos de consumo': CreditCard,
+  'Sin categoría': Minus,
+  'Juegos': Gamepad2,
+};
 
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
@@ -112,6 +180,8 @@ const ReviewCard = ({
   const handleNoEs = async () => {
     if (isExiting) return;
     if (typeof onConfirmNoEs !== 'function') return;
+    const label = isGasto ? 'No es Gasto' : 'No es Ingreso';
+    if (!window.confirm(`¿Registrar esta transacción como "${label}"? No se contabilizará en tus ${isGasto ? 'gastos' : 'ingresos'}.`)) return;
     const ok = await onConfirmNoEs();
     if (ok === false) return;
     animateExit('right', () => {
@@ -119,15 +189,15 @@ const ReviewCard = ({
     });
   };
 
-  const accentText = theme.borderAccent.replace('border-', 'text-');
+  const accentText = THEME_ACCENT_TEXT[theme.borderAccent] || 'text-kk-primary';
   const ringCircumference = 97.389;
   const ringOffset = ringCircumference * (1 - (reviewIdx + 1) / pendingCount);
   const cardVisible = reviewVisible && !isExiting;
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
-      <div aria-hidden="true" className={`absolute left-2.5 right-2.5 -top-4 bottom-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
-      <div aria-hidden="true" className={`absolute left-1.5 right-1.5 -top-2 bottom-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
+    <div className="relative w-full h-full sm:max-w-md sm:mx-auto">
+      <div aria-hidden="true" className={`absolute -inset-x-3.5 inset-y-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
+      <div aria-hidden="true" className={`absolute -inset-x-1.5 inset-y-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
 
       <button
         onClick={handlePrev}
@@ -146,7 +216,7 @@ const ReviewCard = ({
       </button>
 
       <div
-        className={`relative w-full max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden ${
+        className={`relative w-full h-full flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden ${
           cardVisible ? 'opacity-100' : 'opacity-0'
         } ${cardVisible ? 'translate-y-0' : 'translate-y-6'}`}
         style={{
@@ -229,19 +299,21 @@ const ReviewCard = ({
                 const iconBg = CATEGORY_ICON_BG[cat];
                 const iconCol = CATEGORY_ICON_COLOR[cat];
                 const isStyle = iconBg?.backgroundColor !== undefined;
+                const CatIcon = CATEGORY_ICON_MAP[cat];
+                const ringClass = !isStyle ? (CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60') : '';
                 return (
                   <button key={cat} onClick={() => setReviewCat(cat)} className="flex-shrink-0 flex flex-col items-center gap-1.5">
                     <span
-                      style={selected && isStyle ? { backgroundColor: iconBg.backgroundColor, color: iconCol.color, boxShadow: `0 6px 14px ${hexToRgba(iconBg.backgroundColor, 0.35)}` } : {}}
+                      style={selected && isStyle ? { backgroundColor: iconBg.backgroundColor, color: iconCol.color, boxShadow: `0 8px 16px ${hexToRgba(iconBg.backgroundColor, 0.4)}`, outline: `2px solid ${hexToRgba(iconBg.backgroundColor, 0.35)}`, outlineOffset: '2px' } : {}}
                       className={`w-12 h-12 rounded-full flex items-center justify-center text-xl leading-none transition duration-200 ${
                         selected
-                          ? (isStyle ? 'scale-105' : `${iconBg} ${iconCol} scale-105 shadow-md`)
+                          ? (isStyle ? 'scale-110' : `${iconBg} ${iconCol} scale-110 shadow-md ring-2 ring-offset-2 ring-offset-white dark:ring-offset-dark-normal ${ringClass}`)
                           : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500'
                       }`}
                     >
-                      {CATEGORY_EMOJI[cat]}
+                      {CatIcon ? <CatIcon size={20} strokeWidth={selected ? 2.3 : 1.8} /> : CATEGORY_EMOJI[cat]}
                     </span>
-                    <span className={`text-[10px] font-bold leading-tight text-center whitespace-nowrap ${selected ? accentText : 'text-slate-400 dark:text-slate-500'}`}>
+                    <span className={`text-[10px] leading-tight text-center whitespace-nowrap transition ${selected ? `font-black ${accentText}` : 'font-bold text-slate-400 dark:text-slate-500'}`}>
                       {cat}
                     </span>
                   </button>
@@ -841,6 +913,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [editingTx, setEditingTx] = useState(null);
   const [editComercio, setEditComercio] = useState('');
   const [editCategoria, setEditCategoria] = useState('');
+  const [editTipoTransaccion, setEditTipoTransaccion] = useState('gasto');
   const [editTipoTarjeta, setEditTipoTarjeta] = useState('');
   const [editBanco, setEditBanco] = useState('');
   const [editFecha, setEditFecha] = useState('');
@@ -1214,6 +1287,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setEditingTx(tx);
     setEditComercio(tx.comercio || '');
     setEditCategoria(tx.categoria || 'Otros');
+    const normalizedTipo = tx.tipo_transaccion === 'no_es_gasto' ? 'gasto'
+      : tx.tipo_transaccion === 'no_es_ingreso' ? 'ingreso'
+      : (tx.tipo_transaccion || 'gasto');
+    setEditTipoTransaccion(normalizedTipo);
     setEditTipoTarjeta(tx.tipo_tarjeta || '');
     setEditBanco(tx.banco || '');
     setEditFecha(tx.fecha || '');
@@ -1228,6 +1305,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
           categoria: editCategoria,
+          tipo_transaccion: editTipoTransaccion,
           comercio: editComercio,
           tipo_tarjeta: editTipoTarjeta,
           banco: editBanco,
@@ -1805,6 +1883,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 </div>
               </div>
               <div>
+                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo</label>
+                <select value={editTipoTransaccion} onChange={e => setEditTipoTransaccion(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
+                  <option value="gasto">Gasto</option>
+                  <option value="ingreso">Ingreso</option>
+                  <option value="interno">Interno</option>
+                </select>
+              </div>
+              <div>
                 <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Categoria</label>
                 <select value={editCategoria} onChange={e => setEditCategoria(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
@@ -1936,7 +2022,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center p-3 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
+        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center px-4 py-0 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}
