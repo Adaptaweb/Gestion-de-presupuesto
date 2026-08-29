@@ -1495,7 +1495,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setReviewIdx(0);
     setReviewCat(tx.categoria || 'Otros');
     setReviewTipoGasto(tx.tipo_gasto || null);
-    setReviewTipoTransaccion(null);
+    // Si la transacción quedó marcada "no es gasto/ingreso", la tarjeta de
+    // revisión debe partir asumiendo que se está reclasificando de vuelta a
+    // gasto/ingreso real — si no, handleConfirmReview reusa tx.tipo_transaccion
+    // (el valor viejo "no_es_gasto") y el check no cambia nada.
+    const normalizedTipo = tx.tipo_transaccion === 'no_es_gasto' ? 'gasto'
+      : tx.tipo_transaccion === 'no_es_ingreso' ? 'ingreso'
+      : null;
+    setReviewTipoTransaccion(normalizedTipo);
     setShowReview(true);
     setReviewVisible(true);
   };
