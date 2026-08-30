@@ -1631,7 +1631,16 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </div>
       ) : (summary.length > 0 || bankTotals.length > 0) ? (
         (() => {
-        const bankCards = bankTotals.filter(row => row.total > 0);
+        const bankGroups = {};
+        for (const row of bankTotals) {
+          if (row.total <= 0) continue;
+          const bank = row.banco || 'Otros';
+          if (!bankGroups[bank]) bankGroups[bank] = { bank, total: 0, count: 0, tipos: [] };
+          bankGroups[bank].total += row.total;
+          bankGroups[bank].count += row.count;
+          if (row.tipo_tarjeta) bankGroups[bank].tipos.push(row.tipo_tarjeta);
+        }
+        const bankCards = Object.values(bankGroups).sort((a, b) => b.total - a.total);
         const gastoSummary = summary
           .filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria) && s.tipo !== 'ingreso')
           .sort((a, b) => b.total - a.total);
@@ -1699,12 +1708,12 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500">{bankCards.length} medio{bankCards.length === 1 ? '' : 's'}</span>
                 </div>
                 <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1.5">
-                  {bankCards.map(row => {
-                    const bank = row.banco || 'Otros';
+                  {bankCards.map(group => {
+                    const bank = group.bank;
                     const [c1, c2, c3] = BANK_GRADIENT[bank] || BANK_GRADIENT_FALLBACK;
                     return (
                       <div
-                        key={bank + '-' + row.tipo_tarjeta}
+                        key={bank}
                         className="flex-shrink-0 w-[186px] h-[112px] rounded-2xl p-3.5 flex flex-col justify-between relative overflow-hidden shadow-lg"
                         style={{ background: `linear-gradient(135deg, ${c1} 0%, ${c2} 55%, ${c3} 100%)` }}
                       >
@@ -1720,10 +1729,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                           </div>
                           <span className="w-5 h-3.5 rounded-[3px] flex-shrink-0" style={{ background: 'linear-gradient(135deg, #FDE68A, #F59E0B)' }} />
                         </div>
-                        <span className="relative text-[11px] font-bold text-white/55">{row.count} movimiento{row.count === 1 ? '' : 's'}</span>
-                        <div className="relative flex items-end justify-between">
-                          <span className="text-[9.5px] font-black uppercase tracking-wide text-white/55">{row.tipo_tarjeta || 'Otro'}</span>
-                          <span className="text-[15px] font-black text-white">{formatCurrency(row.total)}</span>
+                        <span className="relative text-[11px] font-bold text-white/55">{group.count} movimiento{group.count === 1 ? '' : 's'}</span>
+                        <div className="relative flex items-end justify-between gap-2">
+                          <span className="text-[9.5px] font-black uppercase tracking-wide text-white/55 truncate">{group.tipos.length > 0 ? group.tipos.join(' · ') : 'Gasto'}</span>
+                          <span className="text-[15px] font-black text-white flex-shrink-0">{formatCurrency(group.total)}</span>
                         </div>
                       </div>
                     );
