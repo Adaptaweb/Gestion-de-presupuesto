@@ -1635,12 +1635,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         for (const row of bankTotals) {
           if (row.total <= 0) continue;
           const bank = row.banco || 'Otros';
-          if (!bankGroups[bank]) bankGroups[bank] = { bank, total: 0, count: 0, tipos: [] };
-          bankGroups[bank].total += row.total;
+          if (!bankGroups[bank]) bankGroups[bank] = { bank, count: 0, sortTotal: 0, tipos: [] };
           bankGroups[bank].count += row.count;
-          if (row.tipo_tarjeta) bankGroups[bank].tipos.push(row.tipo_tarjeta);
+          bankGroups[bank].sortTotal += row.total;
+          bankGroups[bank].tipos.push({ tipo: row.tipo_tarjeta || 'Otro', total: row.total, count: row.count });
         }
-        const bankCards = Object.values(bankGroups).sort((a, b) => b.total - a.total);
+        // Debito y credito son cupos distintos: cada uno se muestra en su
+        // propia linea dentro de la tarjeta, nunca sumados en un solo total.
+        const bankCards = Object.values(bankGroups).sort((a, b) => b.sortTotal - a.sortTotal);
         const gastoSummary = summary
           .filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria) && s.tipo !== 'ingreso')
           .sort((a, b) => b.total - a.total);
@@ -1714,7 +1716,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                     return (
                       <div
                         key={bank}
-                        className="flex-shrink-0 w-[186px] h-[112px] rounded-2xl p-3.5 flex flex-col justify-between relative overflow-hidden shadow-lg"
+                        className="flex-shrink-0 w-[186px] min-h-[112px] rounded-2xl p-3.5 flex flex-col gap-2 relative overflow-hidden shadow-lg"
                         style={{ background: `linear-gradient(135deg, ${c1} 0%, ${c2} 55%, ${c3} 100%)` }}
                       >
                         <span className="absolute -right-5 -top-6 w-[110px] h-[110px] rounded-full bg-white/[0.06]" />
@@ -1729,11 +1731,15 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                           </div>
                           <span className="w-5 h-3.5 rounded-[3px] flex-shrink-0" style={{ background: 'linear-gradient(135deg, #FDE68A, #F59E0B)' }} />
                         </div>
-                        <span className="relative text-[11px] font-bold text-white/55">{group.count} movimiento{group.count === 1 ? '' : 's'}</span>
-                        <div className="relative flex items-end justify-between gap-2">
-                          <span className="text-[9.5px] font-black uppercase tracking-wide text-white/55 truncate">{group.tipos.length > 0 ? group.tipos.join(' · ') : 'Gasto'}</span>
-                          <span className="text-[15px] font-black text-white flex-shrink-0">{formatCurrency(group.total)}</span>
+                        <div className="relative flex flex-col gap-1">
+                          {group.tipos.map(t => (
+                            <div key={t.tipo} className="flex items-center justify-between gap-2">
+                              <span className="text-[9.5px] font-black uppercase tracking-wide text-white/60 truncate">{t.tipo}</span>
+                              <span className="text-[13px] font-black text-white flex-shrink-0">{formatCurrency(t.total)}</span>
+                            </div>
+                          ))}
                         </div>
+                        <span className="relative mt-auto text-[9.5px] font-bold text-white/50">{group.count} movimiento{group.count === 1 ? '' : 's'}</span>
                       </div>
                     );
                   })}
