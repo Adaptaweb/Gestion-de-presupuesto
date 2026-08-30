@@ -20,6 +20,7 @@ import {
   CATEGORY_ICON_COLOR as CATEGORY_ICON_COLOR_DEFAULT,
   CATEGORY_EMOJI as CATEGORY_EMOJI_DEFAULT,
   CATEGORY_HEX as CATEGORY_HEX_DEFAULT, hexToRgba,
+  CATEGORY_ICON_MAP, CATEGORY_RING_COLOR,
   BANK_COLORS, BANK_ACCENT, BANK_ICONS
 } from './constants.js';
 
@@ -37,57 +38,6 @@ const THEME_ACCENT_TEXT = {
   'border-amber-600': 'text-amber-600',
   'border-teal-600': 'text-teal-600',
   'border-slate-600': 'text-slate-600',
-};
-
-// Mismo motivo: color de anillo por categoria como mapa literal, no
-// derivado de CATEGORY_ICON_COLOR con string-replace.
-const CATEGORY_RING_COLOR = {
-  'Casa y cuentas': 'ring-amber-400 dark:ring-amber-300/60',
-  'Mercadería': 'ring-orange-400 dark:ring-orange-300/60',
-  'Gustitos': 'ring-rose-400 dark:ring-rose-300/60',
-  'Transporte': 'ring-blue-400 dark:ring-blue-300/60',
-  'Compras': 'ring-pink-400 dark:ring-pink-300/60',
-  'Salud y deportes': 'ring-green-400 dark:ring-green-300/60',
-  'Educación': 'ring-violet-400 dark:ring-violet-300/60',
-  'Suscripciones': 'ring-indigo-400 dark:ring-indigo-300/60',
-  'Viajes y vacaciones': 'ring-cyan-400 dark:ring-cyan-300/60',
-  'Donaciones y regalos': 'ring-fuchsia-400 dark:ring-fuchsia-300/60',
-  'Otros': 'ring-slate-400 dark:ring-slate-300/60',
-  'Ahorro': 'ring-emerald-500 dark:ring-emerald-300/60',
-  'Sueldo': 'ring-lime-400 dark:ring-lime-300/60',
-  'Inversiones / Renta': 'ring-emerald-400 dark:ring-emerald-300/60',
-  'Otros ingresos': 'ring-teal-400 dark:ring-teal-300/60',
-  'Gastos bancarios': 'ring-stone-400 dark:ring-stone-300/60',
-  'Intereses': 'ring-sky-400 dark:ring-sky-300/60',
-  'Créditos de consumo': 'ring-red-400 dark:ring-red-300/60',
-  'Sin categoría': 'ring-zinc-400 dark:ring-zinc-300/60',
-  'Juegos': 'ring-purple-400 dark:ring-purple-300/60',
-};
-
-// Iconos de línea para las categorías por defecto: refuerzan el estado
-// seleccionado mejor que el emoji plano. Una categoría creada por el
-// usuario (fuera de esta lista) sigue usando su emoji.
-const CATEGORY_ICON_MAP = {
-  'Casa y cuentas': Home,
-  'Mercadería': ShoppingCart,
-  'Gustitos': Utensils,
-  'Transporte': Bus,
-  'Compras': ShoppingBag,
-  'Salud y deportes': HeartPulse,
-  'Educación': GraduationCap,
-  'Suscripciones': Smartphone,
-  'Viajes y vacaciones': Plane,
-  'Donaciones y regalos': Gift,
-  'Otros': MoreHorizontal,
-  'Ahorro': PiggyBank,
-  'Sueldo': Wallet,
-  'Inversiones / Renta': TrendingUp,
-  'Otros ingresos': Banknote,
-  'Gastos bancarios': Landmark,
-  'Intereses': Percent,
-  'Créditos de consumo': CreditCard,
-  'Sin categoría': Minus,
-  'Juegos': Gamepad2,
 };
 
 // Degradado de marca por banco para las tarjetas de "gasto por tarjeta".
@@ -2106,6 +2056,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         onCreated={() => { fetchTransactions(); fetchSummary(); }}
         theme={theme}
         token={token}
+        isDarkMode={isDarkMode}
       />
       <DeleteConfirmModal
         isOpen={deleteModal.isOpen}

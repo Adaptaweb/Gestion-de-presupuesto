@@ -1,3 +1,9 @@
+import {
+  Home, ShoppingCart, Utensils, Bus, ShoppingBag, HeartPulse,
+  GraduationCap, Smartphone, Plane, Gift, MoreHorizontal, PiggyBank,
+  Wallet, TrendingUp, Banknote, Landmark, Percent, CreditCard, Minus, Gamepad2,
+} from 'lucide-react';
+
 export const CATEGORY_LIST = [
   'Casa y cuentas', 'Mercadería', 'Gustitos', 'Transporte', 'Compras',
   'Salud y deportes', 'Educación', 'Suscripciones', 'Viajes y vacaciones',
@@ -173,6 +179,58 @@ export const CATEGORY_HEX = {
   'Créditos de consumo': '#ef4444',
   'Sin categoría': '#71717a',
   'Juegos': '#a855f7',
+};
+
+// Iconos de línea por categoría: refuerzan el estado seleccionado mejor que
+// el emoji plano. Una categoría creada por el usuario (fuera de esta lista)
+// sigue usando su emoji (CATEGORY_EMOJI) como respaldo.
+export const CATEGORY_ICON_MAP = {
+  'Casa y cuentas': Home,
+  'Mercadería': ShoppingCart,
+  'Gustitos': Utensils,
+  'Transporte': Bus,
+  'Compras': ShoppingBag,
+  'Salud y deportes': HeartPulse,
+  'Educación': GraduationCap,
+  'Suscripciones': Smartphone,
+  'Viajes y vacaciones': Plane,
+  'Donaciones y regalos': Gift,
+  'Otros': MoreHorizontal,
+  'Ahorro': PiggyBank,
+  'Sueldo': Wallet,
+  'Inversiones / Renta': TrendingUp,
+  'Otros ingresos': Banknote,
+  'Gastos bancarios': Landmark,
+  'Intereses': Percent,
+  'Créditos de consumo': CreditCard,
+  'Sin categoría': Minus,
+  'Juegos': Gamepad2,
+};
+
+// Tailwind (JIT) solo genera una clase si aparece como texto literal en el
+// codigo fuente, asi que el color de anillo por categoria es un mapa fijo
+// (no derivado de CATEGORY_ICON_COLOR con string-replace).
+export const CATEGORY_RING_COLOR = {
+  'Casa y cuentas': 'ring-amber-400 dark:ring-amber-300/60',
+  'Mercadería': 'ring-orange-400 dark:ring-orange-300/60',
+  'Gustitos': 'ring-rose-400 dark:ring-rose-300/60',
+  'Transporte': 'ring-blue-400 dark:ring-blue-300/60',
+  'Compras': 'ring-pink-400 dark:ring-pink-300/60',
+  'Salud y deportes': 'ring-green-400 dark:ring-green-300/60',
+  'Educación': 'ring-violet-400 dark:ring-violet-300/60',
+  'Suscripciones': 'ring-indigo-400 dark:ring-indigo-300/60',
+  'Viajes y vacaciones': 'ring-cyan-400 dark:ring-cyan-300/60',
+  'Donaciones y regalos': 'ring-fuchsia-400 dark:ring-fuchsia-300/60',
+  'Otros': 'ring-slate-400 dark:ring-slate-300/60',
+  'Ahorro': 'ring-emerald-500 dark:ring-emerald-300/60',
+  'Sueldo': 'ring-lime-400 dark:ring-lime-300/60',
+  'Inversiones / Renta': 'ring-emerald-400 dark:ring-emerald-300/60',
+  'Otros ingresos': 'ring-teal-400 dark:ring-teal-300/60',
+  'Gastos bancarios': 'ring-stone-400 dark:ring-stone-300/60',
+  'Intereses': 'ring-sky-400 dark:ring-sky-300/60',
+  'Créditos de consumo': 'ring-red-400 dark:ring-red-300/60',
+  'Sin categoría': 'ring-zinc-400 dark:ring-zinc-300/60',
+  'Juegos': 'ring-purple-400 dark:ring-purple-300/60',
 };
 
 export function hexToRgba(hex, alpha = 1) {
