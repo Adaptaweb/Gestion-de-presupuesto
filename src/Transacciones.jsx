@@ -1760,8 +1760,15 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                       >
                         <span className="absolute -right-5 -top-6 w-[110px] h-[110px] rounded-full bg-white/[0.06]" />
                         <div className="relative flex items-center justify-between">
-                          <span className="text-[11px] font-black text-white/90">{bank}</span>
-                          <span className="w-5 h-3.5 rounded-[3px]" style={{ background: 'linear-gradient(135deg, #FDE68A, #F59E0B)' }} />
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {BANK_ICONS[bank] && (
+                              <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 p-[3px]">
+                                <img src={BANK_ICONS[bank]} alt="" className="w-full h-full object-contain" />
+                              </span>
+                            )}
+                            <span className="text-[11px] font-black text-white/90 truncate">{bank}</span>
+                          </div>
+                          <span className="w-5 h-3.5 rounded-[3px] flex-shrink-0" style={{ background: 'linear-gradient(135deg, #FDE68A, #F59E0B)' }} />
                         </div>
                         <span className="relative text-[11px] font-bold text-white/55">{row.count} movimiento{row.count === 1 ? '' : 's'}</span>
                         <div className="relative flex items-end justify-between">
@@ -1881,8 +1888,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           </>
         )}
       </div>
-
-      <FilterRow />
 
       {lastCheck > 0 && (
         <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
