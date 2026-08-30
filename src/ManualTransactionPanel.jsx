@@ -205,13 +205,14 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
                 className={inputClass}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5 block">Fecha</label>
               <input
                 type="date"
                 value={fecha}
                 onChange={e => setFecha(e.target.value)}
-                className={`${inputClass} [color-scheme:light] dark:[color-scheme:dark]`}
+                className={`${inputClass} min-w-0 [color-scheme:light] dark:[color-scheme:dark]`}
+                style={{ paddingLeft: '10px', paddingRight: '8px' }}
               />
             </div>
           </div>
