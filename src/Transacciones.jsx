@@ -90,6 +90,22 @@ const CATEGORY_ICON_MAP = {
   'Juegos': Gamepad2,
 };
 
+// Degradado de marca por banco para las tarjetas de "gasto por tarjeta".
+// Sin logros oficiales: solo un tono reconocible por banco, con fallback
+// gris para medios de pago sin color definido.
+const BANK_GRADIENT = {
+  'BCI': ['#7F1D1D', '#B91C1C', '#DC2626'],
+  'Santander': ['#7F1D1D', '#B91C1C', '#DC2626'],
+  'Banco de Chile': ['#1E3A8A', '#1E40AF', '#2563EB'],
+  'Banco Estado': ['#0C4A6E', '#075985', '#0284C7'],
+  'Mach': ['#4C1D95', '#6D28D9', '#7C3AED'],
+  'Scotiabank': ['#7F1D1D', '#991B1B', '#B91C1C'],
+  'Itaú': ['#7C2D12', '#C2410C', '#EA580C'],
+  'Banco Falabella': ['#134E4A', '#0F766E', '#0D9488'],
+  'Banco Paris': ['#312E81', '#3730A3', '#4338CA'],
+};
+const BANK_GRADIENT_FALLBACK = ['#1E293B', '#334155', '#475569'];
+
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
@@ -513,6 +529,9 @@ const TransactionCard = ({
   const movimiento = tx.tipo_movimiento || tx.tipo_tarjeta || '';
   const mutedChip = 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500';
 
+  const CatIcon = CATEGORY_ICON_MAP[tx.categoria];
+  const metaParts = [tx.categoria, tx.banco, movimiento].filter(Boolean);
+
   return (
     <div
       role="button"
@@ -520,78 +539,41 @@ const TransactionCard = ({
       onClick={() => onOpenDetail(tx)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(tx); } }}
       aria-label={`Ver detalle de ${tx.comercio || 'transacción'}`}
-      className={`group relative flex items-center gap-3 sm:gap-4 pl-4 sm:pl-5 pr-2 sm:pr-3 py-3 sm:py-3.5 rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 ease-fluid hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30 active:scale-[0.99] animate-row-enter ${
-        isMuted
-          ? 'bg-slate-50 dark:bg-dark-lighter/30 border-slate-100 dark:border-dark-lighter'
-          : 'bg-white dark:bg-dark-lighter/50'
+      className={`group relative flex items-center gap-3 pl-4 sm:pl-4 pr-2 sm:pr-3 py-2.5 sm:py-3 rounded-[18px] overflow-hidden cursor-pointer transition-all duration-300 ease-fluid hover:-translate-y-0.5 hover:shadow-md hover:shadow-slate-200/60 dark:hover:shadow-black/30 active:scale-[0.99] animate-row-enter ${
+        isMuted ? 'bg-slate-50 dark:bg-white/[0.02]' : 'bg-slate-50/80 dark:bg-white/[0.03]'
       }`}
       style={{
         animationDelay: `${Math.min(idx || 0, 8) * 35}ms`,
-        ...(isMuted ? {} : {
-          backgroundImage: catCardGradient(hex, isDarkMode),
-          borderColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.18),
-        }),
+        ...(isMuted ? {} : { backgroundColor: hexToRgba(hex, isDarkMode ? 0.08 : 0.06) }),
       }}
     >
       <span
-        className={`absolute left-0 inset-y-0 w-1.5 ${isMuted ? 'bg-slate-200 dark:bg-dark-lightest' : ''}`}
-        style={isMuted ? undefined : { backgroundImage: catAccentGradient(hex) }}
+        className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${isMuted ? 'bg-slate-200 dark:bg-white/10' : ''}`}
+        style={isMuted ? undefined : { background: `linear-gradient(180deg, ${hex}, ${hexToRgba(hex, 0.35)})` }}
       />
 
       <div
-        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex-shrink-0 grid place-items-center text-lg sm:text-xl leading-none ${
-          isMuted ? 'bg-slate-100 dark:bg-dark-lightest grayscale opacity-60' : ''
+        className={`w-10 h-10 sm:w-[42px] sm:h-[42px] rounded-full flex-shrink-0 grid place-items-center ${
+          isMuted ? 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500' : ''
         }`}
-        style={isMuted ? undefined : {
-          backgroundImage: catIconGradient(hex, isDarkMode),
-          border: `1px solid ${hexToRgba(hex, isDarkMode ? 0.3 : 0.22)}`,
-        }}
+        style={isMuted ? undefined : { backgroundColor: hexToRgba(hex, isDarkMode ? 0.2 : 0.16), color: hex }}
       >
-        {emoji}
+        {CatIcon ? <CatIcon size={18} strokeWidth={1.8} /> : <span className="text-lg leading-none">{emoji}</span>}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className={`truncate text-sm sm:text-[15px] font-black leading-tight ${
+        <p className={`truncate text-[15px] sm:text-base font-black leading-tight ${
           isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'
         }`}>
           {tx.comercio || 'Sin comercio'}
         </p>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1 sm:gap-1.5">
-          <span className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${
-            isMuted ? mutedChip : BANK_COLORS[tx.banco] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-          }`}>
-            {BANK_ICONS[tx.banco] && (
-              <img
-                src={BANK_ICONS[tx.banco]}
-                alt=""
-                className={`w-3.5 h-3.5 rounded-full ${isMuted ? 'opacity-50' : ''} ${isDarkMode && tx.banco === 'Banco de Chile' ? 'brightness-0 invert' : ''}`}
-              />
-            )}
-            {tx.banco || '-'}
-          </span>
-
-          {movimiento && (
-            <span className={`text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${
-              isMuted ? mutedChip : MOVIMIENTO_COLORS[movimiento] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-            }`}>{movimiento}</span>
-          )}
-
-          <span
-            className={`text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full max-w-[9rem] truncate ${
-              isMuted ? mutedChip : badge.className || ''
-            }`}
-            style={isMuted ? undefined : {
-              ...(badge.style || {}),
-              backgroundImage: catChipGradient(hex, isDarkMode),
-            }}
-          >
-            {tx.categoria}
-          </span>
-        </div>
+        <p className={`mt-0.5 truncate text-[11px] font-bold ${isMuted ? 'text-slate-300 dark:text-slate-600' : 'text-slate-400 dark:text-slate-500'}`}>
+          {metaParts.join(' · ')}
+        </p>
       </div>
 
       <div className="flex-shrink-0 text-right">
-        <div className={`text-sm sm:text-base font-black tabular-nums leading-tight ${
+        <div className={`text-[15px] sm:text-base font-black tabular-nums leading-tight ${
           isMuted
             ? 'text-slate-400 dark:text-slate-500'
             : isIngreso
@@ -600,17 +582,14 @@ const TransactionCard = ({
         }`}>
           {!isMuted && isIngreso ? '+' : ''}{formatCurrency(tx.monto)}
         </div>
-        <div className="mt-0.5 text-[10px] sm:text-[11px] font-bold text-slate-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
+        <div className="mt-0.5 text-[10.5px] font-bold text-slate-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
           {formatDate(tx.fecha)}
-          {formatTime(tx.fecha_extraccion) && (
-            <span className="hidden sm:inline"> · {formatTime(tx.fecha_extraccion)}</span>
-          )}
         </div>
       </div>
 
       {/* En desktop las acciones aparecen al hover; en tactil no hay hover,
           asi que ahi quedan siempre visibles. */}
-      <div className="flex-shrink-0 flex sm:flex-col lg:flex-row items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 transition-opacity">
+      <div className="flex-shrink-0 hidden sm:flex flex-col items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(tx); }}
           className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
@@ -1509,6 +1488,44 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   const currentReviewTx = pendingTxs[reviewIdx] || null;
 
+  // Se repite arriba y abajo de la lista de transacciones, asi que va como
+  // una sola definicion en vez de duplicar el bloque.
+  const FilterRow = () => (
+    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+      <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex-shrink-0 flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition whitespace-nowrap">
+        <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
+      </button>
+      <button onClick={refreshTable} disabled={pageLoading || loading} title="Actualizar" className="flex-shrink-0 flex items-center justify-center bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 w-9 h-9 rounded-xl border border-slate-200 dark:border-dark-lighter transition disabled:opacity-50">
+        <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} />
+      </button>
+      <span className="w-px flex-shrink-0 bg-slate-200 dark:bg-dark-lighter mx-0.5" />
+      <button
+        onClick={() => setFilterTipo('')}
+        className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+          filterTipo === '' ? `${theme.btnPrimary} text-white` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'
+        }`}
+      >
+        Todos
+      </button>
+      <button
+        onClick={() => setFilterTipo('gasto')}
+        className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+          filterTipo === 'gasto' ? `${theme.btnPrimary} text-white` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'
+        }`}
+      >
+        Gastos
+      </button>
+      <button
+        onClick={() => setFilterTipo('ingreso')}
+        className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+          filterTipo === 'ingreso' ? `${theme.btnPrimary} text-white` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'
+        }`}
+      >
+        Ingresos
+      </button>
+    </div>
+  );
+
   if (gmailForwardingAuthorized === false) {
     return (
       <div className="animate-fade-in duration-500">
@@ -1578,73 +1595,59 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </div>
       </div>
 
-      {/* Mes y filtros mandan sobre los widgets y sobre la lista, asi que van
-          antes que ambos: abajo obligaban a bajar para cambiar de mes. */}
-      <div className="flex flex-wrap gap-2 items-center justify-between">
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="relative">
-            <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-2 py-1.5">
-              <button onClick={goToPrevMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                <ChevronLeft size={16} />
-              </button>
-              <button onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }} className="min-w-[120px] text-center text-xs font-bold text-slate-700 dark:text-slate-200 capitalize hover:bg-slate-100 dark:hover:bg-dark-lighter px-2 py-1 rounded-lg transition">
-                {formatMonthLabel(monthDate)}
-              </button>
-              <button onClick={goToNextMonth} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            {showMonthPicker && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
-                <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3 min-w-[220px]">
-                  <div className="flex items-center justify-between mb-2 px-1">
-                    <button onClick={() => setPickerYear(pickerYear - 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                      <ChevronLeft size={16} />
-                    </button>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
-                    <button onClick={() => setPickerYear(pickerYear + 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-4 gap-1">
-                    {MONTHS_SHORT.map((name, i) => {
-                      const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
-                      return (
-                        <button
-                          key={name}
-                          onClick={() => {
-                            const d = new Date(pickerYear, i, 1);
-                            setMonthDate(d);
-                            setFilterDateRange(getMonthRange(d));
-                            setShowMonthPicker(false);
-                          }}
-                          className={`px-2 py-2 rounded-lg text-xs font-bold transition ${
-                            isCurrent
-                              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                              : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
-                          }`}
-                        >
-                          {name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition">
-            <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
+      {/* El mes manda sobre widgets y lista, asi que va primero, ocupando
+          todo el ancho: abajo obligaba a bajar para cambiar de mes. */}
+      <div className="relative">
+        <div className="flex items-center justify-between gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
+          <button onClick={goToPrevMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl transition text-slate-500 dark:text-slate-400">
+            <ChevronLeft size={18} />
           </button>
-
+          <button onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }} className="flex-1 text-center text-sm font-black text-slate-700 dark:text-slate-200 capitalize hover:bg-slate-100 dark:hover:bg-dark-lighter px-2 py-1.5 rounded-xl transition">
+            {formatMonthLabel(monthDate)}
+          </button>
+          <button onClick={goToNextMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl transition text-slate-500 dark:text-slate-400">
+            <ChevronRight size={18} />
+          </button>
         </div>
-        {/* Solo icono en movil: con el texto, mes + Filtrar + Actualizar no
-            caben en 375px y Actualizar caia a una segunda fila. */}
-        <button onClick={refreshTable} disabled={pageLoading || loading} title="Actualizar" className="flex items-center justify-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-2.5 sm:px-3 py-2 min-w-[36px] rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition disabled:opacity-50">
-          <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} /> <span className="hidden sm:inline">Actualizar</span>
-        </button>
+        {showMonthPicker && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
+            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <button onClick={() => setPickerYear(pickerYear - 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
+                <button onClick={() => setPickerYear(pickerYear + 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {MONTHS_SHORT.map((name, i) => {
+                  const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => {
+                        const d = new Date(pickerYear, i, 1);
+                        setMonthDate(d);
+                        setFilterDateRange(getMonthRange(d));
+                        setShowMonthPicker(false);
+                      }}
+                      className={`px-2 py-2 rounded-lg text-xs font-bold transition ${
+                        isCurrent
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                          : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {loading && !pageLoading ? (
@@ -1678,85 +1681,111 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </div>
       ) : (summary.length > 0 || bankTotals.length > 0) ? (
         (() => {
-        const bankTotalsMap = {};
-        for (const row of bankTotals) {
-          const bank = row.banco || 'Otros';
-          if (!bankTotalsMap[bank]) bankTotalsMap[bank] = {};
-          bankTotalsMap[bank][row.tipo_tarjeta] = { total: row.total, count: row.count };
-        }
-        const filteredSummary = summary.filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria));
-        const neto = totalIngresos - totalGastos;
+        const bankCards = bankTotals.filter(row => row.total > 0);
+        const gastoSummary = summary
+          .filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria) && s.tipo !== 'ingreso')
+          .sort((a, b) => b.total - a.total);
+        const maxGasto = Math.max(...gastoSummary.map(s => s.total), 1);
+        const stackTotal = Math.max(totalGastos, gastoSummary.reduce((acc, s) => acc + s.total, 0), 1);
+
         return (
-          <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            {filteredSummary.length > 0 && (
-              <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-2.5 sm:p-3">
-                <div className="text-xs sm:text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5">Categorías</div>
-                <div className="space-y-0.5 max-h-[100px] overflow-y-auto custom-scrollbar">
-                  {(() => {
-                    const maxTotal = Math.max(...filteredSummary.map(s => s.total), 1);
-                    return filteredSummary.map(s => {
-                      const esIngreso = s.tipo === 'ingreso';
-                      const signo = esIngreso ? '+' : '-';
-                      const colorCls = esIngreso ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
-                      return (
-                      <div key={s.categoria + '-' + (s.tipo || 'gasto')} className="flex items-center gap-1.5 text-xs sm:text-xs leading-tight">
-                        <span {...catBadgeStyle(s.categoria)} className={`font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 w-28 sm:w-32 text-left leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${catBadgeStyle(s.categoria).className || ''}`}>{s.categoria}</span>
-                        <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden">
-                          <div {...catBarStyle(s.categoria)} className={`h-full rounded-full ${catBarStyle(s.categoria).className || ''}`} style={{ width: `${(s.total / maxTotal) * 100}%`, ...(catBarStyle(s.categoria).style || {}) }} />
-                        </div>
-                        <span className={`font-bold flex-shrink-0 ${colorCls}`}>{signo}{formatCurrency(s.total)}</span>
-                      </div>
-                    )});
-                  })()}
+          <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade space-y-5">
 
-
-
+            <div className="flex flex-col gap-2.5 p-4 rounded-3xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-fluid">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Gastado en {formatMonthLabel(monthDate).split(' ')[0]}</div>
+                  <div className="mt-0.5 text-2xl sm:text-3xl font-black tracking-tight text-slate-800 dark:text-white">{formatCurrency(totalGastos)}</div>
                 </div>
-                <div className="border-t border-slate-100 dark:border-dark-lighter mt-1 pt-1 flex items-center justify-between text-xs sm:text-xs font-black">
-                  <span className="text-slate-700 dark:text-slate-200">Total</span>
-                  <span className={neto > 0 ? 'text-green-600 dark:text-green-400' : neto < 0 ? 'text-red-500 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}>
-                    {neto >= 0 ? '+' : ''}{formatCurrency(Math.abs(neto))}
-                  </span>
+                <div className="text-right">
+                  <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Ingresos</div>
+                  <div className="mt-0.5 text-sm font-black text-emerald-600 dark:text-emerald-400">+{formatCurrency(totalIngresos)}</div>
+                </div>
+              </div>
+              {gastoSummary.length > 0 && (
+                <div className="flex h-2 rounded-full overflow-hidden">
+                  {gastoSummary.map(s => (
+                    <span key={s.categoria} style={{ width: `${(s.total / stackTotal) * 100}%`, backgroundColor: catHex(s.categoria) }} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {gastoSummary.length > 0 && (
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categorías con más gasto</span>
+                  <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500">{gastoSummary.length} categoría{gastoSummary.length === 1 ? '' : 's'}</span>
+                </div>
+                <div className="rounded-3xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-fluid overflow-hidden">
+                  <div className="max-h-[260px] overflow-y-auto custom-scrollbar p-4 space-y-3.5">
+                    {gastoSummary.map(s => {
+                      const hex = catHex(s.categoria);
+                      const CatIcon = CATEGORY_ICON_MAP[s.categoria];
+                      return (
+                        <div key={s.categoria} className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.16), color: hex }}>
+                              {CatIcon ? <CatIcon size={14} strokeWidth={1.8} /> : <span className="text-sm leading-none">{CATEGORY_EMOJI[s.categoria] || CATEGORY_EMOJI_DEFAULT[s.categoria] || '💳'}</span>}
+                            </div>
+                            <span className="flex-1 text-[13px] font-black text-slate-700 dark:text-slate-200 truncate">{s.categoria}</span>
+                            <span className="text-[13px] font-black text-slate-700 dark:text-slate-200 flex-shrink-0">{formatCurrency(s.total)}</span>
+                          </div>
+                          <div className="h-[9px] rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden ml-[38px]">
+                            <div className="h-full rounded-full" style={{ width: `${(s.total / maxGasto) * 100}%`, background: `linear-gradient(90deg, ${hexToRgba(hex, 0.75)}, ${hex})` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
-            {Object.entries(bankTotalsMap).map(([bank, tipos]) => {
-              const totalBank = Object.values(tipos).reduce((acc, t) => acc + t.total, 0);
-              const totalCount = Object.values(tipos).reduce((acc, t) => acc + t.count, 0);
-              return (
-                <div key={bank} className={`bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-3 sm:p-4 ${BANK_ACCENT[bank] || ''}`}>
-                  <div className="flex items-center gap-3 mb-2">
-                    {BANK_ICONS[bank] && <img src={BANK_ICONS[bank]} alt="" className={`w-8 h-8 rounded-full ${isDarkMode && bank === 'Banco de Chile' ? 'brightness-0 invert' : ''}`} />}
-                    <span className="text-xs font-black text-slate-700 dark:text-slate-300">{bank}</span>
-                  </div>
-                  <div className="space-y-1">
-                    {['Débito', 'Crédito'].map(tipo => (
-                      <div key={tipo} className="flex items-center justify-between text-xs sm:text-xs">
-                        <span className={`font-bold px-1.5 py-0.5 rounded ${
-                          tipo === 'Débito' ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'
-                        }`}>{tipo}</span>
-                        {tipos[tipo] ? (
-                          <span className="font-bold text-slate-600 dark:text-slate-400">
-                            {formatCurrency(tipos[tipo].total)} <span className="text-slate-400 font-normal">{tipos[tipo].count}tx</span>
-                          </span>
-                        ) : (
-                          <span className="text-slate-300 dark:text-slate-600">—</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-slate-100 dark:border-dark-lighter mt-1.5 pt-1.5 flex items-center justify-between text-xs sm:text-xs font-black text-slate-700 dark:text-slate-200">
-                    <span>Total</span>
-                    <span>{formatCurrency(totalBank)} <span className="text-slate-400 font-normal">{totalCount}tx</span></span>
-                  </div>
+
+            {bankCards.length > 0 && (
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Gasto por tarjeta</span>
+                  <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500">{bankCards.length} medio{bankCards.length === 1 ? '' : 's'}</span>
                 </div>
-              );
-            })}
-           </div>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1.5">
+                  {bankCards.map(row => {
+                    const bank = row.banco || 'Otros';
+                    const [c1, c2, c3] = BANK_GRADIENT[bank] || BANK_GRADIENT_FALLBACK;
+                    return (
+                      <div
+                        key={bank + '-' + row.tipo_tarjeta}
+                        className="flex-shrink-0 w-[186px] h-[112px] rounded-2xl p-3.5 flex flex-col justify-between relative overflow-hidden shadow-lg"
+                        style={{ background: `linear-gradient(135deg, ${c1} 0%, ${c2} 55%, ${c3} 100%)` }}
+                      >
+                        <span className="absolute -right-5 -top-6 w-[110px] h-[110px] rounded-full bg-white/[0.06]" />
+                        <div className="relative flex items-center justify-between">
+                          <span className="text-[11px] font-black text-white/90">{bank}</span>
+                          <span className="w-5 h-3.5 rounded-[3px]" style={{ background: 'linear-gradient(135deg, #FDE68A, #F59E0B)' }} />
+                        </div>
+                        <span className="relative text-[11px] font-bold text-white/55">{row.count} movimiento{row.count === 1 ? '' : 's'}</span>
+                        <div className="relative flex items-end justify-between">
+                          <span className="text-[9.5px] font-black uppercase tracking-wide text-white/55">{row.tipo_tarjeta || 'Otro'}</span>
+                          <span className="text-[15px] font-black text-white">{formatCurrency(row.total)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+          </div>
         );
       })() ) : null }
 
 
+
+      <div className="flex items-center justify-between px-0.5">
+        <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Transacciones</span>
+      </div>
+
+      <FilterRow />
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
         {loading && transactions.length === 0 ? (
@@ -1852,6 +1881,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           </>
         )}
       </div>
+
+      <FilterRow />
 
       {lastCheck > 0 && (
         <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
