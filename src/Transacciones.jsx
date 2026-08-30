@@ -259,7 +259,7 @@ const ReviewCard = ({
               <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
               <span className={`text-xs font-black ${accentText}`}>{reviewCat}</span>
             </div>
-            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pb-1" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
               {sortedCats.map(cat => {
                 const selected = reviewCat === cat;
                 const iconBg = CATEGORY_ICON_BG[cat];

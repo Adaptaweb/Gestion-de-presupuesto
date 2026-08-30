@@ -211,7 +211,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
                 type="date"
                 value={fecha}
                 onChange={e => setFecha(e.target.value)}
-                className={inputClass}
+                className={`${inputClass} [color-scheme:light] dark:[color-scheme:dark]`}
               />
             </div>
           </div>
@@ -250,7 +250,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
               <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
               <span className="text-xs font-black text-slate-500 dark:text-slate-400">{categoria}</span>
             </div>
-            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pb-1" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
               {CATEGORY_LIST.map(cat => {
                 const selected = categoria === cat;
                 const hex = CATEGORY_HEX[cat] || CATEGORY_HEX['Otros'];
