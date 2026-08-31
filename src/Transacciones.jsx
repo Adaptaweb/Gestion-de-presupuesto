@@ -13,6 +13,7 @@ import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from 'boneyard-js/react';
 import { MONTH_NAMES } from './constants/dashboard.js';
+import { notifyOk, notifyError, notifyInfo, notifyPromise, toast } from './lib/notify.js';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -290,7 +291,7 @@ const ReviewCard = ({
                 <button
                   onClick={() => {
                     const name = prompt('Nombre de la nueva categoría:');
-                    if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setReviewCat(c.nombre)).catch(e => alert(e.message));
+                    if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setReviewCat(c.nombre)).catch(e => console.error(e));
                   }}
                   className="flex-shrink-0 flex flex-col items-center gap-1.5"
                   title="Agregar categoría"
@@ -921,7 +922,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
-  const [statusMsg, setStatusMsg] = useState(null);
 
   const [showManualEntry, setShowManualEntry] = useState(false);
 
@@ -949,7 +949,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [reviewDirection, setReviewDirection] = useState('forward');
   const [reprocessing, setReprocessing] = useState(false);
   const [revisando, setRevisando] = useState(false);
-  const [toast, setToast] = useState(null);
   const reviewSliderRef = useRef(null);
 
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
@@ -1145,7 +1144,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   const handleRevisar = async () => {
     setRevisando(true);
-    setStatusMsg({ type: 'info', text: 'Buscando nuevos correos en Gmail...' });
+    notifyInfo('Buscando correos', 'Revisando Gmail por transacciones nuevas.');
     try {
       const res = await fetch('/api/transacciones/revisar', { method: 'POST', headers: getHeaders() });
       const { jobId } = await res.json();
@@ -1159,15 +1158,15 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           const result = status.result || {};
           if (result.needsReauth) {
             setAuthStatus(false);
-            setStatusMsg({ type: 'error', text: result.message || 'Token de Gmail expirado. Ve a Configuración → Gmail para re-autenticar.' });
+            notifyError('Token de Gmail expirado', result.message || 'Ve a Configuración → Gmail para re-autenticar.');
             break;
           }
           if (result.error) {
-            setStatusMsg({ type: 'error', text: result.message || result.error });
+            notifyError('No se pudo revisar', result.message || result.error);
             break;
           }
           const newTx = result.new || 0;
-          setStatusMsg({ type: 'success', text: `Revisión completada: ${newTx} nuevas transacciones` });
+          notifyOk('Revisión completada', `${newTx} transacciones nuevas.`);
           break;
         }
         if (status.status === 'failed' || status.status === 'error') {
@@ -1178,39 +1177,37 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       fetchTransactions();
       fetchPendientesCount();
     } catch (e) {
-      setStatusMsg({ type: 'error', text: `Error: ${e.message}` });
+      notifyError('No se pudo revisar', e.message);
     } finally {
       setRevisando(false);
-      setTimeout(() => setStatusMsg(null), 5000);
     }
   };
 
   const handleReprocess = async () => {
     setReprocessing(true);
-    setStatusMsg({ type: 'info', text: 'Reprocesando transacciones con IA...' });
+    notifyInfo('Reprocesando', 'Volviendo a clasificar las transacciones con IA.');
     try {
       const res = await fetch('/api/transacciones/reprocesar', { method: 'POST', headers: getHeaders() });
       const result = await res.json();
       if (result.error) throw new Error(result.error);
       if (result.needsReauth) {
         setAuthStatus(false);
-        setStatusMsg({ type: 'error', text: 'Token de Gmail expirado. Ve a Configuración → Gmail para re-autenticar.' });
+        notifyError('Token de Gmail expirado', 'Ve a Configuración → Gmail para re-autenticar.');
         return;
       }
       const skipped = result.skipped || 0;
       const msg = skipped > 0
         ? `Reprocesadas ${result.processed} de ${result.total} (${skipped} no encontradas en Gmail)`
         : `Reprocesadas ${result.processed} de ${result.total} transacciones`;
-      setStatusMsg({ type: 'success', text: msg });
+      notifyOk('Reproceso listo', msg);
       await fetchPendientes();
       fetchTransactions();
       fetchSummary();
       fetchPendientesCount();
     } catch (e) {
-      setStatusMsg({ type: 'error', text: `Error al reprocesar: ${e.message}` });
+      notifyError('No se pudo reprocesar', e.message);
     } finally {
       setReprocessing(false);
-      setTimeout(() => setStatusMsg(null), 5000);
     }
   };
 
@@ -1294,15 +1291,17 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       itemName: txToDelete ? `${txToDelete.comercio || 'Transacción'} - $${Math.abs(txToDelete.monto)}` : 'esta transacción',
       itemType: 'transacción',
       onConfirm: async () => {
-        try {
+        await notifyPromise((async () => {
           const res = await fetch(`/api/transacciones/${id}`, { method: 'DELETE', headers: getHeaders() });
-          if (res.ok) {
-            setTransactions(prev => prev.filter(tx => tx.id !== id));
-            fetchTransactions();
-            fetchSummary();
-          }
-        } catch (err) { console.error(err); }
-        return Promise.resolve();
+          if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
+          setTransactions(prev => prev.filter(tx => tx.id !== id));
+          fetchTransactions();
+          fetchSummary();
+        })(), {
+          loading: 'Eliminando',
+          ok: 'Transacción eliminada',
+          error: 'No se pudo eliminar',
+        }).catch(() => {});
       }
     });
   };
@@ -1325,7 +1324,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const handleUpdateTx = async () => {
     if (!editingTx) return;
     try {
-      const res = await fetch(`/api/transacciones/${editingTx.id}`, {
+      const res = await notifyPromise(fetch(`/api/transacciones/${editingTx.id}`, {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
           categoria: editCategoria,
@@ -1336,6 +1335,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           fecha: editFecha || undefined,
           monto: editMonto ? parseFloat(editMonto) : undefined
         })
+      }).then(r => {
+        if (!r.ok) throw new Error(`El servidor respondió ${r.status}`);
+        return r;
+      }), {
+        loading: 'Guardando',
+        ok: 'Transacción actualizada',
+        error: 'No se pudo guardar',
       });
       const data = await res.json();
       if (res.ok) {
@@ -1356,14 +1362,16 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           fetchTransactions();
         }
       }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      // notifyPromise ya mostro el error; aqui solo se evita romper el render.
+      console.error(err);
+    }
   };
 
   const handleOpenReview = async () => {
     const txs = await fetchPendientes();
     if (txs.length === 0) {
-      setToast('Sin pendientes por revisar');
-      setTimeout(() => setToast(null), 3000);
+      notifyInfo('Sin pendientes', 'No hay transacciones por revisar.');
       return;
     }
     const first = txs[0];
@@ -1408,16 +1416,15 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       });
       setReviewSaving(false);
       if (!res.ok) {
-        setStatusMsg({ type: 'error', text: '✗ No se pudo guardar la transacción' });
-        setTimeout(() => setStatusMsg(null), 4000);
+        notifyError('No se pudo guardar', 'La transacción quedó sin clasificar.');
         return false;
       }
+      toast.success({ id: 'revision-tx', title: 'Clasificada', duration: 2000 });
       return true;
     } catch (err) {
       console.error(err);
       setReviewSaving(false);
-      setStatusMsg({ type: 'error', text: '✗ Error de red al guardar' });
-      setTimeout(() => setStatusMsg(null), 4000);
+      notifyError('Error de red', 'No se pudo guardar la transacción.');
       return false;
     }
   };
@@ -1441,16 +1448,15 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       });
       setReviewSaving(false);
       if (!res.ok) {
-        setStatusMsg({ type: 'error', text: '✗ No se pudo guardar la transacción' });
-        setTimeout(() => setStatusMsg(null), 4000);
+        notifyError('No se pudo guardar', 'La transacción quedó sin clasificar.');
         return false;
       }
+      toast.success({ id: 'revision-tx', title: 'Clasificada', duration: 2000 });
       return true;
     } catch (err) {
       console.error(err);
       setReviewSaving(false);
-      setStatusMsg({ type: 'error', text: '✗ Error de red al guardar' });
-      setTimeout(() => setStatusMsg(null), 4000);
+      notifyError('Error de red', 'No se pudo guardar la transacción.');
       return false;
     }
   };
@@ -1607,13 +1613,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   return (
     <>
-      {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] animate-fade-in slide-in-from-top-2 duration-300">
-          <div className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 px-5 py-3 rounded-xl shadow-2xl text-sm font-bold">
-            {toast}
-          </div>
-        </div>
-      )}
       <div className="animate-fade-in duration-500 space-y-6 px-4 sm:px-6 w-full max-w-5xl mx-auto pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         {/* En movil Pendientes se empuja al borde derecho: es la accion mas
@@ -1635,17 +1634,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               <Bell size={14} />
               Sin pendientes
             </button>
-          )}
-        </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          {statusMsg && (
-            <span className={`text-xs px-3 py-1.5 rounded-lg font-medium ${
-              statusMsg.type === 'success' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' :
-              statusMsg.type === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
-              'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-            }`}>
-              {statusMsg.text}
-            </span>
           )}
         </div>
       </div>
@@ -2010,7 +1998,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   <button
                     onClick={() => {
                       const name = prompt('Nombre de la nueva categoría:');
-                      if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setEditCategoria(c.nombre)).catch(e => alert(e.message));
+                      if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setEditCategoria(c.nombre)).catch(e => console.error(e));
                     }}
                     className="mt-1.5 flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-blue-500 transition"
                   >

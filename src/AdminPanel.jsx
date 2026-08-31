@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Shield, Trash2, Key, X, Loader2, ArrowLeft, Mail, Ban, CheckCircle, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
+import { notifyOk, notifyError } from './lib/notify.js';
 
 const AdminPanel = ({ onBack, token }) => {
   const [users, setUsers] = useState([]);
@@ -72,9 +73,14 @@ const AdminPanel = ({ onBack, token }) => {
         },
         body: JSON.stringify({ role: newRole })
       });
-      if (res.ok) fetchUsers();
+      if (res.ok) {
+        notifyOk('Rol actualizado', `${user.name}: ${newRole}`);
+        fetchUsers();
+      } else {
+        notifyError('No se pudo cambiar el rol');
+      }
     } catch (err) {
-      setError('Error al cambiar rol');
+      notifyError('Error al cambiar rol', 'Revisa tu conexión.');
     } finally {
       setActionLoading(false);
     }
@@ -94,13 +100,14 @@ const AdminPanel = ({ onBack, token }) => {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {
+            notifyOk('Usuario eliminado', user.name);
             fetchUsers();
           } else {
             const data = await res.json();
-            setError(data.error);
+            notifyError('No se pudo eliminar', data.error);
           }
         } catch (err) {
-          setError('Error al eliminar usuario');
+          notifyError('Error al eliminar usuario', 'Revisa tu conexión.');
         } finally {
           setActionLoading(false);
         }
@@ -126,14 +133,15 @@ const AdminPanel = ({ onBack, token }) => {
         body: JSON.stringify({ newPassword })
       });
       if (res.ok) {
+        notifyOk('Contraseña actualizada');
         setEditingPassword(null);
         setNewPassword('');
       } else {
         const data = await res.json();
-        setError(data.error);
+        notifyError('No se pudo actualizar la contraseña', data.error);
       }
     } catch (err) {
-      setError('Error al resetear contraseña');
+      notifyError('Error al actualizar la contraseña', 'Revisa tu conexión.');
     } finally {
       setActionLoading(false);
     }
@@ -161,16 +169,17 @@ const AdminPanel = ({ onBack, token }) => {
         body: JSON.stringify(newUser)
       });
       if (res.ok) {
+        notifyOk('Usuario creado', newUser.email);
         setShowCreateModal(false);
         setNewUser({ nombre: '', apellido: '', email: '', password: '', role: 'user' });
         setShowPassword(false);
         fetchUsers();
       } else {
         const data = await res.json();
-        setError(data.error);
+        notifyError('No se pudo crear el usuario', data.error);
       }
     } catch (err) {
-      setError('Error al crear usuario');
+      notifyError('Error al crear el usuario', 'Revisa tu conexión.');
     } finally {
       setActionLoading(false);
     }
@@ -186,12 +195,13 @@ const AdminPanel = ({ onBack, token }) => {
       if (res.ok) {
         const data = await res.json();
         setUsers(users.map(u => u.id === user.id ? { ...u, blocked: data.blocked } : u));
+        notifyOk(data.blocked ? 'Usuario bloqueado' : 'Usuario desbloqueado', user.name);
       } else {
         const data = await res.json();
-        setError(data.error);
+        notifyError('No se pudo cambiar el estado', data.error);
       }
     } catch (err) {
-      setError('Error al cambiar estado del usuario');
+      notifyError('Error al cambiar el estado', 'Revisa tu conexión.');
     } finally {
       setActionLoading(false);
     }

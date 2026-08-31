@@ -16,8 +16,11 @@ import '@fontsource/poppins/latin-600.css';
 import '@fontsource/poppins/latin-700.css';
 import '@fontsource/poppins/latin-900.css';
 import './index.css';
+import { initNotify } from './lib/notify.js';
 // Bones capturadas del UI real (boneyard-js). Se regeneran con `npm run bones`.
 import './bones/registry.js';
+
+initNotify();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { notifyOk, notifyError } from '../lib/notify.js';
 
 const VAPID_PUBLIC_KEY = 'BHLzyyYrvcSbxKDG6I6q8SbPeFdM3jAq5qq-wvgpCxDBUJheThqsbnwPPevQHygF0zvJvORUXh67p8jJtwFr9vc';
 
@@ -42,7 +43,7 @@ export function usePushNotifications(token) {
 
     try {
       if (Notification.permission === 'denied') {
-        alert('Las notificaciones están bloqueadas para este sitio. Actívalas desde la configuración del navegador.');
+        notifyError('Notificaciones bloqueadas', 'Actívalas desde la configuración del navegador.');
         setLoading(false);
         return false;
       }
@@ -66,7 +67,7 @@ export function usePushNotifications(token) {
 
       if (!sub) {
         if (!('PushManager' in window)) {
-          alert('Las notificaciones push no están disponibles en este navegador. En iOS, agrega la app a la pantalla de inicio primero.');
+          notifyError('No disponible en este navegador', 'En iOS, agrega la app a la pantalla de inicio primero.');
           setLoading(false);
           return false;
         }
@@ -85,6 +86,7 @@ export function usePushNotifications(token) {
         body: JSON.stringify(sub.toJSON()),
       });
 
+      notifyOk('Notificaciones activadas');
       setIsSubscribed(true);
       setLoading(false);
       return true;
@@ -124,6 +126,7 @@ export function usePushNotifications(token) {
         body: JSON.stringify({ endpoint: sub ? sub.endpoint : '' }),
       });
 
+      notifyOk('Notificaciones desactivadas');
       setIsSubscribed(false);
     } catch {
       const reg = await navigator.serviceWorker.ready.catch(() => null);

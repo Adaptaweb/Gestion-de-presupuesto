@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Settings2, Plus, X, Trash2, Loader2 } from 'lucide-react';
+import { notifyPromise } from '../lib/notify.js';
 
 const FilterRulesModal = ({ isOpen, onClose, token, theme }) => {
   const [filters, setFilters] = useState([]);
@@ -41,13 +42,14 @@ const FilterRulesModal = ({ isOpen, onClose, token, theme }) => {
   }, [isOpen, fetchFilters, fetchConfig]);
 
   const handleSaveConfig = async () => {
-    try {
+    await notifyPromise((async () => {
       const res = await fetch('/api/config-extraccion', {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({ dias_atras: diasAtras })
       });
-      if (!res.ok) console.error('Error guardando config');
-    } catch (err) { console.error(err); }
+      if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
+    })(), { loading: 'Guardando', ok: 'Configuración guardada', error: 'No se pudo guardar la configuración' })
+      .catch(err => console.error(err));
   };
 
   const handleBulkReplace = async () => {
@@ -56,41 +58,43 @@ const FilterRulesModal = ({ isOpen, onClose, token, theme }) => {
       .map(r => r.replace(/^OR\s*/i, '').trim())
       .filter(r => r.includes('@'));
     if (remitentes.length === 0) return;
-    try {
+    await notifyPromise((async () => {
       const res = await fetch('/api/filtros/replace', {
         method: 'POST', headers: getHeaders(),
         body: JSON.stringify({ remitentes })
       });
-      if (res.ok) {
-        setBulkRemitentes('');
-        fetchFilters();
-      }
-    } catch (err) { console.error(err); }
+      if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
+      setBulkRemitentes('');
+      await fetchFilters();
+    })(), { loading: 'Guardando remitentes', ok: `${remitentes.length} remitentes guardados`, error: 'No se pudieron guardar los remitentes' })
+      .catch(err => console.error(err));
   };
 
   const handleCreateFilter = async (e) => {
     e.preventDefault();
-    try {
+    await notifyPromise((async () => {
       const res = await fetch('/api/filtros', {
         method: 'POST', headers: getHeaders(),
         body: JSON.stringify({ remitente: newFilterRemitente, asunto: newFilterAsunto })
       });
-      if (res.ok) {
-        setNewFilterRemitente('');
-        setNewFilterAsunto('');
-        fetchFilters();
-      }
-    } catch (err) { console.error(err); }
+      if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
+      setNewFilterRemitente('');
+      setNewFilterAsunto('');
+      await fetchFilters();
+    })(), { loading: 'Creando filtro', ok: 'Filtro creado', error: 'No se pudo crear el filtro' })
+      .catch(err => console.error(err));
   };
 
   const handleDeleteFilter = async (id) => {
     const filterToDelete = filters.find(f => f.id === id);
     const confirmed = window.confirm(`¿Eliminar filtro para ${filterToDelete ? filterToDelete.remitente : 'este remitente'}?\nYa no se filtrarán emails de este remitente.`);
     if (!confirmed) return;
-    try {
+    await notifyPromise((async () => {
       const res = await fetch(`/api/filtros/${id}`, { method: 'DELETE', headers: getHeaders() });
-      if (res.ok) fetchFilters();
-    } catch (err) { console.error(err); }
+      if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
+      await fetchFilters();
+    })(), { loading: 'Eliminando filtro', ok: 'Filtro eliminado', error: 'No se pudo eliminar el filtro' })
+      .catch(err => console.error(err));
   };
 
   if (!isOpen) return null;

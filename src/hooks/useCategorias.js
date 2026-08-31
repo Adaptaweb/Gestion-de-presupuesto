@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { notifyPromise } from '../lib/notify.js';
 
 function hexToRgb(hex) {
   const h = hex.replace('#', '');
@@ -116,7 +117,9 @@ export function useCategorias(token) {
     if (token) fetchCategorias();
   }, [token, fetchCategorias]);
 
-  const createCategoria = useCallback(async ({ nombre, color_hex, emoji, tipo }) => {
+  // El aviso vive en el hook y no en cada pantalla: las categorias se crean
+  // tanto desde su configurador como desde el selector de Transacciones.
+  const createCategoria = useCallback(async ({ nombre, color_hex, emoji, tipo }) => notifyPromise((async () => {
     const res = await fetch('/api/categorias', {
       method: 'POST',
       headers: getHeaders(),
@@ -126,9 +129,9 @@ export function useCategorias(token) {
     if (!res.ok) throw new Error(data.error || 'Error al crear');
     setCategorias(prev => [...prev, data.categoria]);
     return data.categoria;
-  }, [getHeaders]);
+  })(), { loading: 'Creando categoría', ok: `Categoría "${nombre}" creada`, error: 'No se pudo crear la categoría' }), [getHeaders]);
 
-  const updateCategoria = useCallback(async (id, updates) => {
+  const updateCategoria = useCallback(async (id, updates) => notifyPromise((async () => {
     const res = await fetch(`/api/categorias/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -138,9 +141,9 @@ export function useCategorias(token) {
     if (!res.ok) throw new Error(data.error || 'Error al actualizar');
     setCategorias(prev => prev.map(c => c.id === id ? data.categoria : c));
     return data.categoria;
-  }, [getHeaders]);
+  })(), { loading: 'Guardando categoría', ok: 'Categoría actualizada', error: 'No se pudo guardar la categoría' }), [getHeaders]);
 
-  const deleteCategoria = useCallback(async (id) => {
+  const deleteCategoria = useCallback(async (id) => notifyPromise((async () => {
     const res = await fetch(`/api/categorias/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
@@ -149,16 +152,17 @@ export function useCategorias(token) {
     if (!res.ok) throw new Error(data.error || 'Error al eliminar');
     setCategorias(prev => prev.filter(c => c.id !== id));
     return data;
-  }, [getHeaders]);
+  })(), { loading: 'Eliminando categoría', ok: 'Categoría eliminada', error: 'No se pudo eliminar la categoría' }), [getHeaders]);
 
-  const reorderCategorias = useCallback(async (orderedIds) => {
-    await fetch('/api/categorias/reorder', {
+  const reorderCategorias = useCallback(async (orderedIds) => notifyPromise((async () => {
+    const res = await fetch('/api/categorias/reorder', {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify({ orderedIds }),
     });
+    if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
     await fetchCategorias();
-  }, [getHeaders, fetchCategorias]);
+  })(), { loading: 'Guardando orden', ok: 'Orden guardado', error: 'No se pudo guardar el orden' }), [getHeaders, fetchCategorias]);
 
   const reorderCategoriasLocal = useCallback((orderedIds) => {
     setCategorias(prev => {

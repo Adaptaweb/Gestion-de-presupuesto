@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ClipboardCheck,
   CreditCard,
   LayoutDashboard,
   Lightbulb,
@@ -41,6 +40,7 @@ import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
 import { applyDarkMode, getInitialDarkMode } from './lib/theme.js';
+import { notifySaving, notifySaved, notifySaveError, notifyInfo, notifyOk, notifyError, notifyPromise } from './lib/notify.js';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import {
   BANCOS_CHILE,
@@ -185,7 +185,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [expandedAhorroCuentas, setExpandedAhorroCuentas] = useState({});
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState(null);
-  const [syncStatus, setSyncStatus] = useState('idle');
 
   const [months, setMonths] = useState(INITIAL_MONTHS);
   const [deudas, setDeudas] = useState([]);
@@ -521,8 +520,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
       }
 
       if (Object.keys(cambios).length === 0) return;
-
-      setSyncStatus('saving');
+      notifySaving();
       fetch('/api/sync', {
         method: 'POST',
         headers: getHeaders(),
@@ -534,29 +532,25 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           // 409: otro dispositivo guardo primero. Se recarga desde el servidor
           // en vez de sobrescribir sus cambios.
           if (res.status === 409) {
-            setSyncStatus('conflict');
+            notifyInfo('Actualizado desde otra sesión', 'Se recargaron tus datos para no sobrescribir el otro dispositivo.');
             const recarga = await fetch('/api/data', { headers: getHeaders() }).then(r => r.json());
             aplicarDatos(recarga);
-            setTimeout(() => setSyncStatus('idle'), 3000);
             return;
           }
 
           if (!res.ok || data.error) {
             console.error('[SYNC] Error del servidor:', data.error || res.status);
-            setSyncStatus('error');
-            setTimeout(() => setSyncStatus('idle'), 3000);
+            notifySaveError(data.error || `El servidor respondió ${res.status}`);
             return;
           }
 
           syncVersionRef.current = data.syncVersion;
           Object.assign(ultimoGuardadoRef.current, serializado);
-          setSyncStatus('saved');
-          setTimeout(() => setSyncStatus('idle'), 2000);
+          notifySaved();
         })
         .catch(err => {
           console.error('[SYNC] Error de red:', err);
-          setSyncStatus('error');
-          setTimeout(() => setSyncStatus('idle'), 3000);
+          notifySaveError('Revisa tu conexión.');
         });
     }, 1000);
 
@@ -863,6 +857,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setDeudas([...deudas, { ...newDebt, id: `debt-${Date.now()}`, pagos: {} }]);
     }
+    notifyOk(editingItem ? 'Cuota actualizada' : 'Cuota creada', newDebt.descripcion);
     setIsAddingDebt(false);
     setEditingItem(null);
     setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
@@ -878,6 +873,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setGastosFijos([...gastosFijos, { ...newFixed, id: `fixed-${Date.now()}`, pagos: {} }]);
     }
+    notifyOk(editingItem ? 'Gasto fijo actualizado' : 'Gasto fijo creado', newFixed.descripcion);
     setIsAddingFixed(false);
     setEditingItem(null);
     setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -891,6 +887,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setAbonos([...abonos, { ...newAbono, id: `abono-${Date.now()}`, pagos: {} }]);
     }
+    notifyOk(editingItem ? 'Abono actualizado' : 'Abono creado', newAbono.descripcion);
     setIsAddingAbono(false);
     setEditingItem(null);
     setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -990,6 +987,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setSuscripciones([...suscripciones, { ...newSub, id: `sub-${Date.now()}`, pagos: {} }]);
     }
+    notifyOk(editingItem ? 'Suscripción actualizada' : 'Suscripción creada', newSub.descripcion);
     setIsAddingSub(false);
     setEditingItem(null);
     setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -1004,6 +1002,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
     }
+    notifyOk(editingAccount ? 'Cuenta actualizada' : 'Cuenta creada', newAccount.nombre);
     setIsAddingAccount(false);
     setEditingAccount(null);
     setNewAccount({ nombre: '', banco: '' });
@@ -1154,8 +1153,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   };
   const guardarPresupuesto = (e) => {
     if (e) e.preventDefault();
-    setSueldos({ ...sueldos, [dashboardMonth]: parseInt(presupuestoDraft, 10) || 0 });
+    const monto = parseInt(presupuestoDraft, 10) || 0;
+    setSueldos({ ...sueldos, [dashboardMonth]: monto });
     setShowPresupuestoModal(false);
+    notifyOk('Presupuesto guardado', `${dashboardMonth}: ${formatCurrency(monto)}`);
   };
 
   // Orden de abajo hacia arriba: la mas cercana al FAB es la mas usada.
@@ -1194,19 +1195,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   {presupuestoMes > 0 ? formatCurrency(presupuestoMes) : 'Definir'}
                 </span>
               </button>
-            )}
-            {syncStatus !== 'idle' && (
-              <div
-                title={syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
-                className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-2 min-w-[36px] rounded-xl text-xs font-bold transition-colors ${syncStatus === 'saving' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : syncStatus === 'saved' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : syncStatus === 'conflict' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'}`}
-              >
-                {syncStatus === 'saving' ? <Loader2 size={14} className="animate-spin" /> : syncStatus === 'saved' ? <ClipboardCheck size={14} /> : syncStatus === 'conflict' ? <RefreshCw size={14} /> : <X size={14} />}
-                {/* El texto de 'conflict' mide 28 caracteres: en movil empujaba
-                    el menu de usuario fuera de la fila. */}
-                <span className="hidden sm:inline">
-                  {syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
-                </span>
-              </div>
             )}
             <button
               onClick={() => {
@@ -2108,6 +2096,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 else if (isSub) setSuscripciones(suscripciones.filter(x => x.id !== item.id));
                                 else if (isAbono) setAbonos(abonos.filter(x => x.id !== item.id));
                                 else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
+                                notifyOk('Eliminado', item.descripcion);
                                 return Promise.resolve();
                               }
                             });
@@ -2281,6 +2270,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                             setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
                             const { [cuenta.id]: _, ...rest } = ahorrosData;
                             setAhorrosData(rest);
+                            notifyOk('Cuenta eliminada', cuenta.nombre);
                           }} aria-label={`Eliminar ${cuenta.nombre}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
                         </div>
                       </div>

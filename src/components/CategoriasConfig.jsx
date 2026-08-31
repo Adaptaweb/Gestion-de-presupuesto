@@ -7,19 +7,6 @@ import { DeleteConfirmModal } from './DeleteConfirmModal.jsx';
 const TIPO_ORDER = ['gasto', 'ingreso', 'ambos'];
 const TIPO_LABELS = { gasto: 'Gasto', ingreso: 'Ingreso', ambos: 'Ambos' };
 
-function Toast({ msg, onDone }) {
-  const [visible, setVisible] = useState(true);
-  React.useEffect(() => {
-    const t = setTimeout(() => { setVisible(false); setTimeout(onDone, 300); }, 2000);
-    return () => clearTimeout(t);
-  }, [onDone]);
-  return (
-    <div className={`fixed top-20 right-6 z-[100] flex items-center gap-2 bg-emerald-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl font-bold text-sm transition duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-      <Check size={16} /> {msg}
-    </div>
-  );
-}
-
 export default function CategoriasConfig({
   show,
   onClose,
@@ -41,7 +28,6 @@ export default function CategoriasConfig({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [dragCat, setDragCat] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
-  const [toast, setToast] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -74,7 +60,6 @@ export default function CategoriasConfig({
 
   const sortedCats = [...categorias].sort((a, b) => (a.orden || 0) - (b.orden || 0));
 
-  const showToast = (msg) => setToast(msg);
 
   const openEdit = (cat) => {
     setEditing({ ...cat, isNew: false });
@@ -104,14 +89,13 @@ export default function CategoriasConfig({
     try {
       if (editing.isNew) {
         await onCreateCategoria({ nombre: editName.trim(), color_hex: editColor, emoji: editEmoji, tipo: editTipo });
-        showToast('Categoría creada');
       } else {
         await onUpdateCategoria(editing.id, { nombre: editName.trim(), color_hex: editColor, emoji: editEmoji, tipo: editTipo });
-        showToast('Categoría actualizada');
       }
       closeModal();
     } catch (e) {
-      alert(e.message);
+      // useCategorias ya notificó el error.
+      console.error(e);
     }
   };
 
@@ -124,9 +108,9 @@ export default function CategoriasConfig({
       onConfirm: async () => {
         try {
           await onDeleteCategoria(cat.id);
-          showToast('Categoría eliminada');
         } catch (e) {
-          alert(e.message);
+          // useCategorias ya notificó el error.
+          console.error(e);
         }
         return Promise.resolve();
       }
@@ -169,8 +153,6 @@ export default function CategoriasConfig({
       const orderedIds = cats.map(c => c.id);
 
       onReorderLocal(orderedIds);
-      showToast('Orden actualizado');
-
       onReorderCategorias(orderedIds).catch(err =>
         console.error('Error reordering:', err)
       );
@@ -181,8 +163,6 @@ export default function CategoriasConfig({
 
   return (
     <>
-      {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
-
       <div className="animate-slide-fade space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="flex items-center gap-3">

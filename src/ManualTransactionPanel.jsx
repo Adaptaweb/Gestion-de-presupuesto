@@ -6,6 +6,7 @@ import {
   CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_HEX, CATEGORY_RING_COLOR,
   BANK_ICONS, hexToRgba,
 } from './constants.js';
+import { notifyOk, notifyError } from './lib/notify.js';
 
 const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDarkMode }) => {
   const [tipo, setTipo] = useState('gasto');
@@ -77,6 +78,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
       });
       const data = await res.json();
       if (res.ok) {
+        notifyOk('Transacción guardada', `${comercio || 'Ingreso manual'} · $${new Intl.NumberFormat('es-CL').format(Math.abs(parseFloat(monto) || 0))}`);
         setVisible(false);
         setTimeout(() => {
           resetForm();
@@ -84,10 +86,12 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
           onClose();
         }, 250);
       } else {
-        setError(data.error || 'Error al guardar');
+        // La validacion del formulario sigue inline; el fallo al guardar sale
+        // como toast porque el panel se cierra al terminar.
+        notifyError('No se pudo guardar', data.error || 'Intenta de nuevo.');
       }
     } catch (err) {
-      setError('Error de red al guardar');
+      notifyError('Error de red', 'No se pudo guardar la transacción.');
     } finally {
       setSaving(false);
     }
@@ -122,6 +126,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
       });
       const data = await res.json();
       if (res.ok) {
+        notifyOk('Transacción guardada', `${comercio || 'Ingreso manual'} · $${new Intl.NumberFormat('es-CL').format(Math.abs(parseFloat(monto) || 0))}`);
         setVisible(false);
         setTimeout(() => {
           resetForm();
@@ -129,10 +134,12 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
           onClose();
         }, 250);
       } else {
-        setError(data.error || 'Error al guardar');
+        // La validacion del formulario sigue inline; el fallo al guardar sale
+        // como toast porque el panel se cierra al terminar.
+        notifyError('No se pudo guardar', data.error || 'Intenta de nuevo.');
       }
     } catch (err) {
-      setError('Error de red al guardar');
+      notifyError('Error de red', 'No se pudo guardar la transacción.');
     } finally {
       setSaving(false);
     }
