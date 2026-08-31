@@ -3,7 +3,7 @@ import {
   X, Check, Loader2, Plus, Zap, CalendarDays, CalendarRange, ShoppingCart, TrendingUp,
 } from 'lucide-react';
 import {
-  CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_HEX, CATEGORY_ICON_MAP, CATEGORY_RING_COLOR,
+  CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_HEX, CATEGORY_RING_COLOR,
   BANK_ICONS, hexToRgba,
 } from './constants.js';
 
@@ -255,7 +255,6 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
               {CATEGORY_LIST.map(cat => {
                 const selected = categoria === cat;
                 const hex = CATEGORY_HEX[cat] || CATEGORY_HEX['Otros'];
-                const CatIcon = CATEGORY_ICON_MAP[cat];
                 const ringClass = CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60';
                 return (
                   <button key={cat} onClick={() => setCategoria(cat)} className="flex-shrink-0 flex flex-col items-center gap-1.5">
@@ -267,7 +266,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
                       }`}
                       style={selected ? { backgroundColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.16), color: hex } : {}}
                     >
-                      {CatIcon ? <CatIcon size={20} strokeWidth={selected ? 2.3 : 1.8} /> : CATEGORY_EMOJI[cat]}
+                      {CATEGORY_EMOJI[cat]}
                     </span>
                     <span className={`text-[10px] leading-tight text-center whitespace-nowrap transition ${selected ? 'font-black text-slate-700 dark:text-slate-200' : 'font-bold text-slate-400 dark:text-slate-500'}`}>
                       {cat}

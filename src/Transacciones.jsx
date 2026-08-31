@@ -22,7 +22,7 @@ import {
   CATEGORY_ICON_COLOR as CATEGORY_ICON_COLOR_DEFAULT,
   CATEGORY_EMOJI as CATEGORY_EMOJI_DEFAULT,
   CATEGORY_HEX as CATEGORY_HEX_DEFAULT, hexToRgba,
-  CATEGORY_ICON_MAP, CATEGORY_RING_COLOR,
+  CATEGORY_RING_COLOR,
   BANK_COLORS, BANK_ACCENT, BANK_ICONS
 } from './constants.js';
 
@@ -267,7 +267,6 @@ const ReviewCard = ({
                 const iconBg = CATEGORY_ICON_BG[cat];
                 const iconCol = CATEGORY_ICON_COLOR[cat];
                 const isStyle = iconBg?.backgroundColor !== undefined;
-                const CatIcon = CATEGORY_ICON_MAP[cat];
                 const ringClass = !isStyle ? (CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60') : '';
                 return (
                   <button key={cat} onClick={() => setReviewCat(cat)} className="flex-shrink-0 flex flex-col items-center gap-1.5">
@@ -279,7 +278,7 @@ const ReviewCard = ({
                           : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500'
                       }`}
                     >
-                      {CatIcon ? <CatIcon size={20} strokeWidth={selected ? 2.3 : 1.8} /> : CATEGORY_EMOJI[cat]}
+                      {CATEGORY_EMOJI[cat]}
                     </span>
                     <span className={`text-[10px] leading-tight text-center whitespace-nowrap transition ${selected ? `font-black ${accentText}` : 'font-bold text-slate-400 dark:text-slate-500'}`}>
                       {cat}
@@ -566,7 +565,6 @@ const TransactionCard = ({
   const movimiento = tx.tipo_movimiento || tx.tipo_tarjeta || '';
   const mutedChip = 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500';
 
-  const CatIcon = CATEGORY_ICON_MAP[tx.categoria];
   const metaParts = [tx.categoria, tx.banco, movimiento].filter(Boolean);
 
   return (
@@ -595,7 +593,7 @@ const TransactionCard = ({
         }`}
         style={isMuted ? undefined : { backgroundColor: hexToRgba(hex, isDarkMode ? 0.2 : 0.16), color: hex }}
       >
-        {CatIcon ? <CatIcon size={18} strokeWidth={1.8} /> : <span className="text-lg leading-none">{emoji}</span>}
+        <span className="text-lg leading-none">{emoji}</span>
       </div>
 
       <div className="min-w-0 flex-1">
@@ -1777,12 +1775,11 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   <div className="max-h-[260px] overflow-y-auto custom-scrollbar p-4 space-y-3.5">
                     {gastoSummary.map(s => {
                       const hex = catHex(s.categoria);
-                      const CatIcon = CATEGORY_ICON_MAP[s.categoria];
                       return (
                         <div key={s.categoria} className="flex flex-col gap-1.5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.16), color: hex }}>
-                              {CatIcon ? <CatIcon size={14} strokeWidth={1.8} /> : <span className="text-sm leading-none">{CATEGORY_EMOJI[s.categoria] || CATEGORY_EMOJI_DEFAULT[s.categoria] || '💳'}</span>}
+                              <span className="text-sm leading-none">{CATEGORY_EMOJI[s.categoria] || CATEGORY_EMOJI_DEFAULT[s.categoria] || '💳'}</span>
                             </div>
                             <span className="flex-1 text-[13px] font-black text-slate-700 dark:text-slate-200 truncate">{s.categoria}</span>
                             <span className="text-[13px] font-black text-slate-700 dark:text-slate-200 flex-shrink-0">{formatCurrency(s.total)}</span>

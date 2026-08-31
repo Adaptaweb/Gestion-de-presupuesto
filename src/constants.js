@@ -1,9 +1,3 @@
-import {
-  Home, ShoppingCart, Utensils, Bus, ShoppingBag, HeartPulse,
-  GraduationCap, Smartphone, Plane, Gift, MoreHorizontal, PiggyBank,
-  Wallet, TrendingUp, Banknote, Landmark, Percent, CreditCard, Minus, Gamepad2,
-} from 'lucide-react';
-
 export const CATEGORY_LIST = [
   'Casa y cuentas', 'Mercadería', 'Gustitos', 'Transporte', 'Compras',
   'Salud y deportes', 'Educación', 'Suscripciones', 'Viajes y vacaciones',
@@ -179,32 +173,6 @@ export const CATEGORY_HEX = {
   'Créditos de consumo': '#ef4444',
   'Sin categoría': '#71717a',
   'Juegos': '#a855f7',
-};
-
-// Iconos de línea por categoría: refuerzan el estado seleccionado mejor que
-// el emoji plano. Una categoría creada por el usuario (fuera de esta lista)
-// sigue usando su emoji (CATEGORY_EMOJI) como respaldo.
-export const CATEGORY_ICON_MAP = {
-  'Casa y cuentas': Home,
-  'Mercadería': ShoppingCart,
-  'Gustitos': Utensils,
-  'Transporte': Bus,
-  'Compras': ShoppingBag,
-  'Salud y deportes': HeartPulse,
-  'Educación': GraduationCap,
-  'Suscripciones': Smartphone,
-  'Viajes y vacaciones': Plane,
-  'Donaciones y regalos': Gift,
-  'Otros': MoreHorizontal,
-  'Ahorro': PiggyBank,
-  'Sueldo': Wallet,
-  'Inversiones / Renta': TrendingUp,
-  'Otros ingresos': Banknote,
-  'Gastos bancarios': Landmark,
-  'Intereses': Percent,
-  'Créditos de consumo': CreditCard,
-  'Sin categoría': Minus,
-  'Juegos': Gamepad2,
 };
 
 // Tailwind (JIT) solo genera una clase si aparece como texto literal en el
