@@ -47,6 +47,7 @@ import {
   CHILE_CATEGORY_LABELS,
   CHILE_PRESET_ICONS,
   CLAVES_SINCRONIZADAS,
+  CURRENT_YEAR,
   INITIAL_MONTHS,
   MONTH_NAMES,
   PRESET_ICONS,
@@ -61,12 +62,12 @@ import {
 // flotante movil se generaban por separado y ya habian divergido.
 const NAV_ITEMS = [
   { id: 'transacciones', icon: Mail, label: 'Transacciones', short: 'Trans' },
-  { id: 'general', icon: ListChecks, label: 'Detalle General', short: 'Detalle' },
+  { id: 'general', icon: ListChecks, label: 'Suscripciones y Cuotas', short: 'Cuotas' },
   { id: 'ahorros', icon: PiggyBank, label: 'Gestión de Ahorros', short: 'Ahorros' },
   { id: 'dashboard', icon: LayoutDashboard, label: 'Resumen', short: 'Resumen' },
 ];
 
-// Selector de mes compartido entre Resumen, Detalle General y Ahorros: antes
+// Selector de mes compartido entre Resumen, Suscripciones y Cuotas y Ahorros: antes
 // cada tab tenia su propio <select> de ano ademas de este nav; ahora el ano
 // se elige desde el mismo desplegable, igual que el selector de mes de
 // Transacciones (flechas de mes + panel con flechas de ano y grilla de meses).
@@ -191,6 +192,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [gastosFijos, setGastosFijos] = useState([]);
   const [abonos, setAbonos] = useState([]);
   const [sueldos, setSueldos] = useState({});
+  // El presupuesto del mes (guardado como `sueldos[mes]`) vivia solo dentro de
+  // la card de Suscripciones y Cuotas, asi que no se veia ni se editaba desde
+  // el resto de las pestanas. Ahora es un chip del header, visible siempre.
+  const [showPresupuestoModal, setShowPresupuestoModal] = useState(false);
+  const [presupuestoDraft, setPresupuestoDraft] = useState('');
   const [cuentasAhorro, setCuentasAhorro] = useState([]);
   const [ahorrosData, setAhorrosData] = useState({});
   const [loadingData, setLoadingData] = useState(true);
@@ -558,7 +564,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   }, [deudas, months, gastosFijos, abonos, sueldos, cuentasAhorro, ahorrosData, suscripciones]);
 
   const expandToFullYearMonths = (monthArr) => {
-    const years = [...new Set(monthArr.map(m => m.split(' ')[1]))];
+    // El ano en curso se agrega siempre, aunque los datos guardados no lo
+    // tengan: sin el, el mes actual no existiria y el presupuesto del mes se
+    // guardaria contra otro mes.
+    const years = [...new Set([...monthArr.map(m => m.split(' ')[1]), CURRENT_YEAR])];
     const expanded = [];
     years.forEach(y => {
       for (let i = 0; i < 12; i++) expanded.push(`${MONTH_NAMES[i]} ${y}`);
@@ -821,7 +830,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     };
 
     const prompt = `Analiza mi situación financiera actual:
-    - Sueldo promedio: ${formatCurrency(dataSummary.sueldoPromedio)}
+    - Presupuesto promedio: ${formatCurrency(dataSummary.sueldoPromedio)}
     - Número de deudas en cuotas: ${dataSummary.totalDeudas}
     - Pago mensual total en deudas: ${formatCurrency(dataSummary.compromisoMensualCuotas)}
     - Número de gastos fijos: ${dataSummary.gastosFijosCount}
@@ -1022,7 +1031,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     }));
   };
 
-  // Comparten toolbar de escritorio y speed-dial del FAB movil en Detalle General.
+  // Comparten toolbar de escritorio y speed-dial del FAB movil en Suscripciones y Cuotas.
   const openAddDebt = () => {
     setEditingItem(null);
     setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
@@ -1127,6 +1136,28 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     return <RefreshCw size={18} className="text-violet-400" />;
   };
 
+  // Escape cierra el modal del presupuesto. El resto de los modales de esta
+  // pantalla solo cierran con la X; aqui el input tiene el foco al abrir, asi
+  // que salir con el teclado es el gesto natural.
+  useEffect(() => {
+    if (!showPresupuestoModal) return;
+    const onKey = (e) => { if (e.key === 'Escape') setShowPresupuestoModal(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showPresupuestoModal]);
+
+  const mesActual = `${MONTH_NAMES[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  const presupuestoMes = sueldos[dashboardMonth] || 0;
+  const abrirPresupuesto = () => {
+    setPresupuestoDraft(presupuestoMes ? String(presupuestoMes) : '');
+    setShowPresupuestoModal(true);
+  };
+  const guardarPresupuesto = (e) => {
+    if (e) e.preventDefault();
+    setSueldos({ ...sueldos, [dashboardMonth]: parseInt(presupuestoDraft, 10) || 0 });
+    setShowPresupuestoModal(false);
+  };
+
   // Orden de abajo hacia arriba: la mas cercana al FAB es la mas usada.
   const fabDialActions = [
     { key: 'sub', label: 'Suscripciones', icon: RefreshCw, color: theme.btnSub, onClick: openAddSub },
@@ -1149,6 +1180,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </div>
 
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            {!!dashboardMonth && (
+              <button
+                onClick={abrirPresupuesto}
+                title={`Presupuesto de ${dashboardMonth}`}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 min-h-[40px] rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm active:scale-95"
+              >
+                <Wallet size={16} className={theme.tabText} />
+                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  {dashboardMonth.split(' ')[0].slice(0, 3)}
+                </span>
+                <span className="font-mono font-black text-xs text-slate-700 dark:text-slate-200">
+                  {presupuestoMes > 0 ? formatCurrency(presupuestoMes) : 'Definir'}
+                </span>
+              </button>
+            )}
             {syncStatus !== 'idle' && (
               <div
                 title={syncStatus === 'saving' ? 'Guardando...' : syncStatus === 'saved' ? 'Guardado' : syncStatus === 'conflict' ? 'Actualizado desde otra sesión' : 'Error'}
@@ -1252,7 +1298,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </button>
         </div>
 
-        {/* Scrim del speed-dial: solo existe en Detalle General, con el dial abierto. */}
+        {/* Scrim del speed-dial: solo existe en Suscripciones y Cuotas, con el dial abierto. */}
         {activeTab === 'general' && isFabDialOpen && (
           <div
             className="md:hidden fixed inset-0 z-40 bg-slate-950/35 dark:bg-black/55 animate-fade-in"
@@ -1262,7 +1308,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {/* Barra flotante con FAB central. El FAB abre Ingreso Manual en
-            cualquier tab, salvo en Detalle General donde despliega un
+            cualquier tab, salvo en Suscripciones y Cuotas donde despliega un
             speed-dial con las acciones de esa tab (Nueva Cuota/Gasto Fijo/
             Abono/Suscripciones), que en movil ya no tienen su propio toolbar. */}
         <div
@@ -1311,7 +1357,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             </div>
             <button
               onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
-              aria-label={activeTab === 'general' ? 'Agregar en Detalle General' : 'Ingreso manual'}
+              aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
               aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
               className={`absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} ring-8 ring-kk-background dark:ring-dark-darker transition active:scale-90`}
             >
@@ -1322,7 +1368,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {!showCategoriasConfig && <>
         {activeTab === 'dashboard' && !!dashboardMonth && (
-          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in duration-500 px-4 sm:px-6 lg:px-8">
+          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in duration-500 px-4 sm:px-6 w-full max-w-5xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
@@ -1839,7 +1885,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {activeTab === 'general' && (
-          <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 lg:px-8">
+          <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 w-full max-w-5xl mx-auto">
             <div className="hidden sm:flex flex-wrap justify-end gap-2 mb-3">
               <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
@@ -1859,45 +1905,94 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
             </div>
 
+            {/* Card principal de la pantalla. Reemplaza a la de sueldo: el
+                presupuesto del mes se edita ahora desde el chip del header, y
+                Gastos Fijos / Abonos / Disponible quedan solo en Resumen.
+                A diferencia de totalesMensuales, que suma unicamente lo PAGADO,
+                aqui cada mitad muestra el compromiso completo del mes. */}
             {(() => {
               const mes = dashboardMonth;
-              const tot = totalesMensuales[mes] || { cuotas: 0, gastos: 0, suscripciones: 0, abonos: 0, sueldo: 0, neto: 0 };
+              const esPagado = (x) => x.pagos?.[mes]?.estado === 'PAGADA';
+
+              const cuotasActivas = deudas.filter(d => {
+                const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
+                return isMonthInRange(mes, d.mesInicio, mesTermino, d.isContribuciones);
+              });
+              const subsActivas = suscripciones.filter(s => {
+                const startVal = toDateVal(s.mesInicio);
+                const mesVal = toDateVal(mes);
+                if (s.billingCycle === 'mensual') return mesVal >= startVal && mesVal < startVal + s.durationYears * 12;
+                for (let i = 0; i < s.durationYears; i++) { if (mesVal === startVal + i * 12) return true; }
+                return false;
+              });
+
+              const montoCuota = (d) => d.valorCuota || 0;
+              const montoSub = (s) => s.pagos?.[mes]?.monto || s.valor || 0;
+
+              const totalCuotas = cuotasActivas.reduce((acc, d) => acc + montoCuota(d), 0);
+              const totalSubs = subsActivas.reduce((acc, s) => acc + montoSub(s), 0);
+              const pagadoCuotas = cuotasActivas.filter(esPagado).reduce((acc, d) => acc + montoCuota(d), 0);
+              const pagadoSubs = subsActivas.filter(esPagado).reduce((acc, s) => acc + montoSub(s), 0);
+
+              const total = totalCuotas + totalSubs;
+              const pagado = pagadoCuotas + pagadoSubs;
+              const falta = Math.max(0, total - pagado);
+              const pctPagado = total > 0 ? (pagado / total) * 100 : 0;
+
+              const cuotasPagadas = cuotasActivas.filter(esPagado).length;
+              const subsPagadas = subsActivas.filter(esPagado).length;
+              const proximoCobro = subsActivas
+                .filter(s => !esPagado(s))
+                .map(s => s.diaPago || 1)
+                .sort((a, b) => a - b)[0];
+
               return (
-                <div className="bg-slate-900 rounded-3xl shadow-xl p-4 sm:p-5 space-y-2.5 mb-4 sm:mb-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-cyan-300"><ArrowUpCircle size={14} /> Sueldo del Mes</span>
-                    <div className="relative w-36 sm:w-40">
-                      <input
-                        type="text"
-                        value={sueldos[mes] ? new Intl.NumberFormat('es-CL').format(sueldos[mes]) : ''}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/[^0-9\-]/g, '');
-                          setSueldos({ ...sueldos, [mes]: parseInt(raw) || 0 });
-                        }}
-                        placeholder="$ Monto"
-                        className="w-full bg-slate-700/50 rounded-xl py-2 px-3 text-right text-cyan-300 font-mono font-black text-sm outline-none border border-slate-600 focus:border-cyan-500 transition placeholder:text-slate-500"
-                      />
+                <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid border border-slate-200/70 dark:border-dark-lighter overflow-hidden mb-4 sm:mb-5">
+                  <div className="grid grid-cols-2">
+                    <div className="p-3 sm:p-5 border-r border-slate-100 dark:border-dark-lighter">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className={`p-1 sm:p-1.5 rounded-lg ${theme.bgLight} ${theme.bgLightDark}`}>
+                          <CreditCard className={theme.tabText} size={14} strokeWidth={1.75} />
+                        </div>
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-400">Cuotas</span>
+                      </div>
+                      <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${theme.tabText}`}>{formatCurrency(totalCuotas)}</div>
+                      <div className="text-xs text-slate-400">
+                        {cuotasActivas.length === 0
+                          ? 'Sin cuotas este mes'
+                          : `${cuotasPagadas} pagadas · ${cuotasActivas.length - cuotasPagadas} pendientes`}
+                      </div>
+                    </div>
+                    <div className="p-3 sm:p-5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="p-1 sm:p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30">
+                          <RefreshCw className="text-rose-500 dark:text-rose-400" size={14} strokeWidth={1.75} />
+                        </div>
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-400">Suscripciones</span>
+                      </div>
+                      <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</div>
+                      <div className="text-xs text-slate-400">
+                        {subsActivas.length === 0
+                          ? 'Sin suscripciones este mes'
+                          : `${subsActivas.length - subsPagadas} por cobrar${proximoCobro ? ` · Próx: día ${proximoCobro}` : ''}`}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400 font-bold flex items-center gap-1.5"><CreditCard size={13} /> Cuotas</span>
-                    <span className="font-mono font-black text-slate-200">{formatCurrency(tot.cuotas)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400 font-bold flex items-center gap-1.5"><Receipt size={13} /> Gastos Fijos</span>
-                    <span className="font-mono font-black text-slate-200">{formatCurrency(tot.gastos)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-rose-400 font-bold flex items-center gap-1.5"><RefreshCw size={13} /> Suscripciones</span>
-                    <span className="font-mono font-black text-rose-300">{formatCurrency(tot.suscripciones)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-emerald-400 font-bold flex items-center gap-1.5"><TrendingUp size={13} /> Abonos</span>
-                    <span className="font-mono font-black text-emerald-300">{formatCurrency(tot.abonos)}</span>
-                  </div>
-                  <div className="pt-2.5 mt-1 border-t border-slate-700 flex items-center justify-between">
-                    <span className="text-sm font-black uppercase tracking-wide text-white flex items-center gap-1.5"><Wallet size={15} className="text-emerald-400" /> Disponible</span>
-                    <span className={`font-mono font-black text-lg ${tot.neto >= 0 ? 'text-emerald-400' : 'text-rose-500 animate-pulse'}`}>{formatCurrency(tot.neto)}</span>
+
+                  <div className="border-t border-slate-100 dark:border-dark-lighter bg-slate-50/70 dark:bg-dark-lighter/30 px-3 sm:px-5 py-3 sm:py-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-400">Total del mes</span>
+                      <span className="text-base sm:text-lg font-mono font-black text-slate-700 dark:text-slate-200">{formatCurrency(total)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-200 dark:bg-dark-lightest overflow-hidden mb-2">
+                      <div className="h-full rounded-full bg-emerald-500 transition-all duration-500 ease-fluid" style={{ width: `${pctPagado}%` }} />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-slate-400">{formatCurrency(pagado)} pagado · {pctPagado.toFixed(0)}%</span>
+                      <span className={`text-xs sm:text-sm font-black ${falta > 0 ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-500 dark:text-emerald-400'}`}>
+                        {falta > 0 ? `Falta ${formatCurrency(falta)}` : 'Todo pagado'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -2117,7 +2212,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             )}
           </div>
         )} {activeTab === 'ahorros' && (
-          <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 lg:px-8">
+          <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 w-full max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
@@ -2276,6 +2371,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             onOpenTutorial={onOpenTutorial}
             pendingAction={txAction}
             onActionHandled={() => setTxAction(null)}
+            presupuestos={sueldos}
           />
         </div>
 
@@ -2307,6 +2403,116 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           isDarkMode={isDarkMode}
           getCatStyle={getCatStyle}
         />
+        )}
+
+        {showPresupuestoModal && (
+          <div
+            className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4 animate-fade-in"
+            onClick={() => setShowPresupuestoModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-7 shadow-2xl animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-start mb-4 sm:mb-5">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-2xl grid place-items-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark}`}>
+                    <Wallet className={theme.tabText} size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 leading-tight">Presupuesto del mes</h3>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 capitalize">{dashboardMonth}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowPresupuestoModal(false)}
+                  aria-label="Cerrar"
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 -mr-1 transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 mb-5">
+                Es la plata con la que cuentas para <span className="font-bold text-slate-600 dark:text-slate-300 capitalize">{dashboardMonth}</span>.
+                El Resumen parte de este monto, le suma tus abonos y le resta cuotas, gastos fijos y suscripciones
+                para mostrarte cuánto te va quedando.
+              </p>
+
+              {dashboardMonth !== mesActual && (
+                <div className="flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 px-3 py-2.5 mb-5">
+                  <CalendarDays className="text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" size={15} />
+                  <p className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                    Cada mes guarda su propio presupuesto. Estás editando <span className="capitalize">{dashboardMonth}</span>, no {mesActual.toLowerCase()}.
+                  </p>
+                </div>
+              )}
+
+              <form onSubmit={guardarPresupuesto}>
+                <label htmlFor="presupuesto-input" className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                  Monto del mes
+                </label>
+                <div className="relative mb-5">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-black text-lg pointer-events-none">$</span>
+                  <input
+                    id="presupuesto-input"
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={presupuestoDraft ? new Intl.NumberFormat('es-CL').format(parseInt(presupuestoDraft, 10)) : ''}
+                    onChange={(e) => setPresupuestoDraft(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="0"
+                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 pr-4 py-3 text-right font-mono font-black text-lg text-slate-800 dark:text-slate-100 outline-none ${theme.focusBorder} transition`}
+                  />
+                </div>
+
+                {(() => {
+                  const mes = dashboardMonth;
+                  const tot = totalesMensuales[mes] || { cuotas: 0, suscripciones: 0, abonos: 0 };
+                  const gastosMes = resumenGastosMes.total_gastos || 0;
+                  // Misma formula que el Disponible del Resumen: si cambia alla,
+                  // esta vista previa deja de decir la verdad.
+                  const comprometido = tot.cuotas + gastosMes + tot.suscripciones;
+                  const monto = parseInt(presupuestoDraft, 10) || 0;
+                  const restante = monto + tot.abonos - comprometido;
+                  return (
+                    <div className="rounded-2xl bg-slate-50 dark:bg-dark-lighter/40 border border-slate-100 dark:border-dark-lighter p-3.5 space-y-2 mb-5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-400 dark:text-slate-500">Abonos del mes</span>
+                        <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">+{formatCurrency(tot.abonos)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-400 dark:text-slate-500">Cuotas, gastos y suscripciones</span>
+                        <span className="font-mono font-black text-slate-500 dark:text-slate-400">−{formatCurrency(comprometido)}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-dark-lightest">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Te quedarían</span>
+                        <span className={`font-mono font-black text-base ${restante >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
+                          {formatCurrency(restante)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div className="flex gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowPresupuestoModal(false)}
+                    className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest transition active:scale-95"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className={`flex-[1.6] py-3 rounded-xl text-sm font-black text-white ${theme.btnPrimary} shadow-lg ${theme.shadowBtn} transition active:scale-95`}
+                  >
+                    Guardar presupuesto
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
 
         {isAddingDebt && (

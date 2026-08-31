@@ -79,10 +79,13 @@ export const MONTH_NAMES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-export const INITIAL_MONTHS = [
-  'Enero 2026', 'Febrero 2026', 'Marzo 2026', 'Abril 2026', 'Mayo 2026', 'Junio 2026',
-  'Julio 2026', 'Agosto 2026', 'Septiembre 2026', 'Octubre 2026', 'Noviembre 2026', 'Diciembre 2026'
-];
+// El mes en curso tiene que existir siempre en la lista: es el que el
+// dashboard selecciona por defecto y contra el que se guarda el presupuesto
+// del mes. Estaba fijo en 2026, asi que a partir de enero de 2027 el mes
+// actual no habria estado y el presupuesto habria caido en Enero 2026.
+export const CURRENT_YEAR = new Date().getFullYear().toString();
+
+export const INITIAL_MONTHS = MONTH_NAMES.map(m => `${m} ${CURRENT_YEAR}`);
 
 export const THEMES = {
   // El tema de marca. Antes eran clases emerald de Tailwind (#10B981), no el

@@ -11,6 +11,8 @@ import {
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { Calendar } from '@/components/ui/calendar';
+import { Skeleton } from 'boneyard-js/react';
+import { MONTH_NAMES } from './constants/dashboard.js';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -450,20 +452,105 @@ const SortChips = ({ sortConfig, onSort }) => (
   </div>
 );
 
+// Espeja <TransactionCard>: misma caja (pl-4 pr-2, py-2.5, rounded-[18px]),
+// misma barra lateral de 3px y las dos lineas de texto. La version anterior
+// seguia dibujando los chips de categoria que la tarjeta ya no tiene.
+// El tipo de tarjeta llega como texto libre: los parsers y el ingreso manual
+// escriben 'Débito'/'Crédito', pero el modal de edicion guardaba las variantes
+// sin tilde. La migracion 0017 arregla lo ya guardado; esto evita que una fila
+// vieja o un banco nuevo vuelvan a partir la tarjeta en dos lineas iguales.
+const normalizeTipoTarjeta = (raw) => {
+  const plain = (raw || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+  if (plain.includes('credito')) return 'Crédito';
+  if (plain.includes('debito')) return 'Débito';
+  return raw || 'Otro';
+};
+
 const TransactionCardSkeleton = () => (
-  <div className="relative flex items-center gap-3 sm:gap-4 pl-5 pr-3 py-3.5 rounded-2xl border border-slate-100 dark:border-dark-lighter bg-white dark:bg-dark-lighter/40 overflow-hidden">
-    <span className="absolute left-0 inset-y-0 w-1.5 bg-slate-200 dark:bg-dark-lightest" />
-    <span className="skeleton inline-block rounded-full flex-shrink-0" style={{ width: '42px', height: '42px' }} />
-    <div className="flex-1 min-w-0 space-y-2">
-      <span className="skeleton block" style={{ width: '45%', height: '13px' }} />
-      <span className="flex gap-1.5">
-        <span className="skeleton inline-block rounded-full" style={{ width: '72px', height: '16px' }} />
-        <span className="skeleton inline-block rounded-full" style={{ width: '58px', height: '16px' }} />
-      </span>
+  <div className="relative flex items-center gap-3 pl-4 pr-2 sm:pr-3 py-2.5 sm:py-3 rounded-[18px] bg-slate-50/80 dark:bg-white/[0.03] overflow-hidden">
+    <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-slate-200 dark:bg-white/10" />
+    <span className="skeleton inline-block rounded-full flex-shrink-0 w-10 h-10 sm:w-[42px] sm:h-[42px]" />
+    <div className="min-w-0 flex-1 space-y-1.5">
+      <span className="skeleton block" style={{ width: '46%', height: '15px' }} />
+      <span className="skeleton block" style={{ width: '62%', height: '11px' }} />
     </div>
-    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+    <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
       <span className="skeleton inline-block" style={{ width: '76px', height: '15px' }} />
-      <span className="skeleton inline-block" style={{ width: '92px', height: '11px' }} />
+      <span className="skeleton inline-block" style={{ width: '54px', height: '11px' }} />
+    </div>
+  </div>
+);
+
+// Fallback de los widgets del mes mientras boneyard no tenga bones capturadas
+// (registro vacio, primera carga en un dispositivo nuevo). Sigue la estructura
+// actual: tarjeta de total + lista de categorias + carrusel de tarjetas.
+const TxWidgetsSkeleton = () => (
+  <div className="space-y-5">
+    <div className="flex flex-col gap-2.5 p-4 rounded-3xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-fluid">
+      <div className="flex items-baseline justify-between">
+        <div className="space-y-1.5">
+          <span className="skeleton block" style={{ width: '108px', height: '10px' }} />
+          <span className="skeleton block" style={{ width: '156px', height: '28px' }} />
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="skeleton block" style={{ width: '72px', height: '10px' }} />
+          <span className="skeleton block" style={{ width: '92px', height: '14px' }} />
+          <span className="skeleton block" style={{ width: '78px', height: '10.5px' }} />
+        </div>
+      </div>
+      <div className="h-2 skeleton rounded-full" />
+    </div>
+
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between px-0.5">
+        <span className="skeleton inline-block" style={{ width: '150px', height: '10px' }} />
+        <span className="skeleton inline-block" style={{ width: '70px', height: '10px' }} />
+      </div>
+      <div className="rounded-3xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-fluid p-4 space-y-3.5">
+        {[[62, '30%'], [48, '24%'], [35, '34%'], [24, '27%']].map(([w, labelW], i) => (
+          <div key={i} className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2.5">
+              <span className="skeleton rounded-full flex-shrink-0 w-7 h-7" />
+              <span className="skeleton flex-1" style={{ maxWidth: labelW, height: '13px' }} />
+              <span className="skeleton flex-shrink-0 ml-auto" style={{ width: '78px', height: '13px' }} />
+            </div>
+            <div className="h-[9px] rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden ml-[38px]">
+              <div className="h-full skeleton rounded-full" style={{ width: `${w}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between px-0.5">
+        <span className="skeleton inline-block" style={{ width: '110px', height: '10px' }} />
+        <span className="skeleton inline-block" style={{ width: '58px', height: '10px' }} />
+      </div>
+      <div className="flex gap-3 overflow-hidden pb-1.5">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="flex-shrink-0 w-[210px] aspect-[1.586] rounded-2xl p-3.5 flex flex-col gap-2 bg-slate-100 dark:bg-dark-lighter">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <span className="skeleton rounded-full w-5 h-5" />
+                <span className="skeleton inline-block" style={{ width: '68px', height: '11px' }} />
+              </span>
+              <span className="skeleton w-5" style={{ height: '14px', borderRadius: '3px' }} />
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="skeleton inline-block" style={{ width: '44px', height: '9.5px' }} />
+                <span className="skeleton inline-block" style={{ width: '62px', height: '13px' }} />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="skeleton inline-block" style={{ width: '40px', height: '9.5px' }} />
+                <span className="skeleton inline-block" style={{ width: '56px', height: '13px' }} />
+              </div>
+            </div>
+            <span className="skeleton inline-block mt-auto" style={{ width: '80px', height: '9.5px' }} />
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 );
@@ -746,7 +833,7 @@ const TransactionDetailModal = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -784,6 +871,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   const MONTHS_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+
   const goToPrevMonth = () => {
     const d = new Date(monthDate);
     d.setMonth(d.getMonth() - 1);
@@ -811,6 +899,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [totalIngresos, setTotalIngresos] = useState(0);
   const [totalGastos, setTotalGastos] = useState(0);
   const [loading, setLoading] = useState(true);
+  // Los widgets del mes salen de fetchSummary, no de fetchTransactions. Con un
+  // solo flag `loading` la lista terminaba antes que el resumen y el bloque de
+  // widgets quedaba vacio hasta que llegaba: al aparecer, empujaba la pagina.
+  const [summaryLoading, setSummaryLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastCheck, setLastCheck] = useState(null);
@@ -953,6 +1045,11 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      // Solo la primera carga levanta el skeleton: al cambiar de mes se
+      // mantienen los widgets anteriores hasta que llega el nuevo resumen,
+      // para no reemplazar contenido por un placeholder de otra altura.
+      setSummaryLoading(false);
     }
   }, [getHeaders, filterDateRange]);
 
@@ -1500,6 +1597,16 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     );
   }
 
+  // El presupuesto se guarda en el dashboard con la clave "Mes Año" ("Agosto
+  // 2026"). Esta pantalla navega por fecha, asi que arma la misma clave desde
+  // el mes visible: cada mes muestra el suyo.
+  const mesPresupuestoKey = `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+  const presupuestoMes = presupuestos?.[mesPresupuestoKey] || 0;
+
+  const widgetsLoading = summaryLoading;
+  const listLoading = loading && transactions.length === 0;
+  const hasWidgets = summary.length > 0 || bankTotals.length > 0;
+
   return (
     <>
       {toast && (
@@ -1509,7 +1616,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           </div>
         </div>
       )}
-      <div className="animate-fade-in duration-500 space-y-6 px-4 sm:px-6 lg:px-8 pb-24">
+      <div className="animate-fade-in duration-500 space-y-6 px-4 sm:px-6 w-full max-w-5xl mx-auto pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         {/* En movil Pendientes se empuja al borde derecho: es la accion mas
             importante de la pantalla y ahi cae bajo el pulgar. */}
@@ -1600,36 +1707,12 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         )}
       </div>
 
-      {loading && !pageLoading ? (
-        <div className="grid portrait:grid-cols-1 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 animate-slide-fade">
-          <div className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-2.5 sm:p-3 space-y-2">
-            <SkeletonBar w="65px" h="12px" />
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5"><SkeletonBar w="100px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="50px" h="10px" /></div>
-              <div className="flex items-center gap-1.5"><SkeletonBar w="80px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="45px" h="10px" /></div>
-              <div className="flex items-center gap-1.5"><SkeletonBar w="90px" h="14px" className="rounded-full" /><div className="flex-1 h-2 skeleton rounded-full" /><SkeletonBar w="55px" h="10px" /></div>
-            </div>
-            <div className="border-t border-slate-100 dark:border-dark-lighter pt-1 flex justify-between">
-              <SkeletonBar w="30px" h="10px" /><SkeletonBar w="55px" h="10px" />
-            </div>
-          </div>
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white dark:bg-dark-normal rounded-xl sm:rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter transition-all duration-500 ease-fluid hover:-translate-y-0.5 p-3 sm:p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <SkeletonBar w="32px" h="32px" className="rounded-full" />
-                <SkeletonBar w="100px" h="14px" />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between"><SkeletonBar w="50px" h="10px" /><SkeletonBar w="80px" h="10px" /></div>
-                <div className="flex items-center justify-between"><SkeletonBar w="55px" h="10px" /><SkeletonBar w="80px" h="10px" /></div>
-              </div>
-              <div className="border-t border-slate-100 dark:border-dark-lighter pt-1.5 flex justify-between">
-                <SkeletonBar w="35px" h="10px" /><SkeletonBar w="85px" h="10px" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (summary.length > 0 || bankTotals.length > 0) ? (
+      {/* Los bones los captura boneyard-js del UI real (`npm run bones`), asi
+          que el skeleton sigue al widget aunque este cambie. <TxWidgetsSkeleton>
+          es el fallback mientras no haya captura para este breakpoint. */}
+      {(widgetsLoading || hasWidgets) && (
+      <Skeleton name="tx-widgets" loading={widgetsLoading} animate="shimmer" transition={200} fallback={<TxWidgetsSkeleton />}>
+      {hasWidgets ? (
         (() => {
         const bankGroups = {};
         for (const row of bankTotals) {
@@ -1638,7 +1721,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           if (!bankGroups[bank]) bankGroups[bank] = { bank, count: 0, sortTotal: 0, tipos: [] };
           bankGroups[bank].count += row.count;
           bankGroups[bank].sortTotal += row.total;
-          bankGroups[bank].tipos.push({ tipo: row.tipo_tarjeta || 'Otro', total: row.total, count: row.count });
+          const tipo = normalizeTipoTarjeta(row.tipo_tarjeta);
+          const yaVisto = bankGroups[bank].tipos.find(t => t.tipo === tipo);
+          if (yaVisto) {
+            yaVisto.total += row.total;
+            yaVisto.count += row.count;
+          } else {
+            bankGroups[bank].tipos.push({ tipo, total: row.total, count: row.count });
+          }
         }
         // Debito y credito son cupos distintos: cada uno se muestra en su
         // propia linea dentro de la tarjeta, nunca sumados en un solo total.
@@ -1659,8 +1749,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   <div className="mt-0.5 text-2xl sm:text-3xl font-black tracking-tight text-slate-800 dark:text-white">{formatCurrency(totalGastos)}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Ingresos</div>
-                  <div className="mt-0.5 text-sm font-black text-emerald-600 dark:text-emerald-400">+{formatCurrency(totalIngresos)}</div>
+                  <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Presupuesto</div>
+                  <div className="mt-0.5 text-sm font-black text-slate-700 dark:text-slate-200">
+                    {presupuestoMes > 0 ? formatCurrency(presupuestoMes) : 'Sin definir'}
+                  </div>
+                  <div className="mt-0.5 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Ingresos +{formatCurrency(totalIngresos)}
+                  </div>
                 </div>
               </div>
               {gastoSummary.length > 0 && (
@@ -1716,7 +1811,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                     return (
                       <div
                         key={bank}
-                        className="flex-shrink-0 w-[186px] min-h-[112px] rounded-2xl p-3.5 flex flex-col gap-2 relative overflow-hidden shadow-lg"
+                        className="flex-shrink-0 w-[210px] aspect-[1.586] rounded-2xl p-3.5 flex flex-col gap-2 relative overflow-hidden shadow-lg"
                         style={{ background: `linear-gradient(135deg, ${c1} 0%, ${c2} 55%, ${c3} 100%)` }}
                       >
                         <span className="absolute -right-5 -top-6 w-[110px] h-[110px] rounded-full bg-white/[0.06]" />
@@ -1749,7 +1844,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
           </div>
         );
-      })() ) : null }
+      })()
+      ) : null}
+      </Skeleton>
+      )}
 
 
 
@@ -1760,14 +1858,21 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       <FilterRow />
 
       <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
-        {loading && transactions.length === 0 ? (
-          <div className="p-3 sm:p-4 space-y-2.5">
-            <div className="px-1 pb-1"><SortChips sortConfig={sortConfig} onSort={handleSort} /></div>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <TransactionCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : transactions.length === 0 && !loading ? (
+        <Skeleton
+          name="tx-list"
+          loading={listLoading}
+          animate="shimmer"
+          transition={200}
+          fallback={(
+            <div className="p-3 sm:p-4 space-y-2.5">
+              <div className="px-1 pb-1"><SortChips sortConfig={sortConfig} onSort={handleSort} /></div>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <TransactionCardSkeleton key={i} />
+              ))}
+            </div>
+          )}
+        >
+        {listLoading ? null : transactions.length === 0 && !loading ? (
           <div className="text-center py-16">
             <Inbox size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
             <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">No hay transacciones clasificadas</p>
@@ -1852,6 +1957,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             })()}
           </>
         )}
+        </Skeleton>
       </div>
 
       {lastCheck > 0 && (
@@ -1919,8 +2025,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo de tarjeta</label>
                 <select value={editTipoTarjeta} onChange={e => setEditTipoTarjeta(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
                   <option value="">—</option>
-                  <option value="Debito">Debito</option>
-                  <option value="Credito">Credito</option>
+                  <option value="Débito">Débito</option>
+                  <option value="Crédito">Crédito</option>
                 </select>
               </div>
               <div>

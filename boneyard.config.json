@@ -1,0 +1,9 @@
+{
+  "routes": ["/app"],
+  "breakpoints": [375, 768, 1280],
+  "out": "./src/bones",
+  "wait": 2500,
+  "animate": "shimmer",
+  "color": "#e2e8f0",
+  "darkColor": "#1e293b"
+}

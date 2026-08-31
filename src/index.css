@@ -210,6 +210,12 @@
   background-size: 200% 100%;
 }
 
+/* .skeleton fija su propio border-radius y va despues de las utilidades de
+   Tailwind en el archivo, asi que con la misma especificidad ganaba siempre:
+   los avatares circulares del skeleton salian cuadrados. */
+.skeleton.rounded-full { border-radius: 9999px; }
+.skeleton.rounded-none { border-radius: 0; }
+
 /* Movimiento reducido.
    No habia ninguna consideracion de prefers-reduced-motion en el proyecto, ni
    siquiera para la animacion flotante permanente de la pantalla de carga. Para
