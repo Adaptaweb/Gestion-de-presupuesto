@@ -60,7 +60,10 @@ test('la fecha del correo se toma en su huso, no en UTC', () => {
 });
 
 test('una transferencia recibida es entrada de dinero', () => {
-  const { resultado } = parsear(transferenciaRecibida);
+  const { resultado } = parsear(transferenciaRecibida, {
+    ...headersMercadoPago,
+    subject: 'Recibiste una transferencia',
+  });
   assert.equal(resultado.monto, 25500);
   assert.equal(resultado.comercio, 'Juan Perez Soto');
   assert.equal(resultado.tipo_transaccion, 'ingreso');
@@ -83,4 +86,44 @@ test('la fecha escrita en palabras dentro del cuerpo gana a la del correo', () =
   const { resultado } = parsear(html);
   assert.equal(resultado.fecha, '2026-08-15');
   assert.equal(resultado.comercio, 'Ana Rojas Diaz');
+});
+
+// Texto tal cual llega el aviso real, pie legal incluido.
+const transferenciaEnviadaConPie = `
+  <html><body>
+    <h1>&iexcl;Enviamos tu transferencia!</h1>
+    <p>Ya enviamos tu transferencia de $ 70.000</p>
+    <p>Datos del beneficiario</p>
+    <table>
+      <tr><td>Nombre y apellido:</td><td>Paola Andrea Guzman Yapura</td></tr>
+      <tr><td>Entidad:</td><td>Santander</td></tr>
+      <tr><td>N&uacute;mero de cuenta:</td><td>000090223577</td></tr>
+    </table>
+    <p>Si no hiciste esta transferencia, avisanos para tomar medidas de seguridad sobre tu cuenta.</p>
+    <p>Segu&iacute; todos tus gastos y movimientos est&eacute;s donde est&eacute;s.</p>
+    <p>Recibiste este e-mail porque elegiste recibir informaci&oacute;n. Cancelar suscripci&oacute;n.
+       Conoce c&oacute;mo cuidamos tu privacidad.</p>
+  </body></html>`;
+
+test('el "recibiste" del pie legal no convierte un envio en ingreso', () => {
+  const { resultado } = parsear(transferenciaEnviadaConPie, { ...headersMercadoPago, subject: '¡Enviamos tu transferencia!' });
+  assert.equal(resultado.tipo_transaccion, 'gasto');
+  assert.equal(resultado.monto, 70000);
+  assert.equal(resultado.comercio, 'Paola Andrea Guzman Yapura');
+});
+
+test('una transferencia recibida con el mismo pie sigue siendo ingreso', () => {
+  const html = transferenciaEnviadaConPie
+    .replace('&iexcl;Enviamos tu transferencia!', 'Recibiste una transferencia')
+    .replace('Ya enviamos tu transferencia de', 'Recibiste una transferencia de');
+  const { resultado } = parsear(html, { ...headersMercadoPago, subject: 'Recibiste una transferencia' });
+  assert.equal(resultado.tipo_transaccion, 'ingreso');
+});
+
+test('cuando el cuerpo menciona ambas direcciones manda el asunto', () => {
+  const { resultado } = parsear(transferenciaEnviadaConPie, {
+    ...headersMercadoPago,
+    subject: 'Recibiste una transferencia',
+  });
+  assert.equal(resultado.tipo_transaccion, 'ingreso');
 });

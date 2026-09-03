@@ -19,7 +19,7 @@ export class MercadoPagoTransferenciaParser extends BaseParser {
 
   extraer(html, headers) {
     const $ = this.loadHtml(html);
-    const bodyText = $.text().replace(/\s+/g, ' ').trim();
+    const bodyText = this.sinPie($.text().replace(/\s+/g, ' ').trim());
 
     let monto = 0;
     const patronesMonto = [
@@ -44,9 +44,6 @@ export class MercadoPagoTransferenciaParser extends BaseParser {
 
     const comercio = this.simplifyComercio(this.extraerContraparte(bodyText));
 
-    // "Ya enviamos tu transferencia" es salida de dinero; "recibiste" entrada.
-    const esEntrada = /recibiste|te\s+transfirieron|te\s+envi(?:o|ó|aron)|acreditamos|ya\s+recibimos/i.test(bodyText);
-
     return {
       banco: 'MercadoPago',
       tipo_movimiento: 'Transferencia',
@@ -54,8 +51,51 @@ export class MercadoPagoTransferenciaParser extends BaseParser {
       monto,
       fecha,
       comercio,
-      tipo_transaccion: esEntrada ? 'ingreso' : 'gasto',
+      tipo_transaccion: this.clasificar(bodyText, headers),
     };
+  }
+
+  // El pie del correo dice "Recibiste este e-mail porque elegiste recibir
+  // informacion", y ese "recibiste" bastaba para dar por entrante una
+  // transferencia enviada. Todo lo que va desde el aviso de seguridad hacia
+  // abajo es texto fijo, no datos del movimiento.
+  sinPie(texto) {
+    const marcadores = [
+      /Si\s+no\s+hiciste\s+est[ae]/i,
+      /Recibiste\s+este\s+(?:e-?mail|correo|mensaje)/i,
+      /Cancelar\s+suscripci[oó]n/i,
+      /Conoce\s+c[oó]mo\s+cuidamos\s+tu\s+privacidad/i,
+      /Este\s+(?:e-?mail|correo)\s+fue\s+enviado/i,
+    ];
+    let corte = texto.length;
+    for (const marcador of marcadores) {
+      const match = texto.match(marcador);
+      if (match && match.index < corte) corte = match.index;
+    }
+    return texto.slice(0, corte).trim();
+  }
+
+  // La salida manda sobre la entrada: el aviso de una transferencia enviada
+  // tambien habla de quien la recibe, asi que buscar primero "recibiste" daba
+  // ingreso. Los patrones de entrada exigen que lo recibido sea el dinero.
+  clasificar(bodyText, headers) {
+    const salida = /\b(?:enviamos|enviaste|transferiste|mandaste)\b|transferencia\s+enviada|realizaste\s+una\s+transferencia/i;
+    const entrada = [
+      /recibiste\s+(?:una\s+|un\s+)?(?:transferencia|dep[oó]sito|pago|dinero|\$)/i,
+      /te\s+(?:transfirieron|depositaron|enviaron)\b/i,
+      /\b(?:acreditamos|acreditado)\b/i,
+      /(?:transferencia|dep[oó]sito|dinero)\s+recibid[oa]/i,
+      /ya\s+recibimos\s+tu\s+(?:transferencia|dep[oó]sito|dinero)/i,
+    ];
+
+    // El asunto es la senal mas limpia y decide solo; el cuerpo entero menciona
+    // las dos direcciones aunque el movimiento sea uno.
+    for (const texto of [headers?.subject || '', bodyText]) {
+      if (salida.test(texto)) return 'gasto';
+      if (entrada.some(p => p.test(texto))) return 'ingreso';
+    }
+
+    return 'gasto';
   }
 
   // El nombre va etiquetado; "Entidad" y "Numero de cuenta" son las etiquetas
