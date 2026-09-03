@@ -46,13 +46,56 @@ export const notifyPromise = (promesa, { loading, ok, error }) =>
 // fijo para que el toast se transforme en vez de apilar uno por cada guardado.
 const SYNC_ID = 'sync-dashboard';
 
+// Antes cada handler mostraba su propio aviso ("Presupuesto guardado") y ademas
+// el guardado automatico mostraba el suyo ("Guardando" y luego "Guardado"): dos
+// notificaciones por una sola accion. Ahora el handler solo deja anotado el
+// texto y el guardado automatico lo usa al confirmar, asi queda un unico toast
+// con el mensaje especifico.
+let etiquetaPendiente = null;
+
+export const marcarGuardado = (title, description) => {
+  etiquetaPendiente = { title, description };
+};
+
+const tomarEtiqueta = () => {
+  const etiqueta = etiquetaPendiente;
+  etiquetaPendiente = null;
+  return etiqueta;
+};
+
 export const notifySaving = () =>
   toast.info({ ...base(), id: SYNC_ID, title: 'Guardando', duration: null });
 
-export const notifySaved = () =>
-  toast.success({ ...base(), id: SYNC_ID, title: 'Guardado', duration: 2000 });
+export const notifySaved = () => {
+  const etiqueta = tomarEtiqueta();
+  return toast.success({
+    ...base(),
+    id: SYNC_ID,
+    title: etiqueta?.title || 'Guardado',
+    description: etiqueta?.description,
+    duration: etiqueta ? 3500 : 2000,
+  });
+};
 
-export const notifySaveError = (description) =>
-  toast.error({ ...base(), id: SYNC_ID, title: 'No se pudo guardar', description, duration: 6000 });
+// Cuando el diff no encuentra cambios no hay peticion ni toast de guardado,
+// pero el usuario si apreto guardar: se muestra la etiqueta igual para no
+// dejarla colgada y que aparezca en el proximo guardado ajeno.
+export const notifySavedSinCambios = () => {
+  const etiqueta = tomarEtiqueta();
+  if (!etiqueta) return;
+  toast.success({ ...base(), id: SYNC_ID, title: etiqueta.title, description: etiqueta.description, duration: 3500 });
+};
+
+export const notifySaveError = (description) => {
+  tomarEtiqueta();
+  return toast.error({ ...base(), id: SYNC_ID, title: 'No se pudo guardar', description, duration: 6000 });
+};
+
+// Comparte el id del guardado para que el toast de "Guardando" se transforme en
+// este aviso en vez de quedarse cargando para siempre.
+export const notifySyncInfo = (title, description) => {
+  tomarEtiqueta();
+  return toast.info({ ...base(), id: SYNC_ID, title, description, duration: 4000 });
+};
 
 export { toast };

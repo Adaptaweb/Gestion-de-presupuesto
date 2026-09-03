@@ -40,7 +40,7 @@ import { UserMenu } from './components/user-dropdown';
 import CategoriasConfig from './components/CategoriasConfig.jsx';
 import { useCategorias } from './hooks/useCategorias.js';
 import { applyDarkMode, getInitialDarkMode } from './lib/theme.js';
-import { notifySaving, notifySaved, notifySaveError, notifyInfo, notifyOk, notifyError, notifyPromise } from './lib/notify.js';
+import { notifySaving, notifySaved, notifySavedSinCambios, notifySaveError, notifySyncInfo, marcarGuardado } from './lib/notify.js';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import {
   BANCOS_CHILE,
@@ -519,7 +519,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         if (json !== ultimoGuardadoRef.current[clave]) cambios[clave] = estado[clave];
       }
 
-      if (Object.keys(cambios).length === 0) return;
+      if (Object.keys(cambios).length === 0) { notifySavedSinCambios(); return; }
       notifySaving();
       fetch('/api/sync', {
         method: 'POST',
@@ -532,7 +532,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           // 409: otro dispositivo guardo primero. Se recarga desde el servidor
           // en vez de sobrescribir sus cambios.
           if (res.status === 409) {
-            notifyInfo('Actualizado desde otra sesión', 'Se recargaron tus datos para no sobrescribir el otro dispositivo.');
+            notifySyncInfo('Actualizado desde otra sesión', 'Se recargaron tus datos para no sobrescribir el otro dispositivo.');
             const recarga = await fetch('/api/data', { headers: getHeaders() }).then(r => r.json());
             aplicarDatos(recarga);
             return;
@@ -857,7 +857,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setDeudas([...deudas, { ...newDebt, id: `debt-${Date.now()}`, pagos: {} }]);
     }
-    notifyOk(editingItem ? 'Cuota actualizada' : 'Cuota creada', newDebt.descripcion);
+    marcarGuardado(editingItem ? 'Cuota actualizada' : 'Cuota creada', newDebt.descripcion);
     setIsAddingDebt(false);
     setEditingItem(null);
     setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
@@ -873,7 +873,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setGastosFijos([...gastosFijos, { ...newFixed, id: `fixed-${Date.now()}`, pagos: {} }]);
     }
-    notifyOk(editingItem ? 'Gasto fijo actualizado' : 'Gasto fijo creado', newFixed.descripcion);
+    marcarGuardado(editingItem ? 'Gasto fijo actualizado' : 'Gasto fijo creado', newFixed.descripcion);
     setIsAddingFixed(false);
     setEditingItem(null);
     setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -887,7 +887,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setAbonos([...abonos, { ...newAbono, id: `abono-${Date.now()}`, pagos: {} }]);
     }
-    notifyOk(editingItem ? 'Abono actualizado' : 'Abono creado', newAbono.descripcion);
+    marcarGuardado(editingItem ? 'Abono actualizado' : 'Abono creado', newAbono.descripcion);
     setIsAddingAbono(false);
     setEditingItem(null);
     setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -987,7 +987,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setSuscripciones([...suscripciones, { ...newSub, id: `sub-${Date.now()}`, pagos: {} }]);
     }
-    notifyOk(editingItem ? 'Suscripción actualizada' : 'Suscripción creada', newSub.descripcion);
+    marcarGuardado(editingItem ? 'Suscripción actualizada' : 'Suscripción creada', newSub.descripcion);
     setIsAddingSub(false);
     setEditingItem(null);
     setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -1002,7 +1002,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     } else {
       setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
     }
-    notifyOk(editingAccount ? 'Cuenta actualizada' : 'Cuenta creada', newAccount.nombre);
+    marcarGuardado(editingAccount ? 'Cuenta actualizada' : 'Cuenta creada', newAccount.nombre);
     setIsAddingAccount(false);
     setEditingAccount(null);
     setNewAccount({ nombre: '', banco: '' });
@@ -1156,7 +1156,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     const monto = parseInt(presupuestoDraft, 10) || 0;
     setSueldos({ ...sueldos, [dashboardMonth]: monto });
     setShowPresupuestoModal(false);
-    notifyOk('Presupuesto guardado', `${dashboardMonth}: ${formatCurrency(monto)}`);
+    marcarGuardado('Presupuesto guardado', `${dashboardMonth}: ${formatCurrency(monto)}`);
   };
 
   // Orden de abajo hacia arriba: la mas cercana al FAB es la mas usada.
@@ -2096,7 +2096,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 else if (isSub) setSuscripciones(suscripciones.filter(x => x.id !== item.id));
                                 else if (isAbono) setAbonos(abonos.filter(x => x.id !== item.id));
                                 else setGastosFijos(gastosFijos.filter(x => x.id !== item.id));
-                                notifyOk('Eliminado', item.descripcion);
+                                marcarGuardado('Eliminado', item.descripcion);
                                 return Promise.resolve();
                               }
                             });
@@ -2270,7 +2270,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                             setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
                             const { [cuenta.id]: _, ...rest } = ahorrosData;
                             setAhorrosData(rest);
-                            notifyOk('Cuenta eliminada', cuenta.nombre);
+                            marcarGuardado('Cuenta eliminada', cuenta.nombre);
                           }} aria-label={`Eliminar ${cuenta.nombre}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
                         </div>
                       </div>
