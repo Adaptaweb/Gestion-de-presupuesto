@@ -2064,7 +2064,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <div key={item.id} className="bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-kk-2xl shadow-fluid shadow-fluid-hover p-3 sm:p-4 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(itemIdx, 10) * 35}ms` }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="relative p-1.5 bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden flex w-9 h-9 items-center justify-center flex-shrink-0">
+                          {/* Sin relleno interior, igual que en el resumen: el logo
+                              ocupa todo el cuadro y es su propio color el que lo
+                              llena. Con p-1.5 quedaba encogido sobre un fondo
+                              claro y las marcas se perdian. Los iconos de trazo
+                              siguen centrados a su tamano. */}
+                          <div className="relative bg-slate-100 dark:bg-slate-100 rounded-xl text-slate-500 dark:text-slate-400 overflow-hidden flex w-9 h-9 items-center justify-center flex-shrink-0">
                             {isCuota ? renderDebtIcon(item) : isSub ? renderSubscriptionIcon(item) : renderFixedIcon(item)}
                             {isCuota && item.bancoLogo && (
                               <img src={item.bancoLogo} alt={item.banco} className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 object-contain bg-white dark:bg-dark-normal rounded-full p-0.5 border border-slate-200 dark:border-dark-lightest" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -3095,7 +3100,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
               <div className="space-y-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-slate-100 dark:bg-dark-lighter rounded-xl w-12 h-12 flex items-center justify-center">
+                  <div className="bg-slate-100 dark:bg-slate-100 rounded-xl w-12 h-12 flex items-center justify-center overflow-hidden text-slate-500">
                     {viewingItem.tipo === 'cuota' ? (
                       viewingItem.data.bancoLogo ? <img src={viewingItem.data.bancoLogo} alt={viewingItem.data.banco} className="w-full h-full object-contain" onError={(e) => { e.target.style.display = 'none'; }} /> : renderDebtIcon(viewingItem.data)
                     ) : viewingItem.tipo === 'suscripcion' ? renderSubscriptionIcon(viewingItem.data) : renderFixedIcon(viewingItem.data)}
