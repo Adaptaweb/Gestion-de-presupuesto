@@ -10,6 +10,7 @@ import { BancoChileCompraParser } from './bancochile/compra.js';
 import { BancoChileTransferenciaParser } from './bancochile/transferencia.js';
 import { BancoEstadoDebitoParser } from './bancoestado/debito.js';
 import { MachCompraParser } from './mach/compra.js';
+import { MercadoPagoTransferenciaParser } from './mercadopago/transferencia.js';
 
 const parsers = [
   new BCIDebitoParser(),
@@ -23,6 +24,7 @@ const parsers = [
   new BancoChileCompraParser(),
   new BancoEstadoDebitoParser(),
   new MachCompraParser(),
+  new MercadoPagoTransferenciaParser(),
 ];
 
 export function seleccionarParser(html, headers) {

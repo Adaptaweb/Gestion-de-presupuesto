@@ -9,7 +9,7 @@ export const BANK_SENDERS = {
   'Tenpo': ['tenpo.cl', 'tenpobank.cl'],
   'Mach': ['machbank.cl', 'somosmach.com'],
   'Banco Estado': ['bancoestado.cl', 'correo.bancoestado.cl'],
-  'MercadoPago': ['mercadopago.com'],
+  'MercadoPago': ['mercadopago.com', 'mercadopago.cl', 'mercadolibre.cl'],
   'BancoConsorcio': ['bancoconsorcio.cl'],
   'Banco Ripley': ['bancoripley.cl', 'bancoripley.com'],
   'Banco Security': ['bancosecurity.cl'],
