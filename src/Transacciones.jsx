@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from 'boneyard-js/react';
 import { MONTH_NAMES } from './constants/dashboard.js';
 import { notifyOk, notifyError, notifyInfo, notifyPromise, toast } from './lib/notify.js';
+import { useFilaHorizontal, refFilaHorizontal } from './hooks/useFilaHorizontal.js';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -70,6 +71,10 @@ const ReviewCard = ({
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [exitDir, setExitDir] = useState(null);
+  // Se coloca sobre la categoria ya elegida al abrir cada transaccion. Depende
+  // de `tx.id` y no de la categoria: recentrar en cada clic movería la fila
+  // bajo el dedo justo despues de elegir.
+  const filaCategorias = useFilaHorizontal(tx.id);
 
   const detectedType = tx.tipo_transaccion || 'gasto';
   const sortedCats = categorias && categorias.length > 0
@@ -262,7 +267,7 @@ const ReviewCard = ({
               <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
               <span className={`text-xs font-black ${accentText}`}>{reviewCat}</span>
             </div>
-            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
+            <div ref={filaCategorias} className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
               {sortedCats.map(cat => {
                 const selected = reviewCat === cat;
                 const iconBg = CATEGORY_ICON_BG[cat];
@@ -270,7 +275,7 @@ const ReviewCard = ({
                 const isStyle = iconBg?.backgroundColor !== undefined;
                 const ringClass = !isStyle ? (CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60') : '';
                 return (
-                  <button key={cat} onClick={() => setReviewCat(cat)} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+                  <button key={cat} onClick={() => setReviewCat(cat)} data-seleccionado={selected ? 'true' : undefined} className="flex-shrink-0 flex flex-col items-center gap-1.5">
                     <span
                       style={selected && isStyle ? { backgroundColor: iconBg.backgroundColor, color: iconCol.color, boxShadow: `0 8px 16px ${hexToRgba(iconBg.backgroundColor, 0.4)}`, outline: `2px solid ${hexToRgba(iconBg.backgroundColor, 0.35)}`, outlineOffset: '2px' } : {}}
                       className={`w-12 h-12 rounded-full flex items-center justify-center text-xl leading-none transition duration-200 ${
@@ -426,7 +431,7 @@ const catChipGradient = (hex, isDark) =>
 // La tabla ordenaba al hacer clic en el <th>. Sin tabla ese affordance
 // desaparece, asi que el orden pasa a chips explicitos.
 const SortChips = ({ sortConfig, onSort }) => (
-  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5" style={{ scrollbarWidth: 'none' }}>
+  <div ref={refFilaHorizontal} className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5" style={{ scrollbarWidth: 'none' }}>
     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex-shrink-0 pr-0.5">Ordenar</span>
     {SORT_OPTIONS.map(opt => {
       const isActive = sortConfig.key === opt.key;
@@ -1542,7 +1547,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   // Se repite arriba y abajo de la lista de transacciones, asi que va como
   // una sola definicion en vez de duplicar el bloque.
   const FilterRow = () => (
-    <div className="flex gap-2 overflow-x-auto no-scrollbar">
+    <div ref={refFilaHorizontal} className="flex gap-2 overflow-x-auto no-scrollbar">
       <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex-shrink-0 flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition whitespace-nowrap">
         <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
       </button>
@@ -1792,7 +1797,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                   <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Gasto por tarjeta</span>
                   <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500">{bankCards.length} medio{bankCards.length === 1 ? '' : 's'}</span>
                 </div>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1.5">
+                <div ref={refFilaHorizontal} className="flex gap-3 overflow-x-auto no-scrollbar pb-1.5">
                   {bankCards.map(group => {
                     const bank = group.bank;
                     const [c1, c2, c3] = BANK_GRADIENT[bank] || BANK_GRADIENT_FALLBACK;

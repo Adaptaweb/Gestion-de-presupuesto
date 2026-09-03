@@ -7,6 +7,7 @@ import {
   BANK_ICONS, hexToRgba,
 } from './constants.js';
 import { notifyOk, notifyError } from './lib/notify.js';
+import { useFilaHorizontal } from './hooks/useFilaHorizontal.js';
 
 const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDarkMode }) => {
   const [tipo, setTipo] = useState('gasto');
@@ -16,6 +17,8 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
   const [banco, setBanco] = useState('');
   const [tipoTarjeta, setTipoTarjeta] = useState('');
   const [categoria, setCategoria] = useState('Otros');
+  // Al abrir el panel la fila arranca sobre la categoria preseleccionada.
+  const filaCategorias = useFilaHorizontal(show ? 'abierto' : undefined);
   const [tipoGasto, setTipoGasto] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -258,13 +261,13 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
               <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
               <span className="text-xs font-black text-slate-500 dark:text-slate-400">{categoria}</span>
             </div>
-            <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
+            <div ref={filaCategorias} className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
               {CATEGORY_LIST.map(cat => {
                 const selected = categoria === cat;
                 const hex = CATEGORY_HEX[cat] || CATEGORY_HEX['Otros'];
                 const ringClass = CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60';
                 return (
-                  <button key={cat} onClick={() => setCategoria(cat)} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+                  <button key={cat} onClick={() => setCategoria(cat)} data-seleccionado={selected ? 'true' : undefined} className="flex-shrink-0 flex flex-col items-center gap-1.5">
                     <span
                       className={`w-12 h-12 rounded-full flex items-center justify-center text-xl leading-none transition duration-200 ${
                         selected
