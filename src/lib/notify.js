@@ -4,8 +4,10 @@
 // `statusMsg`, CategoriasConfig con su componente Toast, el resto sin nada.
 // Todo pasa por aqui, sobre gooey-toast, para que el mismo tipo de accion se
 // vea igual en toda la app.
+// El CSS de gooey-toast se importa en main.jsx, antes de index.css: viajando en
+// el chunk diferido de esta pantalla se insertaba despues y sus reglas ganaban
+// a los ajustes de tema por ser igual de especificas y venir mas tarde.
 import { toast, mountToaster } from 'gooey-toast';
-import 'gooey-toast/styles.css';
 
 // El fondo del toast es un SVG que se rellena a mano: no hereda del tema, asi
 // que se resuelve en cada llamada leyendo la clase `dark` del documento.

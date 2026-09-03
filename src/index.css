@@ -193,6 +193,36 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 24px 56px -14px rgba(0, 0, 0, 0.65);
 }
 
+/* gooey-toast trae un solo color de texto para la descripcion, #334155, pensado
+   para fondo claro: sobre el relleno oscuro del toast casi no se leia. Los
+   selectores llevan `html` delante porque el CSS del paquete viaja en el chunk
+   diferido de las pantallas que notifican y se inserta despues de este archivo:
+   a igual especificidad ganaria el del paquete.
+
+   El alto del pill (44px) esta fijo en el JS de la libreria y el SVG se dibuja
+   con ese numero, asi que se agranda por ancho, tipografia y espaciado, no
+   tocando --gooey-height, que dejaria el fondo desalineado del contenido. */
+:root {
+  --gooey-width: 400px;
+}
+html [data-gooey-title] {
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+}
+html [data-gooey-badge] {
+  width: 26px;
+  height: 26px;
+}
+html [data-gooey-description] {
+  padding: 1rem 1.05rem 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.45rem;
+  color: #334155;
+}
+html.dark [data-gooey-description] {
+  color: #E8EAED;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

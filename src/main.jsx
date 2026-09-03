@@ -15,6 +15,8 @@ import '@fontsource/poppins/latin-500.css';
 import '@fontsource/poppins/latin-600.css';
 import '@fontsource/poppins/latin-700.css';
 import '@fontsource/poppins/latin-900.css';
+// Antes que index.css, que ajusta su tamano y sus colores en modo oscuro.
+import 'gooey-toast/styles.css';
 import './index.css';
 import { initNotify } from './lib/notify.js';
 // Bones capturadas del UI real (boneyard-js). Se regeneran con `npm run bones`.
