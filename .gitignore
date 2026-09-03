@@ -59,3 +59,7 @@ PLAN-AUTH.md
 
 # Cache local de wrangler
 cloudflare/.wrangler/
+
+# Perfil de navegador para las capturas de la landing
+.playwright-profile/
+.capturas-tmp/

@@ -1704,16 +1704,19 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         for (const row of bankTotals) {
           if (row.total <= 0) continue;
           const bank = row.banco || 'Otros';
+          // El COUNT de Postgres llega como texto: sin convertir, la suma
+          // concatenaba y la tarjeta mostraba "014 movimientos".
+          const cantidad = Number(row.count) || 0;
           if (!bankGroups[bank]) bankGroups[bank] = { bank, count: 0, sortTotal: 0, tipos: [] };
-          bankGroups[bank].count += row.count;
+          bankGroups[bank].count += cantidad;
           bankGroups[bank].sortTotal += row.total;
           const tipo = normalizeTipoTarjeta(row.tipo_tarjeta);
           const yaVisto = bankGroups[bank].tipos.find(t => t.tipo === tipo);
           if (yaVisto) {
             yaVisto.total += row.total;
-            yaVisto.count += row.count;
+            yaVisto.count += cantidad;
           } else {
-            bankGroups[bank].tipos.push({ tipo, total: row.total, count: row.count });
+            bankGroups[bank].tipos.push({ tipo, total: row.total, count: cantidad });
           }
         }
         // Debito y credito son cupos distintos: cada uno se muestra en su

@@ -17,9 +17,10 @@ const Welcome = ({ onNext, onClose }) => {
         <section className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto space-y-4">
           <div className="relative w-48 h-48 mb-4 animate-float flex items-center justify-center">
             <div className="absolute inset-0 bg-[#6de0b3]/10 rounded-full blur-3xl" />
-            <div className="z-10 w-62 h-62 flex items-center justify-center rounded-full ">
-              <img src="/kuentasklaras-logo.svg" alt={APP_NAME} className="w-30 h-30" />
-               <h1 className="text-2xl font-bold text-[#2dbc8b] tracking-tight">{APP_NAME}</h1>
+            {/* El SVG ya trae el nombre de la marca: el titulo que estaba al lado
+                lo repetia. Las clases w-30/w-62 tampoco existen en Tailwind. */}
+            <div className="z-10 flex items-center justify-center rounded-full">
+              <img src="/kuentasklaras-logo.svg" alt={APP_NAME} className="w-44 h-auto" />
             </div>
 
           </div>

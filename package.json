@@ -17,7 +17,9 @@
     "test": "node --test server/*.test.js",
     "dev:all": "node scripts/dev.mjs",
     "bones": "boneyard-js build",
-    "bones:watch": "boneyard-js build --watch"
+    "bones:watch": "boneyard-js build --watch",
+    "capturas": "node scripts/capturas-landing.mjs",
+    "capturas:login": "node scripts/capturas-landing.mjs login"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
@@ -57,6 +59,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
+    "playwright": "^1.62.1",
     "postcss": "^8.4.24",
     "shadcn": "^4.11.0",
     "sharp": "^0.35.2",
