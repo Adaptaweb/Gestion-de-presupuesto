@@ -67,13 +67,13 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
     <div
       ref={wrapRef}
       className={isDock
-        ? 'relative flex items-center h-16 px-[5px] rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60'
+        ? 'kk-glass flex items-center h-16 px-[5px] rounded-full'
         : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm'}
     >
       <span
         ref={pillRef}
         aria-hidden="true"
-        className={`absolute left-0 rounded-full pointer-events-none ${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isDock ? 'top-[9px] bottom-[9px]' : 'top-1 bottom-1'}`}
+        className={`absolute left-0 rounded-full pointer-events-none ${theme.btnPrimary} ${isDock ? 'kk-glass-pill top-[9px] bottom-[9px]' : `shadow-md ${theme.shadowBtn} top-1 bottom-1`}`}
         style={{ opacity: 0 }}
       />
       {items.map(({ id, icon: Icon, label, short, avatar }) => {
@@ -86,7 +86,7 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
             aria-current={active ? 'page' : undefined}
             aria-label={isDock ? (label || short) : undefined}
             className={isDock
-              ? `relative z-10 h-[46px] min-w-0 flex items-center justify-center rounded-full overflow-hidden whitespace-nowrap transition-colors duration-300 active:scale-90 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`
+              ? `relative z-10 h-[46px] min-w-0 flex items-center justify-center rounded-full overflow-hidden whitespace-nowrap transition-colors duration-300 active:scale-90 ${active ? 'text-white' : 'text-slate-600 dark:text-slate-300'}`
               : `relative z-10 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-colors duration-300 active:scale-95 ${
                   active ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
                 }`}
