@@ -1477,6 +1477,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   activeId={activeTab}
                   onSelect={(id) => { if (id === 'perfil') { setIsFabDialOpen(false); setPerfilOpen(true); } else { setPerfilOpen(false); setActiveTab(id); } }}
                   theme={theme}
+                  tint={THEME_COLOR_HEX[themeColor]}
                   variant="dock"
                 />
                 {['pago_fallido', 'solo_lectura', 'suspendida'].includes(billing?.estado) || (billing?.estado === 'prueba' && billing.diasRestantes <= 7) ? (
@@ -1487,7 +1488,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
                 aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
                 aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
-                className={`kk-glass-fab flex-shrink-0 w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center transition active:scale-90`}
+                style={{ '--kk-tint': THEME_COLOR_HEX[themeColor] }}
+                className="kk-glass-tint flex-shrink-0 w-14 h-14 rounded-full text-white grid place-items-center transition active:scale-90"
               >
                 <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
               </button>

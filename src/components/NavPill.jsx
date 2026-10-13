@@ -11,7 +11,7 @@ const DURACION = 460;
 // Misma curva que SPRING (ease-out fuerte) para que la pill siga a los botones.
 const easeOut = (t) => 1 - Math.pow(1 - t, 4);
 
-export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop' }) {
+export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop', tint }) {
   const wrapRef = useRef(null);
   const btnRefs = useRef({});
   const pillRef = useRef(null);
@@ -73,8 +73,8 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
       <span
         ref={pillRef}
         aria-hidden="true"
-        className={`absolute left-0 rounded-full pointer-events-none ${theme.btnPrimary} ${isDock ? 'kk-glass-pill top-[9px] bottom-[9px]' : `shadow-md ${theme.shadowBtn} top-1 bottom-1`}`}
-        style={{ opacity: 0 }}
+        className={`absolute left-0 rounded-full pointer-events-none ${isDock ? 'kk-glass-tint top-[9px] bottom-[9px]' : `${theme.btnPrimary} shadow-md ${theme.shadowBtn} top-1 bottom-1`}`}
+        style={isDock ? { opacity: 0, '--kk-tint': tint } : { opacity: 0 }}
       />
       {items.map(({ id, icon: Icon, label, short, avatar }) => {
         const active = activeId === id;
