@@ -1,7 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2, RefreshCw,
-  Settings2, Filter, Tags, Bell, Mail, RotateCw, CreditCard,
+  Settings2, Filter, Tags, Bell, Mail, RotateCw, RotateCcw, CreditCard,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -15,13 +15,13 @@ import {
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu'
 
-const THEME_COLORS = ['kk', 'indigo', 'blue', 'emerald', 'purple', 'rose', 'amber', 'teal', 'slate']
-const THEME_COLOR_HEX = {
+export const THEME_COLORS = ['kk', 'indigo', 'blue', 'emerald', 'purple', 'rose', 'amber', 'teal', 'slate']
+export const THEME_COLOR_HEX = {
   kk: '#059669', indigo: '#4f46e5', blue: '#2563eb', emerald: '#059669',
   purple: '#9333ea', rose: '#e11d48', amber: '#d97706',
   teal: '#0d9488', slate: '#475569',
 }
-const COLOR_NAMES = {
+export const COLOR_NAMES = {
   kk: 'Principal', indigo: 'Índigo', blue: 'Azul', emerald: 'Esmeralda',
   purple: 'Púrpura', rose: 'Rosa', amber: 'Ámbar',
   teal: 'Cian', slate: 'Gris',
@@ -36,7 +36,7 @@ export function UserMenu({
   generateFinancialAdvice, isAiLoading,
   isPushSubscribed, isPushLoading,
   onToggleNotifications,
-  onOpenPlanes,
+  onOpenPlanes, onRepetirTutorial,
 }) {
   return (
     <DropdownMenu>
@@ -98,13 +98,23 @@ export function UserMenu({
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem
-            onClick={onOpenConfig}
-            className="p-2 rounded-lg cursor-pointer"
-          >
-            <Settings2 size={16} className="mr-2 text-slate-500" />
-            <span>Configurar</span>
-          </DropdownMenuItem>
+          {user.role === 'admin' ? (
+            <DropdownMenuItem
+              onClick={onOpenConfig}
+              className="p-2 rounded-lg cursor-pointer"
+            >
+              <Settings2 size={16} className="mr-2 text-slate-500" />
+              <span>Configurar</span>
+            </DropdownMenuItem>
+          ) : onRepetirTutorial && (
+            <DropdownMenuItem
+              onClick={onRepetirTutorial}
+              className="p-2 rounded-lg cursor-pointer"
+            >
+              <RotateCcw size={16} className="mr-2 text-slate-500" />
+              <span>Repetir tutorial</span>
+            </DropdownMenuItem>
+          )}
 
           {onOpenPlanes && (
             <DropdownMenuItem
@@ -116,13 +126,15 @@ export function UserMenu({
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem
-            onClick={onOpenFilters}
-            className="p-2 rounded-lg cursor-pointer"
-          >
-            <Filter size={16} className="mr-2 text-slate-500" />
-            <span>Reglas</span>
-          </DropdownMenuItem>
+          {user.role === 'admin' && (
+            <DropdownMenuItem
+              onClick={onOpenFilters}
+              className="p-2 rounded-lg cursor-pointer"
+            >
+              <Filter size={16} className="mr-2 text-slate-500" />
+              <span>Reglas</span>
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuItem
             onClick={onOpenCategorias}

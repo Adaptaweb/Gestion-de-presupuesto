@@ -5,6 +5,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import NavPill from './components/NavPill.jsx';
 import BillingBanner from './components/BillingBanner.jsx';
 import PlanesModal from './components/PlanesModal.jsx';
+import ProfileSheet from './components/ProfileSheet.jsx';
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
 import {
@@ -378,6 +379,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   // Prueba gratuita y plan: el estado lo calcula el servidor.
   const [billing, setBilling] = useState(null);
   const [showPlanes, setShowPlanes] = useState(false);
+  // Hoja de perfil del movil: el menu de usuario vive en la barra de navegacion.
+  const [perfilOpen, setPerfilOpen] = useState(false);
+  // Nombre corto para la barra: primer nombre, con tope de 7 letras.
+  const primerNombre = (user.name || 'Perfil').trim().split(/\s+/)[0];
+  const nombreCorto = primerNombre.length > 8 ? `${primerNombre.slice(0, 7)}…` : primerNombre;
   const cargarBilling = useCallback(() => {
     if (!token) return Promise.resolve();
     return fetchBilling(token).then(setBilling).catch(() => {});
@@ -1344,13 +1350,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 setIsDarkMode(newMode)
                 applyDarkMode(newMode, { persist: true })
               }}
-              className="p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+              className="hidden md:flex p-2 md:p-2.5 rounded-xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter transition shadow-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
               title={isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
             >
               {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             </button>
+            <div className="hidden md:block">
             <UserMenu
               user={user}
+              onRepetirTutorial={() => onOpenTutorial(false)}
               themeColor={themeColor}
               setThemeColor={(color) => { setThemeColor(color); localStorage.setItem('themeColor', color); }}
               isDarkMode={isDarkMode}
@@ -1369,6 +1377,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               onToggleNotifications={onToggleNotifications}
               onOpenPlanes={() => setShowPlanes(true)}
             />
+            </div>
           </div>
         </header>
 
@@ -1435,7 +1444,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         >
           <div className="relative max-w-md mx-auto pointer-events-auto animate-slide-in-from-bottom">
             {activeTab === 'general' && isFabDialOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-[6.5rem] w-11 flex flex-col items-center gap-2.5">
+              <div className="absolute right-[0.65rem] bottom-[calc(100%+4.75rem)] w-11 flex flex-col items-center gap-2.5">
                 {fabDialActions.map(({ key, label, icon: Icon, color, onClick }) => (
                   <div key={key} className="relative animate-scale-in">
                     <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-200 text-xs font-black px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
@@ -1452,12 +1461,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 ))}
               </div>
             )}
-            <NavPill items={NAV_ITEMS} activeId={activeTab} onSelect={setActiveTab} theme={theme} variant="mobile" spacerAt={2} />
+            <NavPill
+              items={[...NAV_ITEMS, { id: 'perfil', avatar: (user.name || '?').trim().charAt(0).toUpperCase(), short: nombreCorto }]}
+              activeId={perfilOpen ? 'perfil' : activeTab}
+              onSelect={(id) => { if (id === 'perfil') { setIsFabDialOpen(false); setPerfilOpen(true); } else { setPerfilOpen(false); setActiveTab(id); } }}
+              theme={theme}
+              variant="mobile"
+            />
             <button
               onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
               aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
               aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
-              className={`absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} ring-8 ring-kk-background dark:ring-dark-darker transition active:scale-90`}
+              className={`absolute right-1 bottom-[calc(100%+0.75rem)] w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} transition active:scale-90`}
             >
               <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
             </button>
@@ -2510,6 +2525,32 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             refreshToken={txRefreshToken}
           />
         </div>
+
+        <ProfileSheet
+          open={perfilOpen}
+          onClose={() => setPerfilOpen(false)}
+          user={user}
+          billing={billing}
+          theme={theme}
+          themeColor={themeColor}
+          setThemeColor={(color) => { setThemeColor(color); localStorage.setItem('themeColor', color); }}
+          isDarkMode={isDarkMode}
+          onToggleDark={() => { const m = !isDarkMode; setIsDarkMode(m); applyDarkMode(m, { persist: true }); }}
+          onOpenPlanes={() => setShowPlanes(true)}
+          onOpenCategorias={() => setShowCategoriasConfig(true)}
+          onRepetirTutorial={() => onOpenTutorial(false)}
+          onOpenAdmin={onOpenAdmin}
+          onRevisarCorreos={() => requestTxAction('revisar')}
+          onReprocesar={() => requestTxAction('reprocesar')}
+          onOpenFilters={() => setShowFilterRulesModal(true)}
+          onOpenConfig={() => setShowConfigModal(true)}
+          generateFinancialAdvice={generateFinancialAdvice}
+          isAiLoading={isAiLoading}
+          isPushSubscribed={isPushSubscribed}
+          isPushLoading={isPushLoading}
+          onToggleNotifications={onToggleNotifications}
+          onLogout={onLogout}
+        />
 
         <PlanesModal open={showPlanes} onClose={() => setShowPlanes(false)} token={token} theme={theme} billing={billing} onChanged={cargarBilling} />
 

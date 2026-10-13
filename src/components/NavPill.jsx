@@ -48,7 +48,7 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
           }}
         />
       )}
-      {items.map(({ id, icon: Icon, label, short }, i) => {
+      {items.map(({ id, icon: Icon, label, short, avatar }, i) => {
         const active = activeId === id;
         return (
           <React.Fragment key={id}>
@@ -67,13 +67,17 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
                 key={active ? `on-${id}` : `off-${id}`}
                 className={`grid place-items-center ${active ? 'animate-nav-pop' : ''}`}
               >
-                <Icon
-                  size={isMobile ? 21 : 16}
-                  strokeWidth={active ? 2.6 : 2}
-                  className={isMobile
-                    ? `transition-colors duration-300 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`
-                    : undefined}
-                />
+                {avatar ? (
+                  <span className={`w-[22px] h-[22px] rounded-full border-[1.5px] grid place-items-center text-[11px] font-extrabold leading-none transition-colors duration-300 ${active ? 'border-white text-white bg-white/20' : 'border-slate-400 dark:border-slate-500 text-slate-500 dark:text-slate-400'}`}>{avatar}</span>
+                ) : (
+                  <Icon
+                    size={isMobile ? 21 : 16}
+                    strokeWidth={active ? 2.6 : 2}
+                    className={isMobile
+                      ? `transition-colors duration-300 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`
+                      : undefined}
+                  />
+                )}
               </span>
               {isMobile ? (
                 <span className={`text-[11px] leading-none transition-all duration-300 ${active ? 'font-extrabold text-white' : 'font-bold text-slate-400 dark:text-slate-500'}`}>
