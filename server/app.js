@@ -928,8 +928,8 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
       return res.json(cached);
     }
 
-    // 'en_cuotas' vive solo en la pestaña Cuotas: fuera del historial y de los totales.
-    const conditions = ['user_id = ?', 'deleted_at IS NULL', "(tipo_transaccion IS NULL OR tipo_transaccion != 'en_cuotas')"];
+    // 'en_cuotas' y 'en_suscripcion' viven solo en la pestaña Cuotas: fuera del historial y de los totales.
+    const conditions = ['user_id = ?', 'deleted_at IS NULL', "(tipo_transaccion IS NULL OR tipo_transaccion NOT IN ('en_cuotas', 'en_suscripcion'))"];
     const filterValues = [userId];
 
     if (mes) { conditions.push("SUBSTR(fecha, 1, 7) = ?"); filterValues.push(mes); }

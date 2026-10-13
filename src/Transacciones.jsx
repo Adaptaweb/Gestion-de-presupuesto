@@ -65,7 +65,7 @@ const ReviewCard = ({
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
   reviewTipoTransaccion, setReviewTipoTransaccion,
   reviewSaving, theme, isDarkMode,
-  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit, onCuotas,
+  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit, onCuotas, onSuscripcion,
   CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_ICON_BG, CATEGORY_ICON_COLOR, CATEGORY_COLORS,
   onCreateCategoria, categorias,
 }) => {
@@ -236,12 +236,17 @@ const ReviewCard = ({
           <button onClick={onClose} aria-label="Salir" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition active:scale-90">
             <X size={16} />
           </button>
+          <div className="flex items-center gap-2">
+          <button onClick={onEdit} aria-label="Editar" title="Editar" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition active:scale-90">
+            <Edit3 size={15} />
+          </button>
           <div className={`relative w-10 h-10 flex-shrink-0 ${accentText}`}>
             <svg viewBox="0 0 36 36" className="w-10 h-10 -rotate-90">
               <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-slate-200 dark:stroke-white/10" />
               <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" strokeLinecap="round" stroke="currentColor" strokeDasharray={ringCircumference} strokeDashoffset={ringOffset} className="transition-all duration-500" />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-700 dark:text-white tabular-nums">{reviewIdx + 1}/{pendingCount}</div>
+          </div>
           </div>
         </div>
 
@@ -387,21 +392,17 @@ const ReviewCard = ({
           )}
         </div>
 
-        <div className="relative flex-shrink-0 flex items-center justify-center gap-6 px-5 pt-3.5 pb-[calc(14px+env(safe-area-inset-bottom,0px))] border-t border-slate-200 dark:border-white/5 bg-white/80 dark:bg-dark-normal/70 backdrop-blur-xl">
+        <div className="relative flex-shrink-0 flex items-center justify-center gap-4 sm:gap-6 px-4 sm:px-5 pt-3.5 pb-[calc(14px+env(safe-area-inset-bottom,0px))] border-t border-slate-200 dark:border-white/5 bg-white/80 dark:bg-dark-normal/70 backdrop-blur-xl">
           {!isInterno && (
             <button
               onClick={handleNoEs}
               disabled={reviewSaving}
               title={isGasto ? 'No es Gasto' : 'No es Ingreso'}
-              className="flex-shrink-0 w-14 h-14 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-400 flex items-center justify-center transition active:scale-90 disabled:opacity-40"
+              className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-400 flex items-center justify-center transition active:scale-90 disabled:opacity-40"
             >
               <X size={20} />
             </button>
           )}
-          <button onClick={onEdit} className="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition">
-            <Edit3 size={15} />
-            <span className="text-[10px] font-bold">Editar</span>
-          </button>
           {isGasto && typeof onCuotas === 'function' && (
             <button
               onClick={onCuotas}
@@ -411,6 +412,17 @@ const ReviewCard = ({
             >
               <CreditCard size={15} />
               <span className="text-[10px] font-bold">En cuotas</span>
+            </button>
+          )}
+          {isGasto && typeof onSuscripcion === 'function' && (
+            <button
+              onClick={onSuscripcion}
+              disabled={reviewSaving}
+              aria-label="Es suscripción"
+              className={`flex flex-col items-center gap-1 ${accentText} transition active:scale-90 disabled:opacity-40`}
+            >
+              <RefreshCw size={15} />
+              <span className="text-[10px] font-bold">Es suscripción</span>
             </button>
           )}
           <button
@@ -873,7 +885,7 @@ const TransactionDetailModal = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos, onPasarACuotas, refreshToken }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos, onPasarACuotas, onPasarASuscripcion, refreshToken }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -1576,6 +1588,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     onPasarACuotas(tx);
   };
 
+  const handleSuscripcionReview = () => {
+    const tx = pendingTxs[reviewIdx];
+    if (!tx || typeof onPasarASuscripcion !== 'function') return;
+    handleCloseReview();
+    onPasarASuscripcion(tx);
+  };
+
   const handleReclasificarTx = (tx) => {
     setPendingTxs([tx]);
     setReviewIdx(0);
@@ -2205,6 +2224,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             onConfirmComplete={handleConfirmComplete}
             onEdit={handleEditReviewTx}
             onCuotas={handleCuotasReview}
+            onSuscripcion={handleSuscripcionReview}
             CATEGORY_LIST={CATEGORY_LIST}
             CATEGORY_EMOJI={CATEGORY_EMOJI}
             CATEGORY_ICON_BG={CATEGORY_ICON_BG}
