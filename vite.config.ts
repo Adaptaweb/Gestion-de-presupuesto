@@ -60,7 +60,8 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
+      // Con injectManifest el bloque `workbox` se ignora: los patrones van aqui.
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2,woff,ttf}'],
       },
     }),

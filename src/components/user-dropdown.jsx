@@ -203,9 +203,10 @@ export function UserMenu({
           <DropdownMenuItem
             onClick={() => {
               if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => {
-                  regs.forEach(r => r.unregister());
-                }).finally(() => window.location.reload());
+                Promise.all([
+                  navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister()))),
+                  'caches' in window ? caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))) : null,
+                ]).catch(() => {}).finally(() => window.location.reload());
               } else {
                 window.location.reload();
               }

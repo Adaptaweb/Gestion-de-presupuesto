@@ -1,7 +1,13 @@
-import { precacheAndRoute } from 'workbox-precaching';
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { clientsClaim } from 'workbox-core';
 
 precacheAndRoute(self.__WB_MANIFEST);
+// Al activarse una version nueva, borra los precaches de las anteriores: sin
+// esto se acumulaban y quedaban archivos viejos en el dispositivo.
+cleanupOutdatedCaches();
+// Rutas de la SPA (/dashboard...) sirven el index precacheado, tambien sin red.
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/api\//] }));
 clientsClaim();
 
 self.addEventListener('message', (event) => {
