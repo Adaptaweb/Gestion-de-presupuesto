@@ -68,7 +68,7 @@ import {
 // Una sola fuente para la navegacion: las tabs de escritorio y la barra
 // flotante movil se generaban por separado y ya habian divergido.
 const NAV_ITEMS = [
-  { id: 'transacciones', icon: Mail, label: 'Transacciones', short: 'Trans' },
+  { id: 'transacciones', icon: Mail, label: 'Transacciones', short: 'Transacciones' },
   { id: 'general', icon: ListChecks, label: 'Suscripciones y Cuotas', short: 'Cuotas' },
   { id: 'ahorros', icon: PiggyBank, label: 'Gestión de Ahorros', short: 'Ahorros' },
   { id: 'dashboard', icon: LayoutDashboard, label: 'Resumen', short: 'Resumen' },
