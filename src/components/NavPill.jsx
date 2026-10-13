@@ -7,9 +7,10 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 // La pill se mide sobre el boton activo, y tambien cuando ese boton cambia de
 // tamano (el dock estira y encoge los botones), asi que no queda desfasada.
 const SPRING = 'cubic-bezier(0.22, 1, 0.36, 1)';
-const DURACION = 460;
-// Misma curva que SPRING (ease-out fuerte) para que la pill siga a los botones.
-const easeOut = (t) => 1 - Math.pow(1 - t, 4);
+const DURACION = 720;
+// Resorte amortiguado: la pill se pasa un ~12 % del recorrido y vuelve. Los
+// botones siguen con su curva suave; el rebote es solo de la pill.
+const resorte = (t) => (t >= 1 ? 1 : 1 - Math.exp(-5 * t) * Math.cos(t * Math.PI * 2.4));
 
 export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop', tint }) {
   const wrapRef = useRef(null);
@@ -48,7 +49,7 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
       const paso = (ahora) => {
         const t = Math.min(1, (ahora - t0) / DURACION);
         const meta = destino() || fin;
-        const e = easeOut(t);
+        const e = resorte(t);
         pintar({ left: desde.left + (meta.left - desde.left) * e, width: desde.width + (meta.width - desde.width) * e });
         raf = t < 1 ? requestAnimationFrame(paso) : 0;
       };
@@ -67,13 +68,13 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
     <div
       ref={wrapRef}
       className={isDock
-        ? 'kk-glass relative flex items-center h-16 px-[5px] rounded-full'
+        ? 'kk-glass relative flex items-center h-16 px-[3px] rounded-full'
         : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm'}
     >
       <span
         ref={pillRef}
         aria-hidden="true"
-        className={`absolute left-0 rounded-full pointer-events-none ${isDock ? 'kk-glass-tint top-[9px] bottom-[9px]' : `${theme.btnPrimary} shadow-md ${theme.shadowBtn} top-1 bottom-1`}`}
+        className={`absolute left-0 rounded-full pointer-events-none ${isDock ? 'kk-glass-tint top-[3px] bottom-[3px]' : `${theme.btnPrimary} shadow-md ${theme.shadowBtn} top-1 bottom-1`}`}
         style={isDock ? { opacity: 0, '--kk-tint': tint } : { opacity: 0 }}
       />
       {items.map(({ id, icon: Icon, label, short, avatar }) => {
@@ -86,7 +87,7 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
             aria-current={active ? 'page' : undefined}
             aria-label={isDock ? (label || short) : undefined}
             className={isDock
-              ? `relative z-10 h-[46px] min-w-0 flex items-center justify-center rounded-full overflow-hidden whitespace-nowrap transition-colors duration-300 active:scale-90 ${active ? 'text-white' : 'text-slate-600 dark:text-slate-300'}`
+              ? `relative z-10 h-[58px] min-w-0 flex items-center justify-center rounded-full overflow-hidden whitespace-nowrap transition-colors duration-300 active:scale-90 ${active ? 'text-white' : 'text-slate-600 dark:text-slate-300'}`
               : `relative z-10 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-colors duration-300 active:scale-95 ${
                   active ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
                 }`}
