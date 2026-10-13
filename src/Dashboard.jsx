@@ -321,9 +321,31 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     return `${MONTH_NAMES[monthIndex]} ${year}`;
   };
 
-  // Una suscripcion cancelada conserva sus pagos anteriores, pero desde
-  // `canceladaDesde` ya no cobra ni cuenta como pendiente.
-  const subCanceladaEn = (s, mes) => !!s.canceladaDesde && toDateVal(mes) >= toDateVal(s.canceladaDesde);
+  // Cancelar una suscripcion la deja cancelada de ese mes en adelante, tambien
+  // los meses posteriores, hasta que se reactive. Reactivar la reanuda desde el
+  // mes elegido: los meses cancelados de antes siguen cancelados y los pagos
+  // anteriores no se tocan. Cada periodo es { desde, hasta }; hasta vacio = abierto.
+  const subPeriodos = (sub) => {
+    if (Array.isArray(sub.cancelaciones) && sub.cancelaciones.length) return sub.cancelaciones;
+    return sub.canceladaDesde ? [{ desde: sub.canceladaDesde, hasta: null }] : []; // formato anterior
+  };
+  const subPeriodoEn = (sub, mes) => {
+    const v = toDateVal(mes);
+    return subPeriodos(sub).find(p => v >= toDateVal(p.desde) && (!p.hasta || v < toDateVal(p.hasta)));
+  };
+  const subCanceladaEn = (sub, mes) => !!subPeriodoEn(sub, mes);
+  const subEnRangoDesde = (sub, inicio, v) => (sub.billingCycle === 'mensual'
+    ? v >= inicio && v < inicio + sub.durationYears * 12
+    : Array.from({ length: sub.durationYears }, (_, i) => inicio + i * 12).includes(v));
+  // El mes pertenece a la vida de la suscripcion (original o reanudada); una
+  // cancelacion abierta sigue visible como cancelada en todos los meses siguientes.
+  const subEnRango = (sub, mes) => {
+    const v = toDateVal(mes);
+    const periodos = subPeriodos(sub);
+    const inicios = [toDateVal(sub.mesInicio), ...periodos.filter(p => p.hasta).map(p => toDateVal(p.hasta))];
+    return inicios.some(i => subEnRangoDesde(sub, i, v)) || periodos.some(p => !p.hasta && v >= toDateVal(p.desde));
+  };
+  const subActivaEnMes = (sub, mes) => subEnRango(sub, mes) && !subCanceladaEn(sub, mes);
 
   const availableYears = useMemo(() => {
     const years = months.map(m => m.split(' ')[1]);
@@ -776,19 +798,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     }));
 
     const getSubActiveMonths = (sub) => {
-      const startVal = toDateVal(sub.mesInicio);
-      const totalMonths = sub.durationYears * 12;
-      const activeMonths = [];
-      if (sub.billingCycle === 'mensual') {
-        for (let i = 0; i < totalMonths; i++) {
-          activeMonths.push(fromDateVal(startVal + i));
-        }
-      } else {
-        for (let i = 0; i < sub.durationYears; i++) {
-          activeMonths.push(fromDateVal(startVal + i * 12));
+      const valores = new Set();
+      const periodos = subPeriodos(sub);
+      const inicios = [toDateVal(sub.mesInicio), ...periodos.filter(p => p.hasta).map(p => toDateVal(p.hasta))];
+      for (const inicio of inicios) {
+        if (sub.billingCycle === 'mensual') {
+          for (let i = 0; i < sub.durationYears * 12; i++) valores.add(inicio + i);
+        } else {
+          for (let i = 0; i < sub.durationYears; i++) valores.add(inicio + i * 12);
         }
       }
-      return activeMonths;
+      // Cancelacion abierta: se muestra cancelada en todos los meses siguientes.
+      for (const p of periodos.filter(x => !x.hasta)) {
+        const desde = toDateVal(p.desde);
+        months.forEach(m => { const v = toDateVal(m); if (v >= desde) valores.add(v); });
+      }
+      return [...valores].sort((a, b) => a - b).map(fromDateVal);
     };
 
     const subsProcesadas = suscripciones.map(s => {
@@ -807,7 +832,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     }));
 
     return [...deudasProcesadas, ...gastosProcesados, ...subsProcesadas, ...abonosProcesados];
-  }, [deudas, gastosFijos, suscripciones, abonos, filteredMonths]);
+  }, [deudas, gastosFijos, suscripciones, abonos, filteredMonths, months]);
 
   const totalesMensuales = useMemo(() => {
     const res = {};
@@ -822,24 +847,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         return (pago?.estado === 'PAGADA') ? acc + (pago.monto || 0) : acc;
       }, 0);
 
-      const totalSubs = suscripciones.reduce((acc, s) => {
-        const startVal = toDateVal(s.mesInicio);
-        const totalMonths = s.durationYears * 12;
-        let isActive = false;
-        if (s.billingCycle === 'mensual') {
-          const mesVal = toDateVal(mes);
-          isActive = mesVal >= startVal && mesVal < startVal + totalMonths;
-        } else {
-          const mesVal = toDateVal(mes);
-          for (let i = 0; i < s.durationYears; i++) {
-            if (mesVal === startVal + i * 12) {
-              isActive = true;
-              break;
-            }
-          }
-        }
-        return isActive && !subCanceladaEn(s, mes) && s.pagos?.[mes]?.estado === 'PAGADA' ? acc + (s.pagos[mes].monto || s.valor || 0) : acc;
-      }, 0);
+      const totalSubs = suscripciones.reduce((acc, s) => (
+        subActivaEnMes(s, mes) && s.pagos?.[mes]?.estado === 'PAGADA' ? acc + (s.pagos[mes].monto || s.valor || 0) : acc
+      ), 0);
 
       const totalAbonos = abonos.reduce((acc, a) => {
         const pago = a.pagos?.[mes];
@@ -1075,7 +1085,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const handleSaveSubscription = (e) => {
     e.preventDefault();
     if (editingItem && editingItem.tipo === 'suscripcion') {
-      setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, id: s.id, pagos: s.pagos, ...(s.canceladaDesde ? { canceladaDesde: s.canceladaDesde } : {}) } : s));
+      setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, id: s.id, pagos: s.pagos, ...(s.cancelaciones ? { cancelaciones: s.cancelaciones } : {}), ...(s.canceladaDesde ? { canceladaDesde: s.canceladaDesde } : {}) } : s));
     } else {
       setSuscripciones([...suscripciones, { ...newSub, id: `sub-${Date.now()}`, pagos: {} }]);
     }
@@ -1381,10 +1391,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </div>
         </header>
 
-        <div className="md:hidden sticky top-2 z-30 mb-4">
-          <NavPill items={NAV_ITEMS} activeId={activeTab} onSelect={(id) => { setIsFabDialOpen(false); setPerfilOpen(false); setActiveTab(id); }} theme={theme} variant="segment" />
-        </div>
-
         <BillingBanner billing={billing} onOpen={() => setShowPlanes(true)} />
 
         {isInstallable && (
@@ -1438,48 +1444,52 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           />
         )}
 
-        {/* Movil: las secciones van arriba, en una barra segmentada que se
-            queda fija al desplazar, y abajo solo lo que se usa con una mano:
-            agregar y perfil. En Cuotas, "Agregar" despliega el speed-dial. */}
+        {/* Movil: dock compacto. Cinco iconos (las cuatro secciones y el perfil);
+            la opcion activa se estira y muestra su nombre. El boton + queda
+            fuera de la barra, a la derecha; en Cuotas despliega el speed-dial. */}
         <div
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pointer-events-none"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
         >
           <div className="relative max-w-md mx-auto pointer-events-auto animate-slide-in-from-bottom">
             {activeTab === 'general' && isFabDialOpen && (
-              <div className="absolute left-0 bottom-[calc(100%+0.75rem)] flex flex-col items-start gap-2.5">
+              <div className="absolute right-[0.4rem] bottom-[calc(100%+0.75rem)] w-11 flex flex-col items-center gap-2.5">
                 {fabDialActions.map(({ key, label, icon: Icon, color, onClick }) => (
-                  <button
-                    key={key}
-                    onClick={() => { onClick(); setIsFabDialOpen(false); }}
-                    className="flex items-center gap-2.5 animate-scale-in transition active:scale-95"
-                  >
-                    <span className={`w-11 h-11 rounded-full ${color} text-white grid place-items-center shadow-xl`}><Icon size={18} /></span>
-                    <span className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-200 text-xs font-black px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">{label}</span>
-                  </button>
+                  <div key={key} className="relative animate-scale-in">
+                    <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-200 text-xs font-black px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                      {label}
+                    </span>
+                    <button
+                      onClick={() => { onClick(); setIsFabDialOpen(false); }}
+                      aria-label={label}
+                      className={`w-11 h-11 rounded-full ${color} text-white grid place-items-center shadow-xl transition active:scale-90`}
+                    >
+                      <Icon size={18} />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
             <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0 relative">
+                <NavPill
+                  items={[...NAV_ITEMS, { id: 'perfil', avatar: (user.name || '?').trim().charAt(0).toUpperCase(), label: `Perfil de ${nombreCorto}`, short: nombreCorto }]}
+                  activeId={perfilOpen ? 'perfil' : activeTab}
+                  onSelect={(id) => { if (id === 'perfil') { setIsFabDialOpen(false); setPerfilOpen(true); } else { setPerfilOpen(false); setActiveTab(id); } }}
+                  theme={theme}
+                  variant="dock"
+                />
+                {['pago_fallido', 'solo_lectura', 'suspendida'].includes(billing?.estado) || (billing?.estado === 'prueba' && billing.diasRestantes <= 7) ? (
+                  <span aria-hidden="true" className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white dark:border-dark-normal pointer-events-none" />
+                ) : null}
+              </div>
               <button
                 onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
+                aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
                 aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
-                className={`flex-1 h-[60px] rounded-full ${theme.btnPrimary} text-white flex items-center justify-center gap-2.5 text-base font-extrabold shadow-xl ${theme.shadowBtn} transition active:scale-[0.98]`}
+                className={`flex-shrink-0 w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} transition active:scale-90`}
               >
-                <Plus size={22} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
-                {activeTab === 'general' ? (isFabDialOpen ? 'Cerrar' : 'Agregar') : 'Ingreso manual'}
-              </button>
-              <button
-                onClick={() => { setIsFabDialOpen(false); setPerfilOpen(true); }}
-                aria-label={`Perfil de ${nombreCorto}`}
-                className={`relative flex-shrink-0 w-[60px] h-[60px] rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border shadow-2xl shadow-slate-400/25 dark:shadow-black/60 grid place-items-center transition active:scale-95 ${perfilOpen ? theme.borderAccent : 'border-slate-200 dark:border-dark-lighter'}`}
-              >
-                <span className={`w-[42px] h-[42px] rounded-full border-2 grid place-items-center text-lg font-extrabold bg-white dark:bg-dark-lighter ${theme.borderAccent} ${theme.tabText}`}>
-                  {(user.name || '?').trim().charAt(0).toUpperCase()}
-                </span>
-                {['pago_fallido', 'solo_lectura', 'suspendida'].includes(billing?.estado) || (billing?.estado === 'prueba' && billing.diasRestantes <= 7) ? (
-                  <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-white dark:border-dark-normal" />
-                ) : null}
+                <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
               </button>
             </div>
           </div>
@@ -1522,14 +1532,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               const cuotasPagadasMes = cuotasActivas.filter(d => d.pagos?.[mes]?.estado === 'PAGADA').length;
               const cuotasPendientesMes = cuotasActivas.length - cuotasPagadasMes;
 
-              const subsActivas = suscripciones.filter(s => {
-                const startVal = toDateVal(s.mesInicio);
-                const mesVal = toDateVal(mes);
-                if (subCanceladaEn(s, mes)) return false;
-                if (s.billingCycle === 'mensual') return mesVal >= startVal && mesVal < startVal + s.durationYears * 12;
-                for (let i = 0; i < s.durationYears; i++) { if (mesVal === startVal + i * 12) return true; }
-                return false;
-              }).sort((a, b) => (a.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0) - (b.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0));
+              const subsActivas = suscripciones.filter(s => subActivaEnMes(s, mes)).sort((a, b) => (a.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0) - (b.pagos?.[mes]?.estado === 'PAGADA' ? 1 : 0));
 
               const proximosCobros = subsActivas.filter(s => s.pagos?.[mes]?.estado !== 'PAGADA')
                 .map(s => ({ nombre: s.descripcion, monto: s.pagos?.[mes]?.monto || s.valor || 0, dia: s.diaPago || 1 }))
@@ -2038,14 +2041,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
                 return isMonthInRange(mes, d.mesInicio, mesTermino, d.isContribuciones);
               });
-              const subsActivas = suscripciones.filter(s => {
-                const startVal = toDateVal(s.mesInicio);
-                const mesVal = toDateVal(mes);
-                if (subCanceladaEn(s, mes)) return false;
-                if (s.billingCycle === 'mensual') return mesVal >= startVal && mesVal < startVal + s.durationYears * 12;
-                for (let i = 0; i < s.durationYears; i++) { if (mesVal === startVal + i * 12) return true; }
-                return false;
-              });
+              const subsActivas = suscripciones.filter(s => subActivaEnMes(s, mes));
 
               const montoCuota = (d) => d.valorCuota || 0;
               const montoSub = (s) => s.pagos?.[mes]?.monto || s.valor || 0;
@@ -2198,14 +2194,25 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     // Si ya se pago este mes, la baja rige desde el siguiente.
                     const desde = isPagado ? fromDateVal(toDateVal(mes) + 1) : mes;
                     if (!window.confirm(`¿Cancelar "${item.descripcion}" desde ${desde}? Se conserva el historial y deja de aparecer como pendiente.`)) return;
-                    setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, canceladaDesde: desde } : s));
-                    marcarGuardado('Suscripción cancelada', item.descripcion);
-                  };
-                  const reactivarSuscripcion = () => {
                     setSuscripciones(suscripciones.map(s => {
                       if (s.id !== item.id) return s;
                       const { canceladaDesde, ...resto } = s;
-                      return resto;
+                      return { ...resto, cancelaciones: [...subPeriodos(s), { desde, hasta: null }] };
+                    }));
+                    marcarGuardado('Suscripción cancelada', item.descripcion);
+                  };
+                  const reactivarSuscripcion = () => {
+                    // Se reanuda desde el mes que se esta viendo. Si ese mes es el de
+                    // la cancelacion (o anterior), la cancelacion se deshace entera.
+                    setSuscripciones(suscripciones.map(s => {
+                      if (s.id !== item.id) return s;
+                      const { canceladaDesde, ...resto } = s;
+                      const actual = subPeriodoEn(s, mes);
+                      const periodos = subPeriodos(s).flatMap(p => {
+                        if (p !== actual) return [p];
+                        return toDateVal(mes) <= toDateVal(p.desde) ? [] : [{ desde: p.desde, hasta: mes }];
+                      });
+                      return { ...resto, cancelaciones: periodos };
                     }));
                     marcarGuardado('Suscripción reactivada', item.descripcion);
                   };
@@ -2281,7 +2288,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       <div className="mt-3 rounded-xl border border-slate-100 dark:border-dark-lighter bg-slate-50/60 dark:bg-dark-lighter/20 p-2.5">
                         {cancelada ? (
                           <div className="flex items-center justify-between gap-2 py-0.5">
-                            <span className="text-xs font-black text-rose-500 dark:text-rose-400">Cancelada desde {item.canceladaDesde}</span>
+                            <span className="text-xs font-black text-rose-500 dark:text-rose-400">Cancelada desde {subPeriodoEn(item, mes)?.desde}</span>
                             <button type="button" onClick={reactivarSuscripcion} className="text-xs font-black uppercase tracking-tighter px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-dark-lightest text-slate-700 dark:text-slate-200 transition">Reactivar</button>
                           </div>
                         ) : !active ? (

@@ -1,99 +1,98 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 
-// Navegacion con una "pill" que se desliza hasta la opcion elegida. La misma
-// pieza sirve para la barra de escritorio y para la flotante del movil: cambia
-// solo el aspecto. La pill se mide sobre el boton activo, asi que sigue
-// funcionando si cambia el ancho (rotar el telefono, otra fuente, otro tema).
+// Navegacion con una "pill" que se desliza hasta la opcion elegida.
+//  - desktop: barra de texto con icono.
+//  - dock (movil): solo iconos; la opcion activa se estira y muestra su
+//    nombre dentro de la pill, que viaja y cambia de ancho al mismo tiempo.
+// La pill se mide sobre el boton activo, y tambien cuando ese boton cambia de
+// tamano (el dock estira y encoge los botones), asi que no queda desfasada.
 const SPRING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop', spacerAt = -1 }) {
+export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop' }) {
   const wrapRef = useRef(null);
   const btnRefs = useRef({});
   const [pill, setPill] = useState(null);
   const [animate, setAnimate] = useState(false);
+  const isDock = variant === 'dock';
 
   useLayoutEffect(() => {
     const measure = () => {
       const el = btnRefs.current[activeId];
       if (!el) return;
-      setPill({ left: el.offsetLeft, width: el.offsetWidth });
+      setPill((prev) => {
+        const next = { left: el.offsetLeft, width: el.offsetWidth };
+        return prev && prev.left === next.left && prev.width === next.width ? prev : next;
+      });
     };
     measure();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    if (ro && wrapRef.current) ro.observe(wrapRef.current);
+    if (ro) {
+      if (wrapRef.current) ro.observe(wrapRef.current);
+      Object.values(btnRefs.current).forEach((el) => el && ro.observe(el));
+    }
     // La primera posicion se fija sin viaje; los cambios siguientes si animan.
     const id = requestAnimationFrame(() => setAnimate(true));
     return () => { ro?.disconnect(); cancelAnimationFrame(id); };
-  }, [activeId]);
-
-  const isMobile = variant === 'mobile';
-  const isSeg = variant === 'segment';
-  // Mismos colores en movil y escritorio: pill del tema con texto blanco.
-  const pillClass = `${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isMobile ? 'top-1.5 bottom-1.5' : 'top-1 bottom-1'}`;
-  const wrapClass = isSeg
-    ? 'relative flex w-full bg-white/90 dark:bg-dark-normal/90 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-lg shadow-slate-300/30 dark:shadow-black/40'
-    : isMobile
-      ? 'relative flex items-center h-16 rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60'
-      : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm';
+  }, [activeId, items.length]);
 
   return (
     <div
       ref={wrapRef}
-      className={wrapClass}
+      className={isDock
+        ? 'relative flex items-center justify-between h-16 px-[5px] rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60'
+        : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm'}
     >
       {pill && (
         <span
           aria-hidden="true"
-          className={`absolute left-0 rounded-full pointer-events-none ${isSeg ? `${theme.btnPrimary} shadow-md ${theme.shadowBtn} top-1 bottom-1` : pillClass}`}
+          className={`absolute left-0 rounded-full pointer-events-none ${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isDock ? 'top-[9px] bottom-[9px]' : 'top-1 bottom-1'}`}
           style={{
-            width: isMobile ? Math.max(0, pill.width - 8) : pill.width,
-            transform: `translateX(${isMobile ? pill.left + 4 : pill.left}px)`,
+            width: pill.width,
+            transform: `translateX(${pill.left}px)`,
             transition: animate ? `transform 460ms ${SPRING}, width 460ms ${SPRING}` : 'none',
           }}
         />
       )}
-      {items.map(({ id, icon: Icon, label, short, avatar }, i) => {
+      {items.map(({ id, icon: Icon, label, short, avatar }) => {
         const active = activeId === id;
         return (
-          <React.Fragment key={id}>
-            {i === spacerAt && <span className="w-16 flex-shrink-0" aria-hidden="true" />}
-            <button
-              ref={(el) => { btnRefs.current[id] = el; }}
-              onClick={() => onSelect(id)}
-              aria-current={active ? 'page' : undefined}
-              className={isSeg
-                ? `relative z-10 flex-1 min-w-0 min-h-[40px] rounded-full text-[13px] truncate transition-colors duration-300 active:scale-95 ${active ? 'font-extrabold text-white' : 'font-bold text-slate-500 dark:text-slate-400'}`
-                : isMobile
-                ? 'relative z-10 flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 h-full rounded-full transition-transform duration-200 active:scale-90'
-                : `relative z-10 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-colors duration-300 active:scale-95 ${
-                    active ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
-                  }`}
+          <button
+            key={id}
+            ref={(el) => { btnRefs.current[id] = el; }}
+            onClick={() => onSelect(id)}
+            aria-current={active ? 'page' : undefined}
+            aria-label={isDock ? (label || short) : undefined}
+            className={isDock
+              ? `relative z-10 h-[46px] min-w-[40px] flex items-center justify-center rounded-full overflow-hidden whitespace-nowrap transition-colors duration-300 active:scale-90 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`
+              : `relative z-10 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-colors duration-300 active:scale-95 ${
+                  active ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
+                }`}
+            style={isDock ? { padding: active ? '0 14px 0 11px' : '0 8px', transition: `padding 460ms ${SPRING}, color 300ms` } : undefined}
+          >
+            <span
+              key={active ? `on-${id}` : `off-${id}`}
+              className={`grid place-items-center ${active ? 'animate-nav-pop' : ''}`}
             >
-              {isSeg ? short : <>
+              {avatar ? (
+                <span className={`w-[24px] h-[24px] rounded-full border-[1.5px] grid place-items-center text-[12px] font-extrabold leading-none transition-colors duration-300 ${active ? 'border-white text-white bg-white/20' : 'border-slate-400 dark:border-slate-500 text-slate-500 dark:text-slate-400'}`}>{avatar}</span>
+              ) : (
+                <Icon size={isDock ? 22 : 16} strokeWidth={active ? 2.6 : 2} />
+              )}
+            </span>
+            {isDock ? (
               <span
-                key={active ? `on-${id}` : `off-${id}`}
-                className={`grid place-items-center ${active ? 'animate-nav-pop' : ''}`}
+                className="text-[13px] font-extrabold overflow-hidden"
+                style={{
+                  maxWidth: active ? 72 : 0,
+                  marginLeft: active ? 7 : 0,
+                  opacity: active ? 1 : 0,
+                  transition: `max-width 460ms ${SPRING}, margin 460ms ${SPRING}, opacity 300ms`,
+                }}
               >
-                {avatar ? (
-                  <span className={`w-[22px] h-[22px] rounded-full border-[1.5px] grid place-items-center text-[11px] font-extrabold leading-none transition-colors duration-300 ${active ? 'border-white text-white bg-white/20' : 'border-slate-400 dark:border-slate-500 text-slate-500 dark:text-slate-400'}`}>{avatar}</span>
-                ) : (
-                  <Icon
-                    size={isMobile ? 21 : 16}
-                    strokeWidth={active ? 2.6 : 2}
-                    className={isMobile
-                      ? `transition-colors duration-300 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`
-                      : undefined}
-                  />
-                )}
+                {short}
               </span>
-              {isMobile ? (
-                <span className={`text-[11px] leading-none transition-all duration-300 ${active ? 'font-extrabold text-white' : 'font-bold text-slate-400 dark:text-slate-500'}`}>
-                  {short}
-                </span>
-              ) : label}
-              </>}
-            </button>
-          </React.Fragment>
+            ) : label}
+          </button>
         );
       })}
     </div>
