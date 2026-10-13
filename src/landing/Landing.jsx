@@ -32,9 +32,9 @@ const Landing = ({ onLogin, onRegister }) => {
   const scrolled = !isSentinelInView;
 
   return (
-    <div className={`min-h-screen bg-white dark:bg-dark-darker font-poppins transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`min-h-[100dvh] bg-kk-background dark:bg-dark-darker font-poppins transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <LayoutGroup>
-      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b ${
+      <header style={{ top: 'env(safe-area-inset-top, 0px)' }} className={`fixed left-0 right-0 z-50 backdrop-blur-lg border-b ${
         scrolled
           ? 'bg-white/80 dark:bg-dark-darker/80 border-slate-100 dark:border-dark-lighter'
           : 'bg-white/0 dark:bg-dark-darker/0 border-transparent'

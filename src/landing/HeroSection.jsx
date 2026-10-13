@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, Bell, Smartphone, Eye } from 'lucide-react';
 
 const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled }) => {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
+    <section className="relative min-h-[100dvh] flex items-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-kk-secondary/10 dark:bg-kk-secondary/5 rounded-full blur-3xl" />

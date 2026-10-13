@@ -277,7 +277,7 @@ export default function CategoriasConfig({
 
       {editing && (
         <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-sm p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-sm p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-black text-slate-800 dark:text-slate-200">
                 {editing.isNew ? 'Nueva categoría' : 'Editar categoría'}

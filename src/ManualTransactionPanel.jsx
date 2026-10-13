@@ -156,7 +156,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
   return (
     <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 transition-opacity duration-300" style={{ opacity: visible ? 1 : 0 }}>
       <div
-        className={`w-full max-w-md mx-auto max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden transition duration-300 ${
+        className={`w-full max-w-md mx-auto max-h-[100dvh] sm:max-h-[90dvh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden transition duration-300 ${
           visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
         }`}
       >

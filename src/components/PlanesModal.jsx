@@ -68,7 +68,8 @@ const PlanesModal = ({ open, onClose, token, theme, billing, onChanged }) => {
         aria-modal="true"
         aria-label="Mi plan"
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-dark-normal w-full max-w-md max-h-[92vh] overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl p-5 sm:p-7 pb-8 animate-slide-in-from-bottom"
+        className="bg-white dark:bg-dark-normal w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl p-5 sm:p-7 animate-slide-in-from-bottom"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 2rem)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-black text-slate-800 dark:text-white">Mi plan</h3>

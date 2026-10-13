@@ -18,7 +18,7 @@ const TerminosCondiciones = lazy(() => import('./components/TerminosCondiciones.
 const PoliticaPrivacidad = lazy(() => import('./components/PoliticaPrivacidad.jsx'));
 
 const LoadingSpinner = () => (
-  <div className="min-h-screen bg-kk-background dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
+  <div className="min-h-[100dvh] bg-kk-background dark:bg-dark-darker flex items-center justify-center font-sans transition-colors duration-300">
     <Loader2 className="animate-spin text-kk-primary" size={40} />
   </div>
 );
@@ -163,7 +163,7 @@ const App = () => {
             />
             {showTutorial && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90vh] max-h-[900px] shadow-2xl overflow-hidden">
+                <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90dvh] max-h-[900px] shadow-2xl overflow-hidden">
                   <TutorialFlow user={user} onClose={() => setShowTutorial(false)} hasMailboxConfigured={tutorialHasMailbox} />
                 </div>
               </div>

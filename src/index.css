@@ -134,6 +134,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Con viewport-fit=cover la pagina llena toda la pantalla: se deja libre
+       la zona de la barra de estado. La inferior la resuelven la barra flotante
+       y las hojas con env(safe-area-inset-bottom). */
+    padding-top: env(safe-area-inset-top, 0px);
     /* Manrope para la interfaz. brand.md reserva Poppins para marketing, que
        ahora se aplica solo en la landing con la clase font-poppins. */
     font-family: 'Manrope Variable', 'Manrope', system-ui, sans-serif;

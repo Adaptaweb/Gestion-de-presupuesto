@@ -10,11 +10,11 @@ const NAV_LINKS = [
 
 const LandingFooter = ({ isDarkMode }) => {
   const footerBg = isDarkMode
-    ? "bg-gradient-to-b from-dark-darker to-dark-normal"
-    : "bg-gradient-to-b from-kk-light/30 to-white";
+    ? "bg-gradient-to-b from-dark-darker to-dark-darker"
+    : "bg-gradient-to-b from-kk-light/30 to-kk-background";
 
   return (
-    <footer className={`relative w-full ${footerBg} overflow-hidden py-5`}>
+    <footer className={`relative w-full ${footerBg} overflow-hidden pt-5`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)' }}>
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-0 w-72 h-72 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/3 right-0 w-80 h-80 bg-kk-secondary/5 dark:bg-kk-secondary/5 rounded-full blur-3xl" />

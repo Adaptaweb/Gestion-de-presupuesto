@@ -208,7 +208,7 @@ const AdminPanel = ({ onBack, token }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-darker p-4 md:p-8 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    <div className="min-h-[100dvh] bg-slate-50 dark:bg-dark-darker p-4 md:p-8 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center gap-4 mb-8">
           <div className="flex items-center gap-4">

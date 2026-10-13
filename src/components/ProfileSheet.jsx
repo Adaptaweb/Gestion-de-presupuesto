@@ -97,7 +97,7 @@ const ProfileSheet = ({
         onClick={() => cerrar()}
       />
       <div
-        className="kk-sheet absolute left-0 right-0 bottom-0 max-h-[92vh] overflow-y-auto bg-slate-50 dark:bg-dark-normal border-t border-slate-200 dark:border-dark-lighter rounded-t-[2rem] px-4 pt-2.5 flex flex-col gap-3.5"
+        className="kk-sheet absolute left-0 right-0 bottom-0 max-h-[92dvh] overflow-y-auto bg-slate-50 dark:bg-dark-normal border-t border-slate-200 dark:border-dark-lighter rounded-t-[2rem] px-4 pt-2.5 flex flex-col gap-3.5"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)',
           animation: saliendo ? 'kkSheetOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards' : 'kkSheetIn 420ms cubic-bezier(0.22, 1, 0.36, 1)',

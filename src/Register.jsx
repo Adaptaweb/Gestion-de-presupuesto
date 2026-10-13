@@ -137,7 +137,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
 
   if (success) {
     return (
-      <div className={`min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+      <div className={`min-h-[100dvh] bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
         <section className="relative flex-1 flex items-center justify-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="w-full max-w-md text-center">
@@ -166,7 +166,7 @@ const Register = ({ onRegister, onGoToLogin, isDarkMode, googleClientId }) => {
   }
 
   return (
-    <div className={`min-h-screen bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`min-h-[100dvh] bg-kk-background dark:bg-dark-darker flex flex-col font-sans transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <section className="relative flex-1 flex items-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />

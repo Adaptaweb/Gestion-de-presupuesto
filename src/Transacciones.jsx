@@ -214,7 +214,7 @@ const ReviewCard = ({
 
       <div
         data-kk-anim
-        className="relative w-full max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden will-change-transform"
+        className="relative w-full max-h-[100dvh] sm:max-h-[90dvh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden will-change-transform"
         style={{
           transform: isExiting
             ? (exitDir === 'right'
@@ -758,7 +758,7 @@ const TransactionDetailModal = ({
         onClick={onClose}
       />
       <div
-        className={`relative w-full sm:max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar rounded-t-3xl sm:rounded-[28px] border shadow-2xl ${
+        className={`relative w-full sm:max-w-md max-h-[90dvh] overflow-y-auto custom-scrollbar rounded-t-3xl sm:rounded-[28px] border shadow-2xl ${
           isMuted
             ? 'bg-slate-50 dark:bg-dark-normal border-slate-100 dark:border-dark-lighter'
             : 'bg-white dark:bg-dark-normal'
@@ -2033,7 +2033,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       {/* Edit Transaction Modal */}
       {showEditModal && editingTx && (
         <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md ${showReview ? 'z-[60]' : 'z-50'} flex items-center justify-center p-3 sm:p-4`}>
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                 <Edit3 className={theme.tabText} size={20} /> Editar Transaccion
