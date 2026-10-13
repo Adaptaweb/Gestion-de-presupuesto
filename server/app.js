@@ -902,7 +902,12 @@ app.get('/api/transacciones/status', authenticateToken, async (req, res) => {
   if (cached) return res.json(cached);
   const authenticated = await hasValidTokens(userId);
   const user = await db.get('SELECT gmail_forwarding_authorized FROM users WHERE id = ?', userId);
-  const result = { authenticated, lastCheck: getLastCheckTime(), gmail_forwarding_authorized: user?.gmail_forwarding_authorized || false };
+  let trial_started_at = null;
+  try {
+    const t = await db.get('SELECT trial_started_at FROM users WHERE id = ?', userId);
+    trial_started_at = t?.trial_started_at || null;
+  } catch { /* la columna llega con la migracion 0018 */ }
+  const result = { authenticated, lastCheck: getLastCheckTime(), gmail_forwarding_authorized: user?.gmail_forwarding_authorized || false, trial_started_at };
   cache.set(cacheKey, result, 60);
   res.json(result);
 });
@@ -910,8 +915,16 @@ app.get('/api/transacciones/status', authenticateToken, async (req, res) => {
 app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
   try {
     await db.run('UPDATE users SET gmail_forwarding_authorized = TRUE WHERE id = ?', req.user.id);
+    // La prueba de 60 dias parte al terminar la configuracion del correo y
+    // solo se fija una vez: repetir el tutorial no la reinicia.
+    let trial_started_at = null;
+    try {
+      await db.run('UPDATE users SET trial_started_at = COALESCE(trial_started_at, NOW()) WHERE id = ?', req.user.id);
+      const t = await db.get('SELECT trial_started_at FROM users WHERE id = ?', req.user.id);
+      trial_started_at = t?.trial_started_at || null;
+    } catch (e) { console.error('[trial] no se pudo fijar el inicio de la prueba', e.message); }
     cache.del(`status:${req.user.id}`);
-    res.json({ success: true });
+    res.json({ success: true, trial_started_at });
   } catch (error) {
     res.status(500).json({ error: 'Error al marcar tutorial como completado' });
   }

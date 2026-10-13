@@ -3,6 +3,7 @@ import { motion, useInView, LayoutGroup } from 'motion/react';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
 import HowItWorksSection from './HowItWorksSection';
+import PricingSection from './PricingSection';
 import CTASection from './CTASection';
 import { Sun, Moon } from 'lucide-react';
 import LandingFooter from '../components/LandingFooter';
@@ -51,6 +52,12 @@ const Landing = ({ onLogin, onRegister }) => {
               )}
             </div>
             <nav className="flex items-center gap-2">
+              <a
+                href="#precios"
+                className="hidden sm:inline-block text-sm font-black text-slate-600 dark:text-slate-300 hover:text-kk-primary dark:hover:text-kk-secondary transition-colors px-3 py-2"
+              >
+                Precios
+              </a>
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter hover:text-kk-primary dark:hover:text-kk-secondary transition-colors"
@@ -79,6 +86,7 @@ const Landing = ({ onLogin, onRegister }) => {
         <HeroSection onLogin={onLogin} onRegister={onRegister} isDarkMode={isDarkMode} sentinelRef={sentinelRef} scrolled={scrolled} />
         <FeaturesSection />
         <HowItWorksSection isDarkMode={isDarkMode} />
+        <PricingSection onRegister={onRegister} />
         <CTASection onRegister={onRegister} />
       </main>
 

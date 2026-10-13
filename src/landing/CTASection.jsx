@@ -41,7 +41,7 @@ const CTASection = ({ onRegister }) => {
             onClick={onRegister}
             className="group inline-flex items-center gap-2 bg-white text-kk-primary px-10 py-5 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition duration-300"
           >
-            Crear tu Cuenta Gratis
+            Probar 60 días gratis
             <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </motion.div>
@@ -53,7 +53,7 @@ const CTASection = ({ onRegister }) => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-white/60 text-sm font-medium"
         >
-          Sin tarjeta de crédito. Sin compromiso.
+          60 días gratis. Sin tarjeta de crédito. Sin compromiso.
         </motion.p>
 
         <motion.div
