@@ -1474,7 +1474,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div className="flex-1 min-w-0 relative">
                 <NavPill
                   items={[...NAV_ITEMS, { id: 'perfil', avatar: (user.name || '?').trim().charAt(0).toUpperCase(), label: `Perfil de ${nombreCorto}`, short: nombreCorto }]}
-                  activeId={perfilOpen ? 'perfil' : activeTab}
+                  activeId={activeTab}
                   onSelect={(id) => { if (id === 'perfil') { setIsFabDialOpen(false); setPerfilOpen(true); } else { setPerfilOpen(false); setActiveTab(id); } }}
                   theme={theme}
                   variant="dock"

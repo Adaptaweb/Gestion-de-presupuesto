@@ -7,32 +7,60 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 // La pill se mide sobre el boton activo, y tambien cuando ese boton cambia de
 // tamano (el dock estira y encoge los botones), asi que no queda desfasada.
 const SPRING = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const DURACION = 460;
+// Misma curva que SPRING (ease-out fuerte) para que la pill siga a los botones.
+const easeOut = (t) => 1 - Math.pow(1 - t, 4);
 
 export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop' }) {
   const wrapRef = useRef(null);
   const btnRefs = useRef({});
-  const [pill, setPill] = useState(null);
-  const [animate, setAnimate] = useState(false);
+  const pillRef = useRef(null);
+  const actual = useRef(null); // geometria que la pill muestra ahora
   const isDock = variant === 'dock';
 
+  // La pill viaja desde donde esta hasta la caja VIVA del boton activo. En el
+  // dock los botones tambien se estiran y encogen mientras ella se mueve; si
+  // la pill apuntara a una medida fija, al avanzar hacia la derecha el destino
+  // se corre bajo sus pies y las dos animaciones chocan. Aqui se recalcula el
+  // destino en cada cuadro y se mezcla con la misma curva.
   useLayoutEffect(() => {
-    const measure = () => {
+    const pill = pillRef.current;
+    const destino = () => {
       const el = btnRefs.current[activeId];
-      if (!el) return;
-      setPill((prev) => {
-        const next = { left: el.offsetLeft, width: el.offsetWidth };
-        return prev && prev.left === next.left && prev.width === next.width ? prev : next;
-      });
+      return el ? { left: el.offsetLeft, width: el.offsetWidth } : null;
     };
-    measure();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    if (ro) {
-      if (wrapRef.current) ro.observe(wrapRef.current);
-      Object.values(btnRefs.current).forEach((el) => el && ro.observe(el));
+    const pintar = (g) => {
+      actual.current = g;
+      pill.style.width = `${g.width}px`;
+      pill.style.transform = `translateX(${g.left}px)`;
+      pill.style.opacity = '1';
+    };
+    const fin = destino();
+    if (!pill || !fin) return undefined;
+
+    const reducido = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const desde = actual.current;
+    let raf = 0;
+    if (!desde || reducido) {
+      pintar(fin); // primera posicion: sin viaje
+    } else {
+      const t0 = performance.now();
+      const paso = (ahora) => {
+        const t = Math.min(1, (ahora - t0) / DURACION);
+        const meta = destino() || fin;
+        const e = easeOut(t);
+        pintar({ left: desde.left + (meta.left - desde.left) * e, width: desde.width + (meta.width - desde.width) * e });
+        raf = t < 1 ? requestAnimationFrame(paso) : 0;
+      };
+      raf = requestAnimationFrame(paso);
     }
-    // La primera posicion se fija sin viaje; los cambios siguientes si animan.
-    const id = requestAnimationFrame(() => setAnimate(true));
-    return () => { ro?.disconnect(); cancelAnimationFrame(id); };
+
+    // Cambios de tamano ajenos al viaje (girar el telefono, otra fuente).
+    const ro = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => { if (!raf) { const m = destino(); if (m) pintar(m); } })
+      : null;
+    ro?.observe(wrapRef.current);
+    return () => { cancelAnimationFrame(raf); raf = 0; ro?.disconnect(); };
   }, [activeId, items.length]);
 
   return (
@@ -42,17 +70,12 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
         ? 'relative flex items-center justify-between h-16 px-[5px] rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60'
         : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm'}
     >
-      {pill && (
-        <span
-          aria-hidden="true"
-          className={`absolute left-0 rounded-full pointer-events-none ${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isDock ? 'top-[9px] bottom-[9px]' : 'top-1 bottom-1'}`}
-          style={{
-            width: pill.width,
-            transform: `translateX(${pill.left}px)`,
-            transition: animate ? `transform 460ms ${SPRING}, width 460ms ${SPRING}` : 'none',
-          }}
-        />
-      )}
+      <span
+        ref={pillRef}
+        aria-hidden="true"
+        className={`absolute left-0 rounded-full pointer-events-none ${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isDock ? 'top-[9px] bottom-[9px]' : 'top-1 bottom-1'}`}
+        style={{ opacity: 0 }}
+      />
       {items.map(({ id, icon: Icon, label, short, avatar }) => {
         const active = activeId === id;
         return (
