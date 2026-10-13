@@ -291,7 +291,6 @@ html.dark [data-gooey-description] {
    claro, luz interior en el canto superior y un brillo especular que cruza la
    superficie. Se usa en la barra de navegacion del movil. */
 .kk-glass {
-  position: relative;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.3));
   -webkit-backdrop-filter: blur(24px) saturate(185%);
   backdrop-filter: blur(24px) saturate(185%);
@@ -321,6 +320,20 @@ html.dark [data-gooey-description] {
     0 16px 38px rgba(0, 0, 0, 0.55);
 }
 .dark .kk-glass::before { opacity: 0.28; }
+/* Hoja inferior: mas opaca para que el texto se lea sobre el fondo oscurecido. */
+.kk-glass-sheet {
+  background: linear-gradient(160deg, rgba(248, 250, 252, 0.86), rgba(241, 245, 249, 0.74));
+}
+.kk-glass-sheet::before { display: none; }
+.dark .kk-glass-sheet {
+  background: linear-gradient(160deg, rgba(34, 34, 34, 0.82), rgba(24, 24, 24, 0.74));
+}
+/* Boton + : color del tema como gel, con borde claro y luz arriba. */
+.kk-glass-fab {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background-image: linear-gradient(150deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0) 55%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -3px 8px rgba(0, 0, 0, 0.14), 0 10px 24px rgba(0, 0, 0, 0.28);
+}
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .kk-glass { background: rgba(255, 255, 255, 0.94); }
   .dark .kk-glass { background: rgba(26, 26, 26, 0.96); }
@@ -328,4 +341,15 @@ html.dark [data-gooey-description] {
 /* La pill activa: color del tema con un canto de luz, como una gota sobre el vidrio. */
 .kk-glass-pill {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 6px rgba(0, 0, 0, 0.12), 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* El cambio de pestaña entra desde el costado (translateX). Sin esto, al ir a
+   la derecha el contenido sobresale del viewport durante la animacion: el ancho
+   de la pagina crece, el navegador reajusta el layout y se ve un salto de todo
+   el contenido por detras. Hacia la izquierda sobresale por un lado que no
+   amplia el area desplazable, por eso ahi no pasaba. clip no crea un contenedor
+   de scroll, asi que position: sticky sigue funcionando. */
+html, body { overflow-x: hidden; }
+@supports (overflow: clip) {
+  html, body { overflow-x: clip; }
 }

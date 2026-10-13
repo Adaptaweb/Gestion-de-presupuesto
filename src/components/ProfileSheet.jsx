@@ -51,7 +51,7 @@ const Mosaico = ({ icono: Icono, texto, onClick, destacado }) => (
     className={`min-h-[56px] rounded-2xl px-3.5 flex items-center gap-2.5 text-sm text-left transition active:scale-[0.98] border ${
       destacado
         ? 'bg-kk-primary/10 border-kk-primary/30 text-kk-dark dark:text-kk-secondary font-extrabold'
-        : 'bg-white dark:bg-dark-lighter border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-200 font-bold'
+        : 'bg-white/65 dark:bg-white/[0.06] border-white/70 dark:border-white/10 text-slate-700 dark:text-slate-200 font-bold'
     }`}
   >
     <Icono size={18} className={destacado ? '' : 'text-slate-400'} />
@@ -97,7 +97,7 @@ const ProfileSheet = ({
         onClick={() => cerrar()}
       />
       <div
-        className="kk-sheet absolute left-0 right-0 bottom-0 max-h-[92dvh] overflow-y-auto bg-slate-50 dark:bg-dark-normal border-t border-slate-200 dark:border-dark-lighter rounded-t-[2rem] px-4 pt-2.5 flex flex-col gap-3.5"
+        className="kk-sheet absolute left-0 right-0 bottom-0 max-h-[92dvh] overflow-y-auto kk-glass kk-glass-sheet rounded-t-[2rem] px-4 pt-2.5 flex flex-col gap-3.5"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)',
           animation: saliendo ? 'kkSheetOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards' : 'kkSheetIn 420ms cubic-bezier(0.22, 1, 0.36, 1)',
@@ -128,7 +128,7 @@ const ProfileSheet = ({
           </div>
         )}
 
-        <div className="bg-white dark:bg-dark-lighter border border-slate-200 dark:border-white/5 rounded-[20px] overflow-hidden">
+        <div className="bg-white/65 dark:bg-white/[0.06] border border-white/70 dark:border-white/10 rounded-[20px] overflow-hidden">
           {onOpenPlanes && <Fila icono={CreditCard} texto="Mi plan" primero onClick={accion(onOpenPlanes)}><ChevronRight size={18} className="text-slate-400" /></Fila>}
           <Fila icono={Bell} texto="Notificaciones" primero={!onOpenPlanes} onClick={() => { if (!isPushLoading) onToggleNotifications(); }}>
             {isPushLoading ? <Loader2 size={18} className="animate-spin text-slate-400" /> : <Interruptor activo={isPushSubscribed} theme={theme} />}
@@ -137,7 +137,7 @@ const ProfileSheet = ({
           {!esAdmin && <Fila icono={RotateCcw} texto="Repetir tutorial" onClick={accion(onRepetirTutorial)}><ChevronRight size={18} className="text-slate-400" /></Fila>}
         </div>
 
-        <div className="bg-white dark:bg-dark-lighter border border-slate-200 dark:border-white/5 rounded-[20px] overflow-hidden">
+        <div className="bg-white/65 dark:bg-white/[0.06] border border-white/70 dark:border-white/10 rounded-[20px] overflow-hidden">
           <Fila icono={isDarkMode ? Moon : Sun} texto="Modo oscuro" primero onClick={onToggleDark}>
             <Interruptor activo={isDarkMode} theme={theme} />
           </Fila>
@@ -170,7 +170,7 @@ const ProfileSheet = ({
                 'caches' in window ? caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))) : null,
               ]).catch(() => {}).finally(() => window.location.reload());
             }}
-            className="flex-1 min-h-[50px] rounded-2xl bg-white dark:bg-dark-lighter border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.98]"
+            className="flex-1 min-h-[50px] rounded-2xl bg-white/65 dark:bg-white/[0.06] border border-white/70 dark:border-white/10 text-slate-600 dark:text-slate-300 text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.98]"
           >
             <RefreshCw size={16} /> Recargar app
           </button>
