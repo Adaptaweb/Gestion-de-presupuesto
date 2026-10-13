@@ -65,7 +65,7 @@ const ReviewCard = ({
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
   reviewTipoTransaccion, setReviewTipoTransaccion,
   reviewSaving, theme, isDarkMode,
-  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit,
+  onClose, onPrev, onNext, onConfirm, onConfirmNoEs, onConfirmComplete, onEdit, onCuotas,
   CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_ICON_BG, CATEGORY_ICON_COLOR, CATEGORY_COLORS,
   onCreateCategoria, categorias,
 }) => {
@@ -377,6 +377,17 @@ const ReviewCard = ({
             <Edit3 size={15} />
             <span className="text-[10px] font-bold">Editar</span>
           </button>
+          {isGasto && typeof onCuotas === 'function' && (
+            <button
+              onClick={onCuotas}
+              disabled={reviewSaving}
+              aria-label="Pasar a cuotas"
+              className={`flex flex-col items-center gap-1 ${accentText} transition active:scale-90 disabled:opacity-40`}
+            >
+              <CreditCard size={15} />
+              <span className="text-[10px] font-bold">En cuotas</span>
+            </button>
+          )}
           <button
             onClick={handleConfirm}
             disabled={reviewSaving}
@@ -837,7 +848,7 @@ const TransactionDetailModal = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos, onPasarACuotas, refreshToken }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -1261,6 +1272,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     if (typeof onActionHandled === 'function') onActionHandled();
   }, [pendingAction]);
 
+  useEffect(() => {
+    if (!refreshToken) return;
+    fetchTransactions();
+    fetchSummary();
+    fetchPendientesCount();
+  }, [refreshToken]);
+
   const formatCurrency = (val) => {
     if (val == null) return '$0';
     return '$' + Math.round(val).toLocaleString('es-CL');
@@ -1523,6 +1541,14 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     const tx = pendingTxs[reviewIdx];
     if (!tx) return;
     handleEditTx(tx);
+  };
+
+  // La compra sigue pendiente hasta que se guarde la cuota en Dashboard.
+  const handleCuotasReview = () => {
+    const tx = pendingTxs[reviewIdx];
+    if (!tx || typeof onPasarACuotas !== 'function') return;
+    handleCloseReview();
+    onPasarACuotas(tx);
   };
 
   const handleReclasificarTx = (tx) => {
@@ -2153,6 +2179,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             onConfirmNoEs={handleConfirmNoEs}
             onConfirmComplete={handleConfirmComplete}
             onEdit={handleEditReviewTx}
+            onCuotas={handleCuotasReview}
             CATEGORY_LIST={CATEGORY_LIST}
             CATEGORY_EMOJI={CATEGORY_EMOJI}
             CATEGORY_ICON_BG={CATEGORY_ICON_BG}

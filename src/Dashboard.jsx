@@ -348,6 +348,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   }, [filteredMonths]);
 
   const [isAddingDebt, setIsAddingDebt] = useState(false);
+  // Transaccion pendiente que se esta convirtiendo en cuota. Solo pasa a
+  // 'en_cuotas' al guardar la cuota; si se cierra el modal sigue pendiente.
+  const [cuotaDesdeTx, setCuotaDesdeTx] = useState(null);
+  const [txRefreshToken, setTxRefreshToken] = useState(0);
   const [isAddingFixed, setIsAddingFixed] = useState(false);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
@@ -858,6 +862,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
       setDeudas([...deudas, { ...newDebt, id: `debt-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Cuota actualizada' : 'Cuota creada', newDebt.descripcion);
+    if (cuotaDesdeTx && !editingItem) {
+      const origenId = cuotaDesdeTx.id;
+      setCuotaDesdeTx(null);
+      fetch(`/api/transacciones/${origenId}`, {
+        method: 'PUT', headers: getHeaders(),
+        body: JSON.stringify({ tipo_transaccion: 'en_cuotas', tipo_gasto: null, revisado: true })
+      })
+        .then(() => setTxRefreshToken(t => t + 1))
+        .catch(err => console.error('[cuotas] no se pudo marcar la transaccion', err));
+    }
     setIsAddingDebt(false);
     setEditingItem(null);
     setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
@@ -1033,11 +1047,39 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   // Comparten toolbar de escritorio y speed-dial del FAB movil en Suscripciones y Cuotas.
   const openAddDebt = () => {
     setEditingItem(null);
+    setCuotaDesdeTx(null);
     setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
     setDebtIconSearch('');
     setBancoSearch('');
     setIsAddingDebt(true);
   };
+  // Desde "Pendientes de clasificar": abre Nueva Cuota con el total de la
+  // compra y el inicio un mes despues de la fecha de la transaccion.
+  const handlePasarACuotas = (tx) => {
+    const monto = Math.round(Number(tx.monto) || 0);
+    const base = new Date(`${String(tx.fecha || '').slice(0, 10)}T12:00:00`);
+    const d = isNaN(base.getTime()) ? new Date() : base;
+    d.setDate(1);
+    d.setMonth(d.getMonth() + 1);
+    const mesInicio = monthInputToMonthStr(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    const banco = BANCOS_CHILE.find(b => (tx.banco || '').toLowerCase() === b.nombre.toLowerCase())
+      || BANCOS_CHILE.find(b => tx.banco && b.nombre.toLowerCase().includes(String(tx.banco).toLowerCase()));
+    const cuotas = 6;
+    setEditingItem(null);
+    setCuotaDesdeTx({ id: tx.id, monto, fecha: tx.fecha });
+    setNewDebt({
+      descripcion: tx.comercio || '', cuotasTotales: cuotas, valorCuota: Math.round(monto / cuotas), mesInicio,
+      isContribuciones: false, diaPago: 1, facturacionAuto: false,
+      banco: banco ? banco.nombre : (tx.banco || ''), bancoLogo: banco ? banco.logo : '',
+      tipoTarjeta: banco ? (banco.tipos.includes('visa') ? 'visa' : 'mastercard') : '',
+      iconType: 'default', iconValue: 'layout', iconUrl: ''
+    });
+    setDebtIconSearch('');
+    setBancoSearch('');
+    setActiveTab('general');
+    setIsAddingDebt(true);
+  };
+  const cerrarModalDeuda = () => { setIsAddingDebt(false); setEditingItem(null); setCuotaDesdeTx(null); };
   const openAddFixed = () => {
     setEditingItem(null);
     setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -2367,6 +2409,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             pendingAction={txAction}
             onActionHandled={() => setTxAction(null)}
             presupuestos={sueldos}
+            onPasarACuotas={handlePasarACuotas}
+            refreshToken={txRefreshToken}
           />
         </div>
 
@@ -2517,9 +2561,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <CreditCard className={theme.tabText} size={20} /> {editingItem ? 'Editar Cuota' : 'Nueva Cuota'}
                 </h3>
-                <button onClick={() => { setIsAddingDebt(false); setEditingItem(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+                <button onClick={cerrarModalDeuda} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
               <form onSubmit={handleSaveDebt} className="space-y-3 sm:space-y-4">
+                {cuotaDesdeTx && (
+                  <div className={`flex items-center justify-between rounded-xl border px-3 sm:px-4 py-2.5 ${theme.bgModalLight} ${theme.borderAccent}`}>
+                    <div>
+                      <p className={`text-xs font-black uppercase ${theme.tabText}`}>Total de la compra</p>
+                      <p className="text-[11px] font-medium text-slate-400">Desde pendientes · {String(cuotaDesdeTx.fecha || '').slice(0, 10)}</p>
+                    </div>
+                    <p className={`text-xl font-black ${theme.tabText}`}>{`$${cuotaDesdeTx.monto.toLocaleString('es-CL')}`}</p>
+                  </div>
+                )}
                 <div>
                   <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
                   <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
@@ -2527,7 +2580,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
-                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, cuotasTotales: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
+                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => {
+                      const n = parseInt(e.target.value);
+                      setNewDebt({ ...newDebt, cuotasTotales: n, ...(cuotaDesdeTx && n > 0 ? { valorCuota: Math.round(cuotaDesdeTx.monto / n) } : {}) });
+                    }} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
                   </div>
                   <div>
                     <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
