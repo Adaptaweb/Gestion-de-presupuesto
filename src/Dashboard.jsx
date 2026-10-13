@@ -2,6 +2,7 @@
 // panel de administracion dejen de arrastrarlo en el paquete inicial.
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import NavPill from './components/NavPill.jsx';
 import {
   Activity,
   ArrowDownCircle,
@@ -166,6 +167,17 @@ const MonthNav = ({ value, months, years, onChange }) => {
 
 const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall, onDashboardReady }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
+  // Las pestañas entran desde el lado al que apunta el cambio (siguiente o anterior).
+  const prevTabIdx = useRef(0);
+  const tabDirRef = useRef('next');
+  {
+    const idx = NAV_ITEMS.findIndex(n => n.id === activeTab);
+    if (idx !== prevTabIdx.current) {
+      tabDirRef.current = idx > prevTabIdx.current ? 'next' : 'prev';
+      prevTabIdx.current = idx;
+    }
+  }
+  const tabAnim = tabDirRef.current === 'next' ? 'animate-tab-next tab-stagger' : 'animate-tab-prev tab-stagger';
   // Acciones que dispara la navegacion global pero ejecuta Transacciones, que
   // es donde vive el estado. El contador evita que dos peticiones iguales
   // seguidas se pierdan por comparacion de referencia.
@@ -1308,22 +1320,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         <div className="hidden md:flex items-center justify-center gap-2 mb-8">
-          <div className="flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm">
-            {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                aria-current={activeTab === id ? 'page' : undefined}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-all duration-200 ease-fluid active:scale-95 ${
-                  activeTab === id
-                    ? `${theme.btnPrimary} text-white shadow-md ${theme.shadowBtn}`
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-lighter'
-                }`}
-              >
-                <Icon size={16} /> {label}
-              </button>
-            ))}
-          </div>
+          <NavPill items={NAV_ITEMS} activeId={activeTab} onSelect={setActiveTab} theme={theme} />
           <button
             onClick={openManualEntry}
             className={`flex items-center gap-2 pl-2.5 pr-5 py-2.5 rounded-full ${theme.btnPrimary} text-white text-sm font-black shadow-lg ${theme.shadowBtn} transition active:scale-95`}
@@ -1369,27 +1366,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 ))}
               </div>
             )}
-            <div className="flex items-center h-16 rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60">
-              {NAV_ITEMS.map(({ id, icon: Icon, short }, i) => (
-                <React.Fragment key={id}>
-                  {i === 2 && <span className="w-16 flex-shrink-0" aria-hidden="true" />}
-                  <button
-                    onClick={() => setActiveTab(id)}
-                    aria-current={activeTab === id ? 'page' : undefined}
-                    className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 h-full rounded-full transition active:scale-90"
-                  >
-                    <Icon
-                      size={21}
-                      strokeWidth={activeTab === id ? 2.6 : 2}
-                      className={`transition-colors duration-200 ${activeTab === id ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}
-                    />
-                    <span className={`text-[11px] font-bold leading-none transition-colors duration-200 ${activeTab === id ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`}>
-                      {short}
-                    </span>
-                  </button>
-                </React.Fragment>
-              ))}
-            </div>
+            <NavPill items={NAV_ITEMS} activeId={activeTab} onSelect={setActiveTab} theme={theme} variant="mobile" spacerAt={2} />
             <button
               onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
               aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
@@ -1403,7 +1380,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {!showCategoriasConfig && <>
         {activeTab === 'dashboard' && !!dashboardMonth && (
-          <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in duration-500 px-4 sm:px-6 w-full max-w-5xl mx-auto">
+          <div key="dashboard-tab" className={`space-y-4 sm:space-y-6 md:space-y-8 ${tabAnim} px-4 sm:px-6 w-full max-w-5xl mx-auto`}>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
@@ -1921,7 +1898,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {activeTab === 'general' && (
-          <div key="general-tab" className="animate-slide-fade px-4 sm:px-6 w-full max-w-5xl mx-auto">
+          <div key="general-tab" className={`${tabAnim} px-4 sm:px-6 w-full max-w-5xl mx-auto`}>
             <div className="hidden sm:flex flex-wrap justify-end gap-2 mb-3">
               <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
@@ -2281,7 +2258,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             )}
           </div>
         )} {activeTab === 'ahorros' && (
-          <div key="ahorros-tab" className="space-y-8 animate-slide-fade px-4 sm:px-6 w-full max-w-5xl mx-auto">
+          <div key="ahorros-tab" className={`space-y-8 ${tabAnim} px-4 sm:px-6 w-full max-w-5xl mx-auto`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
@@ -2423,7 +2400,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             )}
           </div>
         )}
-        <div style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
+        <div className={activeTab === 'transacciones' ? tabAnim : undefined} style={{ display: activeTab === 'transacciones' ? 'block' : 'none' }}>
           <Transacciones
             user={user}
             token={token}

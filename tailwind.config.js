@@ -86,15 +86,20 @@ export default {
         fluid: 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
       animation: {
-        'slide-down': 'slideDown 0.25s ease-out',
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
-        'slide-in-from-right': 'slideInRight 0.3s ease-out',
-        'slide-in-from-left': 'slideInLeft 0.3s ease-out',
-        'slide-in-from-bottom': 'slideInBottom 0.3s ease-out',
+        'slide-down': 'slideDown 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+        'fade-in': 'fadeIn 0.35s ease-out',
+        'scale-in': 'scaleIn 0.34s cubic-bezier(0.22, 1, 0.36, 1)',
+        'slide-in-from-right': 'slideInRight 0.42s cubic-bezier(0.22, 1, 0.36, 1)',
+        'slide-in-from-left': 'slideInLeft 0.42s cubic-bezier(0.22, 1, 0.36, 1)',
+        'slide-in-from-bottom': 'slideInBottom 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
         // Se usaba en seis sitios sin estar definida en ningun lado: las vistas
         // que la llevaban aparecian de golpe.
-        'slide-fade': 'slideFade 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-fade': 'slideFade 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+        // Cambio de pestaña: entra desde el lado del cambio. Solo `backwards`: al
+        // terminar no deja transform, que atraparia los modales fixed de dentro.
+        'tab-next': 'tabNext 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards',
+        'tab-prev': 'tabPrev 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards',
+        'nav-pop': 'navPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
         // Entrada escalonada por fila (usar con style={{ animationDelay }}).
         'row-enter': 'rowEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
       },
@@ -108,7 +113,7 @@ export default {
           '100%': { opacity: '1' },
         },
         scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '0%': { opacity: '0', transform: 'translateY(10px) scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
         slideInRight: {
@@ -126,6 +131,18 @@ export default {
         slideFade: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        tabNext: {
+          '0%': { opacity: '0', transform: 'translateX(28px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        tabPrev: {
+          '0%': { opacity: '0', transform: 'translateX(-28px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        navPop: {
+          '0%': { transform: 'scale(0.7) translateY(2px)' },
+          '100%': { transform: 'scale(1) translateY(0)' },
         },
         rowEnter: {
           '0%': { opacity: '0', transform: 'translateY(8px)' },

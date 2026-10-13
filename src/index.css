@@ -262,3 +262,23 @@ html.dark [data-gooey-description] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Los bloques de una pestaña entran en cascada tras el deslizamiento. */
+@keyframes kkStaggerIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.tab-stagger > * { animation: kkStaggerIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.tab-stagger > *:nth-child(1) { animation-delay: 30ms; }
+.tab-stagger > *:nth-child(2) { animation-delay: 80ms; }
+.tab-stagger > *:nth-child(3) { animation-delay: 130ms; }
+.tab-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.tab-stagger > *:nth-child(n+5) { animation-delay: 230ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
