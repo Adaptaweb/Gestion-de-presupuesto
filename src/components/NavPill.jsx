@@ -27,9 +27,8 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
   }, [activeId]);
 
   const isMobile = variant === 'mobile';
-  const pillClass = isMobile
-    ? `${theme.bgLightSolid} ${theme.bgLightDark} ring-1 ring-black/5 dark:ring-white/10 top-1.5 bottom-1.5`
-    : `${theme.btnPrimary} shadow-md ${theme.shadowBtn} top-1 bottom-1`;
+  // Mismos colores en movil y escritorio: pill del tema con texto blanco.
+  const pillClass = `${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isMobile ? 'top-1.5 bottom-1.5' : 'top-1 bottom-1'}`;
 
   return (
     <div
@@ -72,12 +71,12 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
                   size={isMobile ? 21 : 16}
                   strokeWidth={active ? 2.6 : 2}
                   className={isMobile
-                    ? `transition-colors duration-300 ${active ? theme.tabText : 'text-slate-400 dark:text-slate-500'}`
+                    ? `transition-colors duration-300 ${active ? 'text-white' : 'text-slate-400 dark:text-slate-500'}`
                     : undefined}
                 />
               </span>
               {isMobile ? (
-                <span className={`text-[11px] leading-none transition-all duration-300 ${active ? `font-extrabold ${theme.tabText}` : 'font-bold text-slate-400 dark:text-slate-500'}`}>
+                <span className={`text-[11px] leading-none transition-all duration-300 ${active ? 'font-extrabold text-white' : 'font-bold text-slate-400 dark:text-slate-500'}`}>
                   {short}
                 </span>
               ) : label}

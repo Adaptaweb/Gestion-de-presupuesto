@@ -3,8 +3,19 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Identifica cada build. El aviso de nueva version lo compara con /version.json,
+// sin depender de que el navegador detecte el cambio del service worker.
+const BUILD_ID = String(Date.now());
+
 export default defineConfig({
+  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   plugins: [
+    {
+      name: 'kk-version-json',
+      generateBundle() {
+        this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ id: BUILD_ID }) });
+      },
+    },
     react(),
     VitePWA({
       strategies: 'injectManifest',

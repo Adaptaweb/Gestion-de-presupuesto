@@ -1,9 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw, Loader2, X } from 'lucide-react';
 
-const CHECK_EVERY_MS = 30 * 60 * 1000;
+const CHECK_EVERY_MS = 5 * 60 * 1000;
 const RELOAD_FALLBACK_MS = 6000;
+
+// Desregistra el service worker, borra todos los caches y recarga: es lo que
+// garantiza ver la version nueva aunque el cambio de service worker falle.
+async function limpiarYRecargar() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch { /* se recarga igual */ }
+  window.location.reload();
+}
 
 export default function UpdateBanner() {
   const {
@@ -24,27 +40,49 @@ export default function UpdateBanner() {
       });
     },
   });
+  const [versionVieja, setVersionVieja] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
-  // Si el cambio de service worker no recarga solo, se fuerza la recarga.
+  // Respaldo independiente del service worker: /version.json trae el id del
+  // ultimo build; si difiere del que esta corriendo, hay version nueva.
+  const compararVersion = useCallback(async () => {
+    if (typeof __BUILD_ID__ === 'undefined' || __BUILD_ID__ === 'dev' || !navigator.onLine) return;
+    try {
+      const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const { id } = await res.json();
+      if (id && id !== __BUILD_ID__) setVersionVieja(true);
+    } catch { /* sin red: se reintenta luego */ }
+  }, []);
+
+  useEffect(() => {
+    compararVersion();
+    const id = setInterval(compararVersion, CHECK_EVERY_MS);
+    const onVisible = () => { if (document.visibilityState === 'visible') compararVersion(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
+  }, [compararVersion]);
+
+  // Si el cambio de service worker no recarga solo, se fuerza la limpieza.
   useEffect(() => {
     if (!updating) return undefined;
-    const id = setTimeout(() => window.location.reload(), RELOAD_FALLBACK_MS);
+    const id = setTimeout(limpiarYRecargar, RELOAD_FALLBACK_MS);
     return () => clearTimeout(id);
   }, [updating]);
 
-  if (!needRefresh) return null;
+  if (!needRefresh && !versionVieja) return null;
 
   const actualizar = () => {
     if (updating) return;
     setUpdating(true);
-    updateServiceWorker(true);
+    if (needRefresh) updateServiceWorker(true);
+    else limpiarYRecargar();
   };
 
   const descartar = () => {
     setLeaving(true);
-    setTimeout(() => setNeedRefresh(false), 260);
+    setTimeout(() => { setNeedRefresh(false); setVersionVieja(false); }, 260);
   };
 
   return (
