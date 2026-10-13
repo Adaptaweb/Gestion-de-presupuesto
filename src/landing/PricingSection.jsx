@@ -17,16 +17,17 @@ const FAQ = [
   ['¿Cuándo parten los 60 días?', 'Cuando terminas de configurar el reenvío del correo, no al crear la cuenta.'],
 ];
 
-const PlanButton = ({ onRegister, featured }) => (
+const PlanButton = ({ onRegister, featured, disabled }) => (
   <button
     onClick={onRegister}
-    className={`w-full min-h-[52px] rounded-2xl text-[15px] transition active:scale-[0.98] ${
+    disabled={disabled}
+    className={`w-full min-h-[52px] rounded-2xl text-[15px] transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${
       featured
         ? 'bg-kk-primary text-[#06281d] font-extrabold hover:brightness-110 shadow-lg shadow-kk-primary/25'
         : 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-bold hover:bg-slate-200 dark:hover:bg-white/15'
     }`}
   >
-    Empezar {TRIAL_DAYS} días gratis
+    {disabled ? 'Próximamente' : `Empezar ${TRIAL_DAYS} días gratis`}
   </button>
 );
 
@@ -112,7 +113,7 @@ const PricingSection = ({ onRegister }) => {
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-lg font-bold text-slate-900 dark:text-white">{familia.name}</span>
-              <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-full whitespace-nowrap">{familia.chip}</span>
+              <span className="text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-full whitespace-nowrap">{familia.disponible ? familia.chip : 'Próximamente'}</span>
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">{formatCLP(familia.price)}</span>
@@ -120,7 +121,7 @@ const PricingSection = ({ onRegister }) => {
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{familia.note} IVA incluido.</p>
             <div className="flex-1" />
-            <PlanButton onRegister={onRegister} />
+            <PlanButton onRegister={onRegister} disabled={!familia.disponible} />
           </motion.div>
         </div>
 

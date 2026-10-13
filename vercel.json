@@ -2,6 +2,9 @@
   "framework": "vite",
   "buildCommand": "npm run migrate && npm run build",
   "outputDirectory": "dist",
+  "crons": [
+    { "path": "/api/cron/billing", "schedule": "0 13 * * *" }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

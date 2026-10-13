@@ -43,7 +43,7 @@ const TerminosCondiciones = () => {
 
         <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-kk-md p-6 sm:p-10">
           <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mb-8">
-            Última actualización: Julio 2026
+            Última actualización: Octubre 2026
           </p>
 
           <Section number="1" title="Descripción del Servicio">
@@ -105,9 +105,11 @@ const TerminosCondiciones = () => {
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">2.5 Período de Prueba y Suscripción</h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Los usuarios nuevos acceden a un período de prueba gratuito de 30 días.</li>
-              <li>Finalizado el período de prueba, se requiere un método de pago registrado para continuar usando Kuentas Klaras.</li>
-              <li>La suscripción se renueva automáticamente de forma mensual a través de nuestro proveedor de pago, salvo que canceles el servicio antes de la fecha de facturación.</li>
+              <li>Los usuarios acceden a un período de prueba gratuito de 60 días, con todas las funciones incluidas y sin necesidad de ingresar una tarjeta.</li>
+              <li>El período de prueba comienza cuando terminas de configurar el reenvío de tu correo, no al crear la cuenta.</li>
+              <li>Antes de que termine la prueba te avisaremos por correo y dentro de la aplicación. No se realiza ningún cobro sin que tú elijas un plan y completes el pago.</li>
+              <li>Si al terminar la prueba no eliges un plan, tu cuenta pasa a modo de solo lectura (ver 3.6).</li>
+              <li>La suscripción se renueva automáticamente, según el plan que elijas, a través de nuestro proveedor de pago, salvo que la canceles antes de la fecha de renovación.</li>
             </ul>
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">2.6 Restricciones de Uso</h3>
@@ -133,28 +135,50 @@ const TerminosCondiciones = () => {
           <Section number="3" title="Pago y Suscripción">
             <h3 className="font-black text-kk-dark dark:text-white mt-5 mb-2">3.1 Planes de Suscripción</h3>
             <p>
-              Kuentas Klaras ofrece distintos planes de suscripción para acceder a sus servicios. Los detalles, costos y beneficios específicos están descritos dentro de la aplicación y en nuestro sitio web oficial.
+              Todos los planes incluyen las mismas funciones; solo cambia la forma de pago. Al momento de esta actualización los planes son:
+            </p>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><span className="font-black">Mensual:</span> $4.990 al mes.</li>
+              <li><span className="font-black">Anual:</span> $44.990 al año (equivale a $3.749 al mes).</li>
+              <li><span className="font-black">Pareja o familia:</span> $7.990 al mes, hasta 4 personas. Este plan aún no está disponible.</li>
+            </ul>
+            <p className="mt-2">
+              Los precios están expresados en pesos chilenos (CLP) e incluyen IVA. Los detalles vigentes siempre se muestran en nuestro sitio web y dentro de la aplicación antes de contratar.
             </p>
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">3.2 Cobro Recurrente</h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>El cobro de la suscripción corresponde a un monto mensual detallado en el plan contratado y puede variar con el tiempo. Este cobro se gestiona a través de un proveedor externo que acepta tarjetas de crédito, débito o prepago.</li>
-              <li>El pago se realiza de forma recurrente el mismo día de cada mes, según la fecha de suscripción inicial.</li>
+              <li>El cobro corresponde al monto del plan contratado (mensual o anual). Se gestiona a través de Mercado Pago, que procesa el pago con los medios que dicho proveedor acepte para cobros recurrentes. Kuentas Klaras no recibe ni almacena los datos de tu tarjeta.</li>
+              <li>El cobro se repite automáticamente en la misma fecha de cada período (cada mes o cada año), según la fecha de suscripción inicial, hasta que cancelas.</li>
+              <li>Los precios pueden cambiar. Cualquier cambio se te informará por correo con al menos 30 días de anticipación y se aplicará desde tu siguiente renovación; si no estás de acuerdo, puedes cancelar antes sin costo.</li>
             </ul>
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">3.3 Cancelación</h3>
             <p>
-              No existe un período mínimo de permanencia. Puedes cancelar la suscripción en cualquier momento sin penalizaciones. Al cancelar, el servicio permanece activo hasta el final del período ya pagado. A partir de la siguiente fecha de facturación, no se realizarán nuevos cobros.
+              No existe un período mínimo de permanencia. Puedes cancelar la suscripción en cualquier momento, sin penalizaciones, desde la opción "Mi plan" de la aplicación. Al cancelar, el servicio permanece activo hasta el final del período ya pagado y te enviaremos una confirmación por correo. No se realizarán nuevos cobros después de la cancelación.
             </p>
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">3.4 Reembolsos</h3>
             <p>
-              Dado que la suscripción se paga por adelantado, no se efectuarán reembolsos por períodos no utilizados.
+              Dado que la suscripción se paga por adelantado, no se efectuarán reembolsos por períodos ya iniciados o no utilizados, sin perjuicio de los derechos que la Ley N.º 19.496 sobre Protección de los Derechos de los Consumidores te reconozca, incluido el derecho de retracto cuando corresponda. Para ejercerlo o consultar un cobro, escríbenos a soporte@kuentasklaras.cl.
             </p>
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">3.5 Falta de Pago</h3>
             <p>
-              Si el cargo automático falla por saldo insuficiente o datos incorrectos, Kuentas Klaras podrá suspender temporalmente la cuenta hasta que se actualice el método de pago. De persistir la situación, la suscripción podría cancelarse, resultando en la posible pérdida de información.
+              Si el cargo automático falla por saldo insuficiente o datos incorrectos, te avisaremos por correo y por la aplicación, y el proveedor de pago podrá reintentar el cobro. Mientras tanto mantienes el acceso. Si el pago no se regulariza, la suscripción se cancela y tu cuenta pasa al modo de solo lectura descrito a continuación.
+            </p>
+
+            <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">3.6 Solo Lectura al Término de la Prueba o la Suscripción</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Cuando termina la prueba, o el período pagado, sin que haya un plan activo, tu cuenta pasa a <span className="font-black">solo lectura</span> por 30 días: puedes ver y exportar todo tu historial, pero no registrar cambios nuevos.</li>
+              <li>Te avisaremos al comenzar ese período y 5 días antes de que termine.</li>
+              <li>Terminados los 30 días, la cuenta se suspende hasta que elijas un plan. Tus datos se conservan; en ningún caso los eliminamos por falta de pago, salvo que tú solicites el borrado.</li>
+              <li>Mientras la cuenta esté en solo lectura, los correos reenviados desde tu banco pueden seguir recibiéndose para que no pierdas movimientos al reactivar.</li>
+            </ul>
+
+            <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">3.7 Comunicaciones de la Suscripción</h3>
+            <p>
+              Para operar la prueba y la suscripción te enviaremos correos de carácter transaccional: inicio y término de la prueba, confirmación de pagos, cobros fallidos y cancelaciones. Estos mensajes son necesarios para el servicio y no se pueden desactivar mientras tengas una cuenta.
             </p>
           </Section>
 

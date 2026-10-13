@@ -19,10 +19,12 @@ import '@fontsource/poppins/latin-900.css';
 import 'gooey-toast/styles.css';
 import './index.css';
 import { initNotify } from './lib/notify.js';
+import { instalarInterceptorBilling } from './lib/billing.js';
 // Bones capturadas del UI real (boneyard-js). Se regeneran con `npm run bones`.
 import './bones/registry.js';
 
 initNotify();
+instalarInterceptorBilling();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -43,7 +43,7 @@ const PoliticaPrivacidad = () => {
 
         <div className="bg-white dark:bg-dark-normal rounded-2xl shadow-kk-md p-6 sm:p-10">
           <p className="text-sm text-slate-400 dark:text-slate-500 font-medium mb-8">
-            Última actualización: Julio 2026
+            Última actualización: Octubre 2026
           </p>
 
           <Section number="1" title="Introducción">
@@ -104,9 +104,11 @@ const PoliticaPrivacidad = () => {
                   <li>Anthropic</li>
                   <li>Xano</li>
                   <li>Amazon Web Services</li>
-                  <li>Flow (pagos)</li>
+                  <li>Mercado Pago (pagos)</li>
+                  <li>Resend (envío de correos de la cuenta y de la suscripción)</li>
                 </ul>
               </li>
+              <li><span className="font-black">Pagos:</span> Los datos de tu tarjeta los ingresas y los procesa directamente Mercado Pago; Kuentas Klaras no los recibe ni los almacena. Solo guardamos el plan elegido, el estado de la suscripción, las fechas de cobro y el identificador de la suscripción en Mercado Pago.</li>
             </ol>
           </Section>
 

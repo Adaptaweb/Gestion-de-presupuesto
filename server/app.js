@@ -18,6 +18,7 @@ import { detectBankFromSender } from './bankMapping.js';
 import { rateLimit, secretsMatch } from './rateLimit.js';
 import { cargarCompromisos, guardarCompromisos, guardarUno, borrarUno, fijarPago, TIPOS } from './compromisos.js';
 import { logDebug } from './logger.js';
+import { registerBilling } from './billing.js';
 
 setEmbeddingsDb(db);
 
@@ -242,6 +243,9 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Prueba gratuita y cobro: bloquea escrituras de cuentas vencidas y expone /api/billing/*.
+const billing = registerBilling(app, { db, cache, resend, authenticateToken, JWT_SECRET });
 
 const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Requiere permisos de administrador' });
@@ -915,6 +919,11 @@ app.get('/api/transacciones/status', authenticateToken, async (req, res) => {
 app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
   try {
     await db.run('UPDATE users SET gmail_forwarding_authorized = TRUE WHERE id = ?', req.user.id);
+    let eraNueva = false;
+    try {
+      const previo = await db.get('SELECT trial_started_at FROM users WHERE id = ?', req.user.id);
+      eraNueva = !previo?.trial_started_at;
+    } catch { /* sin columna: no hay prueba que anunciar */ }
     // La prueba de 60 dias parte al terminar la configuracion del correo y
     // solo se fija una vez: repetir el tutorial no la reinicia.
     let trial_started_at = null;
@@ -924,6 +933,12 @@ app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
       trial_started_at = t?.trial_started_at || null;
     } catch (e) { console.error('[trial] no se pudo fijar el inicio de la prueba', e.message); }
     cache.del(`status:${req.user.id}`);
+    cache.del(`acc:${req.user.id}`);
+    if (eraNueva && trial_started_at) {
+      const u = await db.get('SELECT id, email, nombre, name FROM users WHERE id = ?', req.user.id);
+      const venceEl = new Date(new Date(trial_started_at).getTime() + 60 * 24 * 60 * 60 * 1000);
+      await billing.avisar(u, `trial_inicio:${new Date(trial_started_at).getTime()}`, 'trial_inicio', { venceEl }).catch(() => {});
+    }
     res.json({ success: true, trial_started_at });
   } catch (error) {
     res.status(500).json({ error: 'Error al marcar tutorial como completado' });

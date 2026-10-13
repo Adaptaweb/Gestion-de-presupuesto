@@ -1,7 +1,7 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2, RefreshCw,
-  Settings2, Filter, Tags, Bell, Mail, RotateCw,
+  Settings2, Filter, Tags, Bell, Mail, RotateCw, CreditCard,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -36,6 +36,7 @@ export function UserMenu({
   generateFinancialAdvice, isAiLoading,
   isPushSubscribed, isPushLoading,
   onToggleNotifications,
+  onOpenPlanes,
 }) {
   return (
     <DropdownMenu>
@@ -104,6 +105,16 @@ export function UserMenu({
             <Settings2 size={16} className="mr-2 text-slate-500" />
             <span>Configurar</span>
           </DropdownMenuItem>
+
+          {onOpenPlanes && (
+            <DropdownMenuItem
+              onClick={onOpenPlanes}
+              className="p-2 rounded-lg cursor-pointer"
+            >
+              <CreditCard size={16} className="mr-2 text-slate-500" />
+              <span>Mi plan</span>
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuItem
             onClick={onOpenFilters}

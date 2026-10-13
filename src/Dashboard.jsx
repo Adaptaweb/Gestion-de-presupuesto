@@ -3,6 +3,10 @@
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import NavPill from './components/NavPill.jsx';
+import BillingBanner from './components/BillingBanner.jsx';
+import PlanesModal from './components/PlanesModal.jsx';
+import { fetchBilling } from './lib/billing.js';
+import { notifyOk, notifyInfo } from './lib/notify.js';
 import {
   Activity,
   ArrowDownCircle,
@@ -371,6 +375,51 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [txRefreshToken, setTxRefreshToken] = useState(0);
   // Igual que cuotaDesdeTx, pero para la suscripcion creada desde un pendiente.
   const [subDesdeTx, setSubDesdeTx] = useState(null);
+  // Prueba gratuita y plan: el estado lo calcula el servidor.
+  const [billing, setBilling] = useState(null);
+  const [showPlanes, setShowPlanes] = useState(false);
+  const cargarBilling = useCallback(() => {
+    if (!token) return Promise.resolve();
+    return fetchBilling(token).then(setBilling).catch(() => {});
+  }, [token]);
+  useEffect(() => { cargarBilling(); }, [cargarBilling]);
+  useEffect(() => {
+    // Vuelta del checkout (?pago=ok) o enlace de un correo (?planes=1). El
+    // webhook puede tardar unos segundos: se consulta varias veces.
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('pago') && !params.has('planes')) return undefined;
+    const pago = params.get('pago');
+    const planes = params.has('planes');
+    window.history.replaceState({}, '', window.location.pathname);
+    if (planes) setShowPlanes(true);
+    if (!pago) return undefined;
+    window.sessionStorage.setItem('kk-pago-pendiente', '1');
+    notifyInfo('Confirmando tu pago…', 'Puede tardar unos segundos.');
+    let n = 0;
+    const id = setInterval(async () => {
+      n += 1;
+      await cargarBilling();
+      if (n >= 6) clearInterval(id);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [cargarBilling]);
+  useEffect(() => {
+    let ultimo = 0;
+    const alSoloLectura = () => {
+      if (Date.now() - ultimo < 60000) return;
+      ultimo = Date.now();
+      cargarBilling();
+      setShowPlanes(true);
+    };
+    window.addEventListener('kk:solo-lectura', alSoloLectura);
+    return () => window.removeEventListener('kk:solo-lectura', alSoloLectura);
+  }, [cargarBilling]);
+  useEffect(() => {
+    if (billing?.estado === 'activa' && window.sessionStorage.getItem('kk-pago-pendiente')) {
+      window.sessionStorage.removeItem('kk-pago-pendiente');
+      notifyOk('Plan activo', 'Gracias por suscribirte.');
+    }
+  }, [billing?.estado]);
   const [isAddingFixed, setIsAddingFixed] = useState(false);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
@@ -1318,9 +1367,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               isPushSubscribed={isPushSubscribed}
               isPushLoading={isPushLoading}
               onToggleNotifications={onToggleNotifications}
+              onOpenPlanes={() => setShowPlanes(true)}
             />
           </div>
         </header>
+
+        <BillingBanner billing={billing} onOpen={() => setShowPlanes(true)} />
 
         {isInstallable && (
           <div className="mb-4 md:mb-6">
@@ -2458,6 +2510,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             refreshToken={txRefreshToken}
           />
         </div>
+
+        <PlanesModal open={showPlanes} onClose={() => setShowPlanes(false)} token={token} theme={theme} billing={billing} onChanged={cargarBilling} />
 
         <ConfigModal
           isOpen={showConfigModal}
