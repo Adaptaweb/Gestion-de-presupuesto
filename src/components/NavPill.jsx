@@ -27,20 +27,24 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
   }, [activeId]);
 
   const isMobile = variant === 'mobile';
+  const isSeg = variant === 'segment';
   // Mismos colores en movil y escritorio: pill del tema con texto blanco.
   const pillClass = `${theme.btnPrimary} shadow-md ${theme.shadowBtn} ${isMobile ? 'top-1.5 bottom-1.5' : 'top-1 bottom-1'}`;
+  const wrapClass = isSeg
+    ? 'relative flex w-full bg-white/90 dark:bg-dark-normal/90 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-lg shadow-slate-300/30 dark:shadow-black/40'
+    : isMobile
+      ? 'relative flex items-center h-16 rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60'
+      : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm';
 
   return (
     <div
       ref={wrapRef}
-      className={isMobile
-        ? 'relative flex items-center h-16 rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border border-slate-200 dark:border-dark-lighter shadow-2xl shadow-slate-400/25 dark:shadow-black/60'
-        : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm'}
+      className={wrapClass}
     >
       {pill && (
         <span
           aria-hidden="true"
-          className={`absolute left-0 rounded-full pointer-events-none ${pillClass}`}
+          className={`absolute left-0 rounded-full pointer-events-none ${isSeg ? `${theme.btnPrimary} shadow-md ${theme.shadowBtn} top-1 bottom-1` : pillClass}`}
           style={{
             width: isMobile ? Math.max(0, pill.width - 8) : pill.width,
             transform: `translateX(${isMobile ? pill.left + 4 : pill.left}px)`,
@@ -57,12 +61,15 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
               ref={(el) => { btnRefs.current[id] = el; }}
               onClick={() => onSelect(id)}
               aria-current={active ? 'page' : undefined}
-              className={isMobile
+              className={isSeg
+                ? `relative z-10 flex-1 min-w-0 min-h-[40px] rounded-full text-[13px] truncate transition-colors duration-300 active:scale-95 ${active ? 'font-extrabold text-white' : 'font-bold text-slate-500 dark:text-slate-400'}`
+                : isMobile
                 ? 'relative z-10 flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 h-full rounded-full transition-transform duration-200 active:scale-90'
                 : `relative z-10 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black transition-colors duration-300 active:scale-95 ${
                     active ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'
                   }`}
             >
+              {isSeg ? short : <>
               <span
                 key={active ? `on-${id}` : `off-${id}`}
                 className={`grid place-items-center ${active ? 'animate-nav-pop' : ''}`}
@@ -84,6 +91,7 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
                   {short}
                 </span>
               ) : label}
+              </>}
             </button>
           </React.Fragment>
         );

@@ -1381,6 +1381,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </div>
         </header>
 
+        <div className="md:hidden sticky top-2 z-30 mb-4">
+          <NavPill items={NAV_ITEMS} activeId={activeTab} onSelect={(id) => { setIsFabDialOpen(false); setPerfilOpen(false); setActiveTab(id); }} theme={theme} variant="segment" />
+        </div>
+
         <BillingBanner billing={billing} onOpen={() => setShowPlanes(true)} />
 
         {isInstallable && (
@@ -1434,48 +1438,50 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           />
         )}
 
-        {/* Barra flotante con FAB central. El FAB abre Ingreso Manual en
-            cualquier tab, salvo en Suscripciones y Cuotas donde despliega un
-            speed-dial con las acciones de esa tab (Nueva Cuota/Gasto Fijo/
-            Abono/Suscripciones), que en movil ya no tienen su propio toolbar. */}
+        {/* Movil: las secciones van arriba, en una barra segmentada que se
+            queda fija al desplazar, y abajo solo lo que se usa con una mano:
+            agregar y perfil. En Cuotas, "Agregar" despliega el speed-dial. */}
         <div
           className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pointer-events-none"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
         >
           <div className="relative max-w-md mx-auto pointer-events-auto animate-slide-in-from-bottom">
             {activeTab === 'general' && isFabDialOpen && (
-              <div className="absolute right-[0.65rem] bottom-[calc(100%+4.75rem)] w-11 flex flex-col items-center gap-2.5">
+              <div className="absolute left-0 bottom-[calc(100%+0.75rem)] flex flex-col items-start gap-2.5">
                 {fabDialActions.map(({ key, label, icon: Icon, color, onClick }) => (
-                  <div key={key} className="relative animate-scale-in">
-                    <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-200 text-xs font-black px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
-                      {label}
-                    </span>
-                    <button
-                      onClick={() => { onClick(); setIsFabDialOpen(false); }}
-                      aria-label={label}
-                      className={`w-11 h-11 rounded-full ${color} text-white grid place-items-center shadow-xl transition active:scale-90`}
-                    >
-                      <Icon size={18} />
-                    </button>
-                  </div>
+                  <button
+                    key={key}
+                    onClick={() => { onClick(); setIsFabDialOpen(false); }}
+                    className="flex items-center gap-2.5 animate-scale-in transition active:scale-95"
+                  >
+                    <span className={`w-11 h-11 rounded-full ${color} text-white grid place-items-center shadow-xl`}><Icon size={18} /></span>
+                    <span className="bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-200 text-xs font-black px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">{label}</span>
+                  </button>
                 ))}
               </div>
             )}
-            <NavPill
-              items={[...NAV_ITEMS, { id: 'perfil', avatar: (user.name || '?').trim().charAt(0).toUpperCase(), short: nombreCorto }]}
-              activeId={perfilOpen ? 'perfil' : activeTab}
-              onSelect={(id) => { if (id === 'perfil') { setIsFabDialOpen(false); setPerfilOpen(true); } else { setPerfilOpen(false); setActiveTab(id); } }}
-              theme={theme}
-              variant="mobile"
-            />
-            <button
-              onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
-              aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
-              aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
-              className={`absolute right-1 bottom-[calc(100%+0.75rem)] w-14 h-14 rounded-full ${theme.btnPrimary} text-white grid place-items-center shadow-xl ${theme.shadowBtn} transition active:scale-90`}
-            >
-              <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
+                aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
+                className={`flex-1 h-[60px] rounded-full ${theme.btnPrimary} text-white flex items-center justify-center gap-2.5 text-base font-extrabold shadow-xl ${theme.shadowBtn} transition active:scale-[0.98]`}
+              >
+                <Plus size={22} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
+                {activeTab === 'general' ? (isFabDialOpen ? 'Cerrar' : 'Agregar') : 'Ingreso manual'}
+              </button>
+              <button
+                onClick={() => { setIsFabDialOpen(false); setPerfilOpen(true); }}
+                aria-label={`Perfil de ${nombreCorto}`}
+                className={`relative flex-shrink-0 w-[60px] h-[60px] rounded-full bg-white/95 dark:bg-dark-normal/95 backdrop-blur-xl border shadow-2xl shadow-slate-400/25 dark:shadow-black/60 grid place-items-center transition active:scale-95 ${perfilOpen ? theme.borderAccent : 'border-slate-200 dark:border-dark-lighter'}`}
+              >
+                <span className={`w-[42px] h-[42px] rounded-full border-2 grid place-items-center text-lg font-extrabold bg-white dark:bg-dark-lighter ${theme.borderAccent} ${theme.tabText}`}>
+                  {(user.name || '?').trim().charAt(0).toUpperCase()}
+                </span>
+                {['pago_fallido', 'solo_lectura', 'suspendida'].includes(billing?.estado) || (billing?.estado === 'prueba' && billing.diasRestantes <= 7) ? (
+                  <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-amber-400 border-2 border-white dark:border-dark-normal" />
+                ) : null}
+              </button>
+            </div>
           </div>
         </div>
 
