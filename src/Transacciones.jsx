@@ -128,7 +128,7 @@ const ReviewCard = ({
       callback();
       setIsExiting(false);
       setExitDir(null);
-    }, 480);
+    }, 420);
   };
 
   const handleNext = () => {
@@ -165,13 +165,36 @@ const ReviewCard = ({
 
   const accentText = THEME_ACCENT_TEXT[theme.borderAccent] || 'text-kk-primary';
   const ringCircumference = 97.389;
-  const ringOffset = ringCircumference * (1 - (reviewIdx + 1) / pendingCount);
+  // El anillo parte del avance anterior y llena hasta el actual al montar.
+  const [ringStep, setRingStep] = useState(() => Math.min(pendingCount, Math.max(0, reviewDirection === 'back' ? reviewIdx + 2 : reviewIdx)));
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setRingStep(reviewIdx + 1));
+    return () => cancelAnimationFrame(id);
+  }, [reviewIdx]);
+  const ringOffset = ringCircumference * (1 - ringStep / pendingCount);
   const cardVisible = reviewVisible && !isExiting;
+  const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+  // Mientras sale la tarjeta, las de atras avanzan hasta ocupar su lugar.
+  const peekStyle = (top, side) => ({
+    top: isExiting ? 0 : top,
+    left: isExiting ? 0 : side,
+    right: isExiting ? 0 : side,
+    opacity: reviewVisible ? 1 : 0,
+    transition: `top 420ms ${EASE}, left 420ms ${EASE}, right 420ms ${EASE}, opacity 300ms ease-out`,
+    animation: `kkPeekIn 520ms ${EASE} backwards`,
+  });
+  const stagger = (ms) => ({ animation: `kkFadeUp 480ms ${EASE} ${ms}ms backwards` });
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <div aria-hidden="true" className={`absolute left-2.5 right-2.5 -top-4 bottom-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
-      <div aria-hidden="true" className={`absolute left-1.5 right-1.5 -top-2 bottom-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5 transition-opacity duration-300 ${cardVisible ? 'opacity-100' : 'opacity-0'}`} />
+      <style>{`
+        @keyframes kkCardIn { from { opacity: 0; transform: translateY(6px) scale(0.985); } to { opacity: 1; transform: none; } }
+        @keyframes kkFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        @keyframes kkPeekIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { [data-kk-anim], [data-kk-anim] * { animation: none !important; } }
+      `}</style>
+      <div aria-hidden="true" data-kk-anim className="absolute left-2.5 right-2.5 -top-4 bottom-0 rounded-3xl bg-slate-100 dark:bg-dark-lightest/40 border border-slate-300/40 dark:border-white/5" style={peekStyle('-1rem', '0.625rem')} />
+      <div aria-hidden="true" data-kk-anim className="absolute left-1.5 right-1.5 -top-2 bottom-0 rounded-3xl bg-slate-200/80 dark:bg-dark-lighter border border-slate-300/50 dark:border-white/5" style={peekStyle('-0.5rem', '0.375rem')} />
 
       <button
         onClick={handlePrev}
@@ -190,19 +213,21 @@ const ReviewCard = ({
       </button>
 
       <div
-        className={`relative w-full max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden ${
-          cardVisible ? 'opacity-100' : 'opacity-0'
-        } ${cardVisible ? 'translate-y-0' : 'translate-y-6'}`}
+        data-kk-anim
+        className="relative w-full max-h-screen sm:max-h-[90vh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden will-change-transform"
         style={{
           transform: isExiting
             ? (exitDir === 'right'
-                ? 'translateX(140%) rotate(14deg)'
-                : 'translateX(-140%) rotate(-14deg)')
+                ? 'translateX(130%) translateY(-12px) rotate(12deg)'
+                : 'translateX(-130%) translateY(-12px) rotate(-12deg)')
             : cardVisible
             ? 'translateX(0) translateY(0) rotate(0) scale(1)'
             : 'translateX(0) translateY(8px) rotate(0) scale(0.97)',
           opacity: isExiting ? 0 : (cardVisible ? 1 : 0),
-          transition: 'transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 380ms ease-out',
+          transition: isExiting
+            ? `transform 420ms cubic-bezier(0.4, 0, 0.9, 0.5), opacity 260ms ease-in 120ms`
+            : `transform 480ms ${EASE}, opacity 380ms ease-out`,
+          animation: `kkCardIn 420ms ${EASE} backwards`,
         }}
       >
         <div className={`absolute top-0 left-0 right-0 h-56 pointer-events-none opacity-[0.09] dark:opacity-[0.18] ${accentText}`} style={{ background: 'linear-gradient(160deg, currentColor 0%, transparent 65%)' }} />
@@ -221,7 +246,7 @@ const ReviewCard = ({
         </div>
 
         <div className="flex-1 px-5 py-4 overflow-y-scroll no-scrollbar flex flex-col justify-center gap-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="relative flex flex-col items-center text-center gap-1.5 pt-1">
+          <div className="relative flex flex-col items-center text-center gap-1.5 pt-1" style={stagger(60)}>
             <div className={`absolute -top-3 w-52 h-52 rounded-full blur-2xl opacity-[0.15] dark:opacity-25 pointer-events-none ${accentText}`} style={{ background: 'radial-gradient(circle, currentColor 0%, transparent 70%)' }} />
             <div className="relative flex items-center gap-1.5">
               {BANK_ICONS[tx.banco] && (
@@ -262,7 +287,7 @@ const ReviewCard = ({
             })()}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2" style={stagger(140)}>
             <div className="flex items-center justify-between px-0.5">
               <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
               <span className={`text-xs font-black ${accentText}`}>{reviewCat}</span>
