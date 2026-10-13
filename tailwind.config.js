@@ -99,7 +99,7 @@ export default {
         // terminar no deja transform, que atraparia los modales fixed de dentro.
         'tab-next': 'tabNext 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards',
         'tab-prev': 'tabPrev 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards',
-        'nav-pop': 'navPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'nav-pop': 'navPop 0.45s cubic-bezier(0.22, 1, 0.36, 1)',
         // Entrada escalonada por fila (usar con style={{ animationDelay }}).
         'row-enter': 'rowEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
       },

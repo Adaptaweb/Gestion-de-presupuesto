@@ -4,7 +4,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 // pieza sirve para la barra de escritorio y para la flotante del movil: cambia
 // solo el aspecto. La pill se mide sobre el boton activo, asi que sigue
 // funcionando si cambia el ancho (rotar el telefono, otra fuente, otro tema).
-const SPRING = 'cubic-bezier(0.34, 1.32, 0.5, 1)';
+const SPRING = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 export default function NavPill({ items, activeId, onSelect, theme, variant = 'desktop', spacerAt = -1 }) {
   const wrapRef = useRef(null);
