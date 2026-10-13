@@ -7,6 +7,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Building2,
+  Ban,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
@@ -302,6 +303,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     const monthIndex = val % 12;
     return `${MONTH_NAMES[monthIndex]} ${year}`;
   };
+
+  // Una suscripcion cancelada conserva sus pagos anteriores, pero desde
+  // `canceladaDesde` ya no cobra ni cuenta como pendiente.
+  const subCanceladaEn = (s, mes) => !!s.canceladaDesde && toDateVal(mes) >= toDateVal(s.canceladaDesde);
 
   const availableYears = useMemo(() => {
     const years = months.map(m => m.split(' ')[1]);
@@ -764,7 +769,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             }
           }
         }
-        return isActive && s.pagos?.[mes]?.estado === 'PAGADA' ? acc + (s.valor || 0) : acc;
+        return isActive && !subCanceladaEn(s, mes) && s.pagos?.[mes]?.estado === 'PAGADA' ? acc + (s.valor || 0) : acc;
       }, 0);
 
       const totalAbonos = abonos.reduce((acc, a) => {
@@ -997,7 +1002,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const handleSaveSubscription = (e) => {
     e.preventDefault();
     if (editingItem && editingItem.tipo === 'suscripcion') {
-      setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, id: s.id, pagos: s.pagos } : s));
+      setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, id: s.id, pagos: s.pagos, ...(s.canceladaDesde ? { canceladaDesde: s.canceladaDesde } : {}) } : s));
     } else {
       setSuscripciones([...suscripciones, { ...newSub, id: `sub-${Date.now()}`, pagos: {} }]);
     }
@@ -1436,6 +1441,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               const subsActivas = suscripciones.filter(s => {
                 const startVal = toDateVal(s.mesInicio);
                 const mesVal = toDateVal(mes);
+                if (subCanceladaEn(s, mes)) return false;
                 if (s.billingCycle === 'mensual') return mesVal >= startVal && mesVal < startVal + s.durationYears * 12;
                 for (let i = 0; i < s.durationYears; i++) { if (mesVal === startVal + i * 12) return true; }
                 return false;
@@ -1951,6 +1957,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               const subsActivas = suscripciones.filter(s => {
                 const startVal = toDateVal(s.mesInicio);
                 const mesVal = toDateVal(mes);
+                if (subCanceladaEn(s, mes)) return false;
                 if (s.billingCycle === 'mensual') return mesVal >= startVal && mesVal < startVal + s.durationYears * 12;
                 for (let i = 0; i < s.durationYears; i++) { if (mesVal === startVal + i * 12) return true; }
                 return false;
@@ -2042,6 +2049,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   let isPagado = false;
                   let amount = 0;
                   let hasValue = true;
+                  let cancelada = false;
                   let onTogglePagado = () => {};
                   let onChangeMonto = null;
 
@@ -2055,6 +2063,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     };
                   } else if (isSub) {
                     active = item.activeMonths && item.activeMonths.includes(mes);
+                    cancelada = active && subCanceladaEn(item, mes);
                     const pago = item.pagos?.[mes] || { monto: 0, estado: 'PENDIENTE' };
                     isPagado = pago.estado === 'PAGADA';
                     amount = pago.monto || item.valor;
@@ -2101,9 +2110,24 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   }
 
                   const isExpanded = !!expandedGeneralItems[item.id];
+                  const cancelarSuscripcion = () => {
+                    // Si ya se pago este mes, la baja rige desde el siguiente.
+                    const desde = isPagado ? fromDateVal(toDateVal(mes) + 1) : mes;
+                    if (!window.confirm(`¿Cancelar "${item.descripcion}" desde ${desde}? Se conserva el historial y deja de aparecer como pendiente.`)) return;
+                    setSuscripciones(suscripciones.map(s => s.id === item.id ? { ...s, canceladaDesde: desde } : s));
+                    marcarGuardado('Suscripción cancelada', item.descripcion);
+                  };
+                  const reactivarSuscripcion = () => {
+                    setSuscripciones(suscripciones.map(s => {
+                      if (s.id !== item.id) return s;
+                      const { canceladaDesde, ...resto } = s;
+                      return resto;
+                    }));
+                    marcarGuardado('Suscripción reactivada', item.descripcion);
+                  };
 
                   return (
-                    <div key={item.id} className="bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-kk-2xl shadow-fluid shadow-fluid-hover p-3 sm:p-4 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(itemIdx, 10) * 35}ms` }}>
+                    <div key={item.id} className={`bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-kk-2xl shadow-fluid shadow-fluid-hover p-3 sm:p-4 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-row-enter ${cancelada ? 'opacity-70' : ''}`} style={{ animationDelay: `${Math.min(itemIdx, 10) * 35}ms` }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
                           {/* Sin relleno interior, igual que en el resumen: el logo
@@ -2122,6 +2146,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               <span className="font-black text-slate-800 dark:text-slate-200 text-sm leading-tight truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title={item.descripcion}>{item.descripcion}</span>
                               {item.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">Legal</span>}
                               {isSub && <span className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase flex items-center gap-0.5"><RefreshCw size={9} /> Sub</span>}
+                              {cancelada && <span className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">Cancelada</span>}
                               {isAbono && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-black px-1.5 py-0.5 rounded uppercase">ABONO</span>}
                               {isCuota && item.tipoTarjeta && <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase ${item.tipoTarjeta === 'visa' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'}`}>{item.tipoTarjeta.toUpperCase()}</span>}
                             </div>
@@ -2131,6 +2156,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                         </div>
                         <div className="flex gap-0.5 flex-shrink-0">
+                          {isSub && !cancelada && active && (
+                            <button onClick={cancelarSuscripcion} aria-label={`Cancelar ${item.descripcion}`} title="Cancelar suscripción" className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-amber-500 transition-colors"><Ban size={16} /></button>
+                          )}
                           <button onClick={() => handleEditItem(item)} aria-label={`Editar ${item.descripcion}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"><Pencil size={16} /></button>
                           <button onClick={() => {
                             const itemType = isCuota ? 'deuda' : isSub ? 'suscripción' : isAbono ? 'abono' : 'gasto fijo';
@@ -2167,7 +2195,12 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                       })()}
 
                       <div className="mt-3 rounded-xl border border-slate-100 dark:border-dark-lighter bg-slate-50/60 dark:bg-dark-lighter/20 p-2.5">
-                        {!active ? (
+                        {cancelada ? (
+                          <div className="flex items-center justify-between gap-2 py-0.5">
+                            <span className="text-xs font-black text-rose-500 dark:text-rose-400">Cancelada desde {item.canceladaDesde}</span>
+                            <button type="button" onClick={reactivarSuscripcion} className="text-xs font-black uppercase tracking-tighter px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-dark-lightest text-slate-700 dark:text-slate-200 transition">Reactivar</button>
+                          </div>
+                        ) : !active ? (
                           <div className="text-center text-xs font-bold text-slate-300 dark:text-slate-600 py-1.5">No aplica en {mes}</div>
                         ) : (
                           <div className="flex items-center gap-2">
@@ -2214,7 +2247,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                               mPagado = item.pagos?.[m]?.estado === 'PAGADA';
                               mAmount = item.valorCuota;
                             } else if (isSub) {
-                              mActive = item.activeMonths && item.activeMonths.includes(m);
+                              mActive = item.activeMonths && item.activeMonths.includes(m) && !subCanceladaEn(item, m);
                               const pago = item.pagos?.[m] || { monto: 0, estado: 'PENDIENTE' };
                               mPagado = pago.estado === 'PAGADA';
                               mAmount = pago.monto || item.valor;
