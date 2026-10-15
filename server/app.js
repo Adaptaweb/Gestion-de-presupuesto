@@ -992,7 +992,12 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
 
     if (mes) { conditions.push("SUBSTR(fecha, 1, 7) = ?"); filterValues.push(mes); }
     if (fecha_desde) { conditions.push("fecha >= ?"); filterValues.push(fecha_desde); }
-    if (fecha_hasta) { conditions.push("fecha <= ?"); filterValues.push(fecha_hasta); }
+    // fecha guarda tambien la hora ("2026-10-31T12:30:00"): comparada con un
+    // dia suelto como texto, todo el ultimo dia quedaba fuera del rango.
+    if (fecha_hasta) {
+      conditions.push(/^\d{4}-\d{2}-\d{2}$/.test(fecha_hasta) ? "SUBSTR(fecha, 1, 10) <= ?" : "fecha <= ?");
+      filterValues.push(fecha_hasta);
+    }
     if (categoria) { conditions.push("categoria = ?"); filterValues.push(categoria); }
     if (banco) { conditions.push("banco = ?"); filterValues.push(banco); }
     if (revisado !== undefined) { conditions.push(revisado === 'true' ? 'revisado = TRUE' : 'revisado = FALSE'); }

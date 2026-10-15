@@ -743,7 +743,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     const mesParam = monthStrToMonthInput(dashboardMonth);
     let cancelled = false;
     setLoadingResumenGastos(true);
-    fetch(`/api/transacciones?mes=${mesParam}`, { headers: getHeaders() })
+    // Igual que en Transacciones: solo las ya clasificadas (revisado). Las
+    // pendientes aun pueden terminar como "no es gasto". limit=1 porque aqui
+    // solo se usan los totales, no la lista.
+    fetch(`/api/transacciones?mes=${mesParam}&revisado=true&limit=1`, { headers: getHeaders() })
       .then(r => r.json())
       .then(data => {
         if (cancelled) return;
