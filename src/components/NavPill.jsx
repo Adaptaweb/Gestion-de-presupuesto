@@ -68,7 +68,7 @@ export default function NavPill({ items, activeId, onSelect, theme, variant = 'd
     <div
       ref={wrapRef}
       className={isDock
-        ? 'kk-glass relative flex items-center h-16 px-[3px] rounded-full'
+        ? 'kk-glass kk-glass-dock relative flex items-center h-16 px-[3px] rounded-full'
         : 'relative flex items-center gap-1 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-full p-1 shadow-sm'}
     >
       <span
