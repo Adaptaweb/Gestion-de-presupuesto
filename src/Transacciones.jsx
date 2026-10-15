@@ -13,7 +13,7 @@ import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from 'boneyard-js/react';
 import { MONTH_NAMES } from './constants/dashboard.js';
-import { notifyOk, notifyError, notifyInfo, notifyPromise, toast } from './lib/notify.js';
+import { notifyOk, notifyError, notifyInfo, notifyPromise } from './lib/notify.js';
 import { useFilaHorizontal, refFilaHorizontal } from './hooks/useFilaHorizontal.js';
 
 import {
@@ -62,6 +62,10 @@ const BANK_GRADIENT_FALLBACK = ['#1E293B', '#334155', '#475569'];
 
 // Duracion de la salida del modal de pendientes; se desmonta al terminar.
 const REVIEW_EXIT_MS = 380;
+// Giro de la tarjeta al pasar a "En cuotas" o "Es suscripcion": gira hasta
+// quedar de canto y ahi la reemplaza el formulario, que termina el giro
+// (kkFlipIn en index.css).
+const REVIEW_FLIP_MS = 260;
 const RADIO_BOTON_PX = 12;
 
 // El modal de pendientes nace del boton "Pendientes" y vuelve a el al cerrar:
@@ -69,7 +73,8 @@ const RADIO_BOTON_PX = 12;
 // leve rebote, y una capa del color del boton se desvanece encima para que
 // parezca que el boton mismo se transforma en la tarjeta. Sin boton de origen
 // (p. ej. al reclasificar desde el historial) entra y sale con un zoom simple.
-const ReviewMorph = ({ visible, getOrigen, colorBoton, children }) => {
+// Con salida 'giro' no vuelve al boton: gira hacia el formulario siguiente.
+const ReviewMorph = ({ visible, salida, getOrigen, colorBoton, children }) => {
   const cajaRef = useRef(null);
   const velaRef = useRef(null);
 
@@ -100,7 +105,12 @@ const ReviewMorph = ({ visible, getOrigen, colorBoton, children }) => {
 
     const opts = (ms, easing) => ({ duration: reducido ? 1 : ms, easing, fill: 'both' });
     const animaciones = [];
-    if (visible) {
+    if (!visible && salida === 'giro') {
+      animaciones.push(caja.animate(
+        [{ transform: 'none', opacity: 1 }, { transform: 'perspective(1200px) rotateY(90deg) scale(0.96)', opacity: 0.6 }],
+        opts(REVIEW_FLIP_MS, 'cubic-bezier(0.5, 0, 0.9, 0.6)'),
+      ));
+    } else if (visible) {
       if (desdeBoton) {
         animaciones.push(caja.animate(
           [{ transform: desdeBoton }, { transform: 'none' }],
@@ -1089,6 +1099,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [reviewTipoTransaccion, setReviewTipoTransaccion] = useState(null);
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewVisible, setReviewVisible] = useState(false);
+  // 'giro' mientras la tarjeta se transforma en el formulario de cuota o
+  // suscripcion; null en las demas salidas, que vuelven al boton.
+  const [reviewSalida, setReviewSalida] = useState(null);
   const [reviewDirection, setReviewDirection] = useState('forward');
   const [reprocessing, setReprocessing] = useState(false);
   const [revisando, setRevisando] = useState(false);
@@ -1571,7 +1584,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         notifyError('No se pudo guardar', 'La transacción quedó sin clasificar.');
         return false;
       }
-      toast.success({ id: 'revision-tx', title: 'Clasificada', duration: 2000 });
+      notifyOk('Clasificada', undefined, { id: 'revision-tx', duration: 2000 });
       return true;
     } catch (err) {
       console.error(err);
@@ -1603,7 +1616,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         notifyError('No se pudo guardar', 'La transacción quedó sin clasificar.');
         return false;
       }
-      toast.success({ id: 'revision-tx', title: 'Clasificada', duration: 2000 });
+      notifyOk('Clasificada', undefined, { id: 'revision-tx', duration: 2000 });
       return true;
     } catch (err) {
       console.error(err);
@@ -1673,19 +1686,28 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   };
 
   // La compra sigue pendiente hasta que se guarde la cuota en Dashboard.
-  const handleCuotasReview = () => {
+  // La tarjeta gira y, de canto, la reemplaza el formulario de cuota o
+  // suscripcion, que completa el giro. El fondo no se desvanece: el del
+  // formulario es identico, asi que la transicion se ve continua.
+  const pasarAFormulario = (abrirFormulario) => {
     const tx = pendingTxs[reviewIdx];
-    if (!tx || typeof onPasarACuotas !== 'function') return;
-    handleCloseReview();
-    onPasarACuotas(tx);
+    if (!tx || typeof abrirFormulario !== 'function' || reviewSalida) return;
+    setReviewSalida('giro');
+    setReviewVisible(false);
+    setTimeout(() => {
+      abrirFormulario(tx);
+      setShowReview(false);
+      setReviewSalida(null);
+      setPendingTxs([]);
+      fetchTransactions();
+      fetchSummary();
+      fetchPendientesCount();
+    }, REVIEW_FLIP_MS);
   };
 
-  const handleSuscripcionReview = () => {
-    const tx = pendingTxs[reviewIdx];
-    if (!tx || typeof onPasarASuscripcion !== 'function') return;
-    handleCloseReview();
-    onPasarASuscripcion(tx);
-  };
+  const handleCuotasReview = () => pasarAFormulario(onPasarACuotas);
+
+  const handleSuscripcionReview = () => pasarAFormulario(onPasarASuscripcion);
 
   const handleReclasificarTx = (tx) => {
     setPendingTxs([tx]);
@@ -2294,12 +2316,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       {showReview && currentReviewTx && (
         <div
           className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4"
-          style={{ animation: reviewVisible ? 'kkModalScrimIn 300ms ease-out' : `kkModalScrimOut ${REVIEW_EXIT_MS}ms ease-in forwards` }}
+          style={{ animation: reviewVisible ? 'kkModalScrimIn 300ms ease-out' : reviewSalida === 'giro' ? 'none' : `kkModalScrimOut ${REVIEW_EXIT_MS}ms ease-in forwards` }}
         >
           {/* Envoltorio sin key: la animacion de entrada/salida corre solo al
               abrir y cerrar, no al pasar de una transaccion a otra. */}
           <ReviewMorph
             visible={reviewVisible}
+            salida={reviewSalida}
             getOrigen={() => (reviewDesdeBoton.current ? pendientesBtnRef.current : null)}
             colorBoton={pendientesCount > 0 ? 'bg-orange-500' : 'bg-slate-100 dark:bg-dark-normal'}
           >

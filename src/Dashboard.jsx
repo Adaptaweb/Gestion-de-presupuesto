@@ -937,6 +937,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   const handleSaveDebt = (e) => {
     e.preventDefault();
+    if (modalSaliendo) return;
     console.log('[DEBUG] Guardando deuda:', newDebt);
     const endMonth = calculateEndDate(newDebt.mesInicio, newDebt.cuotasTotales, newDebt.isContribuciones);
     ensureMonthsRange(newDebt.mesInicio, endMonth);
@@ -946,15 +947,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
       setDeudas([...deudas, { ...newDebt, id: `debt-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Cuota actualizada' : 'Cuota creada', newDebt.descripcion);
-    if (cuotaDesdeTx && !editingItem) {
-      marcarTxOrigen(cuotaDesdeTx.id, 'en_cuotas');
+    if (cuotaDesdeTx && !editingItem) marcarTxOrigen(cuotaDesdeTx.id, 'en_cuotas');
+    salirDeModal('deuda', true, () => {
       setCuotaDesdeTx(null);
-    }
-    setIsAddingDebt(false);
-    setEditingItem(null);
-    setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
-    setDebtIconSearch('');
-    setBancoSearch('');
+      setIsAddingDebt(false);
+      setEditingItem(null);
+      setNewDebt({ descripcion: '', cuotasTotales: 12, valorCuota: 0, mesInicio: months[0], isContribuciones: false, diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'default', iconValue: 'layout', iconUrl: '' });
+      setDebtIconSearch('');
+      setBancoSearch('');
+    });
   };
 
   const handleSaveFixed = (e) => {
@@ -1084,20 +1085,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   const handleSaveSubscription = (e) => {
     e.preventDefault();
+    if (modalSaliendo) return;
     if (editingItem && editingItem.tipo === 'suscripcion') {
       setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, id: s.id, pagos: s.pagos, ...(s.cancelaciones ? { cancelaciones: s.cancelaciones } : {}), ...(s.canceladaDesde ? { canceladaDesde: s.canceladaDesde } : {}) } : s));
     } else {
       setSuscripciones([...suscripciones, { ...newSub, id: `sub-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Suscripción actualizada' : 'Suscripción creada', newSub.descripcion);
-    if (subDesdeTx && !editingItem) {
-      marcarTxOrigen(subDesdeTx.id, 'en_suscripcion');
+    if (subDesdeTx && !editingItem) marcarTxOrigen(subDesdeTx.id, 'en_suscripcion');
+    salirDeModal('suscripcion', true, () => {
       setSubDesdeTx(null);
-    }
-    setIsAddingSub(false);
-    setEditingItem(null);
-    setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
-    setSubscriptionIconSearch('');
+      setIsAddingSub(false);
+      setEditingItem(null);
+      setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+      setSubscriptionIconSearch('');
+    });
   };
 
   const handleSaveAccount = (e) => {
@@ -1194,7 +1196,33 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     setActiveTab('general');
     setIsAddingSub(true);
   };
-  const cerrarModalDeuda = () => { setIsAddingDebt(false); setEditingItem(null); setCuotaDesdeTx(null); };
+  // Salida animada de los formularios de cuota y suscripcion. Al guardar, la
+  // tarjeta da un pequeno salto y cae hacia la lista; al cerrar con la X solo
+  // se encoge. El cierre real (y el reseteo del formulario) espera a que
+  // termine, para que el contenido no cambie mientras se ve.
+  const [modalSaliendo, setModalSaliendo] = useState(null); // { cual, guardado }
+  const SALIDA_MODAL_MS = 320;
+  const salirDeModal = (cual, guardado, cerrar) => {
+    setModalSaliendo({ cual, guardado });
+    setTimeout(() => { cerrar(); setModalSaliendo(null); }, SALIDA_MODAL_MS);
+  };
+  // Al llegar desde "Pendientes" el formulario completa el giro de la tarjeta
+  // de revision y el fondo ya esta puesto; si no, entra con el zoom de siempre.
+  const animModal = (cual, desdePendiente) => {
+    const saliendo = modalSaliendo?.cual === cual;
+    return {
+      fondo: saliendo
+        ? { animation: `kkModalScrimOut ${SALIDA_MODAL_MS}ms ease-in forwards` }
+        : desdePendiente ? undefined : { animation: 'kkModalScrimIn 300ms ease-out' },
+      tarjeta: saliendo
+        ? { animation: `${modalSaliendo.guardado ? 'kkModalGuardado' : 'kkModalCierre'} ${SALIDA_MODAL_MS}ms cubic-bezier(0.4, 0, 0.9, 0.6) forwards` }
+        : desdePendiente ? { animation: 'kkFlipIn 620ms cubic-bezier(0.3, 0.6, 0.35, 1.18) both' } : undefined,
+    };
+  };
+  const cerrarModalDeuda = () => {
+    if (modalSaliendo) return;
+    salirDeModal('deuda', false, () => { setIsAddingDebt(false); setEditingItem(null); setCuotaDesdeTx(null); });
+  };
   const openAddFixed = () => {
     setEditingItem(null);
     setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
@@ -2710,8 +2738,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {isAddingDebt && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto">
+          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4" style={animModal('deuda', !!cuotaDesdeTx).fondo}>
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto" style={animModal('deuda', !!cuotaDesdeTx).tarjeta}>
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <CreditCard className={theme.tabText} size={20} /> {editingItem ? 'Editar Cuota' : 'Nueva Cuota'}
@@ -3148,13 +3176,13 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {isAddingSub && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto">
+          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4" style={animModal('suscripcion', !!subDesdeTx).fondo}>
+            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto" style={animModal('suscripcion', !!subDesdeTx).tarjeta}>
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   <RefreshCw className={theme.tabText} size={20} /> {editingItem?.tipo === 'suscripcion' ? 'Editar Suscripcion' : 'Nueva Suscripcion'}
                 </h3>
-                <button onClick={() => { setIsAddingSub(false); setEditingItem(null); setSubDesdeTx(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+                <button onClick={() => { if (modalSaliendo) return; salirDeModal('suscripcion', false, () => { setIsAddingSub(false); setEditingItem(null); setSubDesdeTx(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); }); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
               </div>
               <form onSubmit={handleSaveSubscription} className="space-y-3 sm:space-y-4">
                 {subDesdeTx && (

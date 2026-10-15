@@ -17,10 +17,17 @@ const fill = () => (typeof document !== 'undefined' && document.documentElement.
 
 const base = () => ({ fill: fill(), timeoutIndicator: true });
 
-export const initNotify = () => mountToaster({ position: 'top-center' });
+// Con viewport-fit=cover y la barra de estado translucida de la PWA, el toast
+// quedaba pegado arriba, debajo de la hora o de la isla del iPhone, y no se
+// veia. Se baja lo que mida el area segura, igual que el aviso de version.
+export const initNotify = () => mountToaster({
+  position: 'top-center',
+  offset: { top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' },
+});
 
-export const notifyOk = (title, description) =>
-  toast.success({ ...base(), title, description, duration: 3500 });
+// `extra` permite fijar id o duracion sin perder el relleno segun el tema.
+export const notifyOk = (title, description, extra) =>
+  toast.success({ ...base(), title, description, duration: 3500, ...extra });
 
 export const notifyError = (title, description) =>
   toast.error({ ...base(), title, description, duration: 6000 });
