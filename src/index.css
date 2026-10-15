@@ -279,18 +279,9 @@ html.dark [data-gooey-description] {
 .tab-stagger > *:nth-child(4) { animation-delay: 180ms; }
 .tab-stagger > *:nth-child(n+5) { animation-delay: 230ms; }
 
-/* Modal de pendientes: el fondo se funde y la tarjeta crece desde abajo al
-   abrir; al cerrar hace el camino inverso, mas rapido. */
+/* Fondo del modal de pendientes: se funde al abrir y al cerrar. */
 @keyframes kkModalScrimIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes kkModalScrimOut { from { opacity: 1; } to { opacity: 0; } }
-@keyframes kkModalIn {
-  from { opacity: 0; transform: translateY(28px) scale(0.94); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes kkModalOut {
-  from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(20px) scale(0.96); }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

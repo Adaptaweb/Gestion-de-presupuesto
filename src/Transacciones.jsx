@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import {
   Mail, RefreshCw, Trash2, ExternalLink, Loader2, Inbox, Filter,
   Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
@@ -61,7 +61,94 @@ const BANK_GRADIENT = {
 const BANK_GRADIENT_FALLBACK = ['#1E293B', '#334155', '#475569'];
 
 // Duracion de la salida del modal de pendientes; se desmonta al terminar.
-const REVIEW_EXIT_MS = 240;
+const REVIEW_EXIT_MS = 380;
+const RADIO_BOTON_PX = 12;
+
+// El modal de pendientes nace del boton "Pendientes" y vuelve a el al cerrar:
+// la tarjeta se escala desde el rectangulo del boton hasta su lugar con un
+// leve rebote, y una capa del color del boton se desvanece encima para que
+// parezca que el boton mismo se transforma en la tarjeta. Sin boton de origen
+// (p. ej. al reclasificar desde el historial) entra y sale con un zoom simple.
+const ReviewMorph = ({ visible, getOrigen, colorBoton, children }) => {
+  const cajaRef = useRef(null);
+  const velaRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const caja = cajaRef.current;
+    const vela = velaRef.current;
+    if (!caja || !vela) return;
+    const reducido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    // Transformacion que lleva la tarjeta encima del boton.
+    const boton = getOrigen?.();
+    let desdeBoton = null;
+    let radioVela = null;
+    if (boton?.isConnected) {
+      const b = boton.getBoundingClientRect();
+      const c = caja.getBoundingClientRect();
+      if (b.width && b.height && c.width && c.height) {
+        const sx = b.width / c.width;
+        const sy = b.height / c.height;
+        const dx = (b.left + b.width / 2) - (c.left + c.width / 2);
+        const dy = (b.top + b.height / 2) - (c.top + c.height / 2);
+        desdeBoton = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+        // Radio compensado por la escala para que, encogida, tenga las
+        // esquinas del boton y no un rectangulo aplastado.
+        radioVela = `${RADIO_BOTON_PX / sx}px / ${RADIO_BOTON_PX / sy}px`;
+      }
+    }
+
+    const opts = (ms, easing) => ({ duration: reducido ? 1 : ms, easing, fill: 'both' });
+    const animaciones = [];
+    if (visible) {
+      if (desdeBoton) {
+        animaciones.push(caja.animate(
+          [{ transform: desdeBoton }, { transform: 'none' }],
+          opts(620, 'cubic-bezier(0.34, 1.3, 0.5, 1)'),
+        ));
+        animaciones.push(vela.animate(
+          [{ opacity: 1, borderRadius: radioVela }, { opacity: 1, offset: 0.1 }, { opacity: 0, borderRadius: '1.5rem' }],
+          opts(360, 'ease-out'),
+        ));
+      } else {
+        animaciones.push(caja.animate(
+          [{ opacity: 0, transform: 'translateY(28px) scale(0.94)' }, { opacity: 1, transform: 'none' }],
+          opts(460, 'cubic-bezier(0.22, 1, 0.36, 1)'),
+        ));
+        vela.style.opacity = '0';
+      }
+    } else if (desdeBoton) {
+      animaciones.push(caja.animate(
+        [{ transform: 'none' }, { transform: desdeBoton }],
+        opts(REVIEW_EXIT_MS, 'cubic-bezier(0.55, 0, 0.75, 0.2)'),
+      ));
+      animaciones.push(vela.animate(
+        [{ opacity: 0, borderRadius: '1.5rem' }, { opacity: 1, offset: 0.55 }, { opacity: 1, borderRadius: radioVela }],
+        opts(REVIEW_EXIT_MS, 'ease-in'),
+      ));
+    } else {
+      animaciones.push(caja.animate(
+        [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(20px) scale(0.96)' }],
+        opts(REVIEW_EXIT_MS, 'cubic-bezier(0.4, 0, 1, 1)'),
+      ));
+    }
+    return () => animaciones.forEach(a => a.cancel());
+    // getOrigen se lee solo en el momento de abrir o cerrar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  return (
+    <div ref={cajaRef} className="relative w-full max-w-md mx-auto will-change-transform">
+      {children}
+      <div
+        ref={velaRef}
+        aria-hidden="true"
+        className={`absolute inset-0 z-20 rounded-3xl pointer-events-none ${colorBoton}`}
+        style={{ opacity: 0 }}
+      />
+    </div>
+  );
+};
 
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
@@ -1006,6 +1093,10 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [reprocessing, setReprocessing] = useState(false);
   const [revisando, setRevisando] = useState(false);
   const reviewSliderRef = useRef(null);
+  // Boton "Pendientes" (o "Sin pendientes"): origen y destino de la animacion
+  // del modal. Solo se usa cuando el modal se abrio desde ese boton.
+  const pendientesBtnRef = useRef(null);
+  const reviewDesdeBoton = useRef(false);
 
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, title: '', itemName: '', itemType: '', message: '', onConfirm: null });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -1443,6 +1534,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setReviewTipoGasto(first.tipo_gasto || null);
     setReviewTipoTransaccion(null);
     setReviewDirection('forward');
+    reviewDesdeBoton.current = true;
     setShowReview(true);
     setReviewVisible(true);
   };
@@ -1608,6 +1700,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       : tx.tipo_transaccion === 'no_es_ingreso' ? 'ingreso'
       : null;
     setReviewTipoTransaccion(normalizedTipo);
+    reviewDesdeBoton.current = false;
     setShowReview(true);
     setReviewVisible(true);
   };
@@ -1697,7 +1790,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             <Mail className={theme.tabText} size={20} /> Transacciones
           </h2>
           {pendientesCount > 0 ? (
-            <button onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/30 dark:shadow-orange-900/40 transition active:scale-95 whitespace-nowrap">
+            <button ref={pendientesBtnRef} onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/30 dark:shadow-orange-900/40 transition active:scale-95 whitespace-nowrap">
               <Bell size={16} />
               Pendientes
               <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
@@ -1705,7 +1798,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               </span>
             </button>
           ) : (
-            <button onClick={handleOpenReview} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-dark-normal text-slate-400 dark:text-slate-500 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition active:scale-95 hover:bg-slate-200 dark:hover:bg-dark-lighter whitespace-nowrap">
+            <button ref={pendientesBtnRef} onClick={handleOpenReview} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-dark-normal text-slate-400 dark:text-slate-500 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition active:scale-95 hover:bg-slate-200 dark:hover:bg-dark-lighter whitespace-nowrap">
               <Bell size={14} />
               Sin pendientes
             </button>
@@ -2205,16 +2298,19 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         >
           {/* Envoltorio sin key: la animacion de entrada/salida corre solo al
               abrir y cerrar, no al pasar de una transaccion a otra. */}
-          <div
-            className="w-full"
-            style={{ animation: reviewVisible ? 'kkModalIn 460ms cubic-bezier(0.22, 1, 0.36, 1)' : `kkModalOut ${REVIEW_EXIT_MS}ms cubic-bezier(0.4, 0, 1, 1) forwards` }}
+          <ReviewMorph
+            visible={reviewVisible}
+            getOrigen={() => (reviewDesdeBoton.current ? pendientesBtnRef.current : null)}
+            colorBoton={pendientesCount > 0 ? 'bg-orange-500' : 'bg-slate-100 dark:bg-dark-normal'}
           >
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}
             reviewIdx={reviewIdx}
             pendingCount={pendingTxs.length}
-            reviewVisible={reviewVisible}
+            // La entrada y salida las anima ReviewMorph; la tarjeta queda
+            // opaca para que no se desvanezca mientras vuelve al boton.
+            reviewVisible
             reviewDirection={reviewDirection}
             reviewCat={reviewCat}
             setReviewCat={setReviewCat}
@@ -2242,7 +2338,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             onCreateCategoria={onCreateCategoria}
             categorias={categorias}
           />
-          </div>
+          </ReviewMorph>
         </div>
       )}
 
