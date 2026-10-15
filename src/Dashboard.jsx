@@ -2580,20 +2580,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </div>
             </BarraMes>
 
-            <div className="flex gap-2 md:hidden -mt-4">
-                <button
-                  onClick={getSavingsPlan}
-                  disabled={isAiLoading}
-                  className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} ${theme.borderAccent} ${theme.badgeBgDark} hover:opacity-80 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition disabled:opacity-50`}
-                >
-                  {isAiLoading ? <Loader2 size={16} className="animate-spin" /> : <Lightbulb size={16} />}
-                  <span className="hidden sm:inline">Estrategia IA</span><span className="sm:hidden">IA</span> ✨
-                </button>
-                <button onClick={() => setIsAddingAccount(true)} className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.btnPrimary} text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
-                  <Plus size={16} /> <span className="hidden sm:inline">Nueva Cuenta</span><span className="sm:hidden">Cuenta</span>
-                </button>
-              </div>
-
             <div className={`${theme.btnPrimary} rounded-3xl shadow-xl p-4 sm:p-5 text-white`}>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
