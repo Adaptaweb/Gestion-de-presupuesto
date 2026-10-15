@@ -684,7 +684,14 @@ app.get('/api/data', authenticateToken, async (req, res) => {
     const payload = {
       months: monthRows.map(m => m.mes),
       sueldos,
-      cuentasAhorro,
+      cuentasAhorro: cuentasAhorro.map(c => ({
+        id: c.id,
+        nombre: c.nombre,
+        banco: c.banco,
+        automatico: !!c.automatico,
+        montoAutomatico: Number(c.monto_automatico) || 0,
+        autoDesde: c.auto_desde || null,
+      })),
       ahorrosData,
       syncVersion,
       ...compromisos,
@@ -766,11 +773,16 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
           userId, ids
         );
         if (cuentasAhorro.length > 0) {
-          const valores = cuentasAhorro.flatMap(c => [c.id, userId, c.nombre, c.banco]);
-          const grupos = cuentasAhorro.map((_, f) => `($${f * 4 + 1}, $${f * 4 + 2}, $${f * 4 + 3}, $${f * 4 + 4})`).join(', ');
+          const valores = cuentasAhorro.flatMap(c => [
+            c.id, userId, c.nombre, c.banco,
+            !!c.automatico, Math.max(0, Math.round(Number(c.montoAutomatico) || 0)), c.autoDesde || null,
+          ]);
+          const grupos = cuentasAhorro.map((_, f) => `(${Array.from({ length: 7 }, (_, k) => `$${f * 7 + k + 1}`).join(', ')})`).join(', ');
           await tx.run(
-            `INSERT INTO cuentas_ahorro (id, user_id, nombre, banco) VALUES ${grupos}
-             ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, banco = EXCLUDED.banco, deleted_at = NULL`,
+            `INSERT INTO cuentas_ahorro (id, user_id, nombre, banco, automatico, monto_automatico, auto_desde) VALUES ${grupos}
+             ON CONFLICT (id) DO UPDATE SET nombre = EXCLUDED.nombre, banco = EXCLUDED.banco,
+               automatico = EXCLUDED.automatico, monto_automatico = EXCLUDED.monto_automatico,
+               auto_desde = EXCLUDED.auto_desde, deleted_at = NULL`,
             ...valores
           );
         }

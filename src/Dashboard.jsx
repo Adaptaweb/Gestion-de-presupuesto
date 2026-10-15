@@ -81,6 +81,11 @@ const NAV_ITEMS = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Resumen', short: 'Resumen' },
 ];
 
+// Una cuenta es de ahorro automatico cuando tiene el interruptor activo y un
+// monto mensual: recibe ese deposito cada mes y es la unica que se proyecta.
+const esAhorroAutomatico = (c) => !!c?.automatico && Number(c.montoAutomatico) > 0;
+const CUENTA_VACIA = { nombre: '', banco: '', automatico: false, montoAutomatico: '' };
+
 // Selector de mes compartido entre Resumen, Suscripciones y Cuotas y Ahorros: antes
 // cada tab tenia su propio <select> de ano ademas de este nav; ahora el ano
 // se elige desde el mismo desplegable, igual que el selector de mes de
@@ -458,6 +463,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [isAddingFixed, setIsAddingFixed] = useState(false);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
+  // Cuenta cuyo saldo completo se va a retirar (hoja de confirmacion).
+  const [retiroCuenta, setRetiroCuenta] = useState(null);
+  const [detenerAutoRetiro, setDetenerAutoRetiro] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
   const [viewingItem, setViewingItem] = useState(null);
   const [bancoSearch, setBancoSearch] = useState('');
@@ -492,7 +500,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     iconUrl: ''
   });
 
-  const [newAccount, setNewAccount] = useState({ nombre: '', banco: '' });
+  const [newAccount, setNewAccount] = useState(CUENTA_VACIA);
   const [accountBancoSearch, setAccountBancoSearch] = useState('');
   const [debtIconSearch, setDebtIconSearch] = useState('');
   const [fixedIconSearch, setFixedIconSearch] = useState('');
@@ -774,6 +782,37 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     });
     return res;
   }, [cuentasAhorro, ahorrosData, months]);
+
+  // Ahorro automatico: cada mes desde autoDesde hasta el mes en curso recibe el
+  // deposito fijo de la cuenta, salvo que ese mes ya tenga un registro (asi un
+  // deposito editado a mano, o dejado en 0, no se vuelve a pisar).
+  useEffect(() => {
+    const hoy = new Date();
+    const hoyVal = hoy.getFullYear() * 12 + hoy.getMonth();
+    let nuevos = null;
+    cuentasAhorro.forEach(c => {
+      if (!esAhorroAutomatico(c) || !c.autoDesde) return;
+      const desde = toDateVal(c.autoDesde);
+      if (desde <= 0) return;
+      for (let v = Math.max(desde, hoyVal - 120); v <= hoyVal; v++) {
+        const m = fromDateVal(v);
+        if (ahorrosData[c.id]?.[m]) continue;
+        nuevos = nuevos || {};
+        nuevos[c.id] = { ...(nuevos[c.id] || {}), [m]: { deposito: Number(c.montoAutomatico), gasto: 0 } };
+      }
+    });
+    if (!nuevos) return;
+    setAhorrosData(prev => {
+      const res = { ...prev };
+      for (const [id, meses] of Object.entries(nuevos)) res[id] = { ...meses, ...(prev[id] || {}) };
+      return res;
+    });
+  }, [cuentasAhorro, ahorrosData]);
+
+  const aporteAutomaticoMensual = useMemo(
+    () => cuentasAhorro.filter(esAhorroAutomatico).reduce((acc, c) => acc + Number(c.montoAutomatico), 0),
+    [cuentasAhorro]
+  );
 
   const totalAhorroMensual = useMemo(() => {
     const res = {};
@@ -1114,16 +1153,32 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const handleSaveAccount = (e) => {
     e.preventDefault();
     if (modalSaliendo || !newAccount.nombre || !newAccount.banco) return;
+    const montoAuto = parseInt(String(newAccount.montoAutomatico || '').replace(/[^0-9]/g, ''), 10) || 0;
+    const automatico = !!newAccount.automatico && montoAuto > 0;
+    if (newAccount.automatico && !automatico) {
+      notifyInfo('Falta el monto', 'Indica cuánto se ahorra automáticamente cada mes.');
+      return;
+    }
+    const hoy = new Date();
+    const datos = {
+      nombre: newAccount.nombre,
+      banco: newAccount.banco,
+      automatico,
+      montoAutomatico: automatico ? montoAuto : 0,
+      // Al activarlo empieza a depositar desde el mes en curso; si ya estaba
+      // activo conserva su mes de inicio.
+      autoDesde: automatico ? (editingAccount?.automatico && editingAccount.autoDesde ? editingAccount.autoDesde : `${MONTH_NAMES[hoy.getMonth()]} ${hoy.getFullYear()}`) : null,
+    };
     if (editingAccount) {
-      setCuentasAhorro(cuentasAhorro.map(c => c.id === editingAccount.id ? { ...newAccount, id: c.id } : c));
+      setCuentasAhorro(cuentasAhorro.map(c => c.id === editingAccount.id ? { ...c, ...datos } : c));
     } else {
-      setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
+      setCuentasAhorro([...cuentasAhorro, { ...datos, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
     }
     marcarGuardado(editingAccount ? 'Cuenta actualizada' : 'Cuenta creada', newAccount.nombre);
     salirDeModal('cuenta', true, () => {
       setIsAddingAccount(false);
       setEditingAccount(null);
-      setNewAccount({ nombre: '', banco: '' });
+      setNewAccount(CUENTA_VACIA);
       setAccountBancoSearch('');
     });
   };
@@ -1240,7 +1295,27 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   };
   const cerrarModalCuenta = () => {
     if (modalSaliendo) return;
-    salirDeModal('cuenta', false, () => { setIsAddingAccount(false); setEditingAccount(null); setNewAccount({ nombre: '', banco: '' }); setAccountBancoSearch(''); });
+    salirDeModal('cuenta', false, () => { setIsAddingAccount(false); setEditingAccount(null); setNewAccount(CUENTA_VACIA); setAccountBancoSearch(''); });
+  };
+  const cerrarRetiro = () => {
+    if (modalSaliendo) return;
+    salirDeModal('retiro', false, () => setRetiroCuenta(null));
+  };
+  // Retira todo el saldo en el mes que se esta viendo: suma el saldo al retiro
+  // de ese mes, asi la cuenta queda en $0. Si era automatica, por defecto deja
+  // de depositar y sale de la proyeccion.
+  const confirmarRetiroTotal = (e) => {
+    e.preventDefault();
+    if (modalSaliendo || !retiroCuenta) return;
+    const mes = dashboardMonth;
+    const saldo = balancesPorCuenta[retiroCuenta.id]?.[mes]?.acumulado || 0;
+    const gastoMes = ahorrosData[retiroCuenta.id]?.[mes]?.gasto || 0;
+    if (saldo > 0) updateSavingData(retiroCuenta.id, mes, 'gasto', gastoMes + saldo);
+    if (esAhorroAutomatico(retiroCuenta) && detenerAutoRetiro) {
+      setCuentasAhorro(prev => prev.map(c => c.id === retiroCuenta.id ? { ...c, automatico: false, montoAutomatico: 0, autoDesde: null } : c));
+    }
+    marcarGuardado('Retiro registrado', `${retiroCuenta.nombre} · ${formatCurrency(saldo)}`);
+    salirDeModal('retiro', true, () => setRetiroCuenta(null));
   };
   const cerrarModalSub = () => {
     if (modalSaliendo) return;
@@ -1845,127 +1920,77 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   </div>
 
                   {(() => {
-                    const totalAhorroActual = cuentasAhorro.reduce((acc, c) => {
-                      return acc + (balancesPorCuenta[c.id]?.[mes]?.acumulado || 0);
-                    }, 0);
-
-                    const sortedMonths = [...filteredMonths].sort((a, b) => toDateVal(a) - toDateVal(b));
-                    const last6Months = sortedMonths.slice(-6);
-                    const depositsByMonth = last6Months.map(m =>
-                      cuentasAhorro.reduce((acc, c) => acc + (ahorrosData[c.id]?.[m]?.deposito || 0), 0)
-                    );
-                    const activeDeposits = depositsByMonth.filter(d => d > 0);
-                    const promedioMensual = activeDeposits.length > 0 ? activeDeposits.reduce((a, b) => a + b, 0) / activeDeposits.length : 0;
-
-                    const proyeccion3Meses = totalAhorroActual + (promedioMensual * 3);
-                    const proyeccion6Meses = totalAhorroActual + (promedioMensual * 6);
-
-                    const maxDeposit = Math.max(...depositsByMonth, 1);
-                    const trendUp = depositsByMonth.length >= 2 && depositsByMonth[depositsByMonth.length - 1] > depositsByMonth[depositsByMonth.length - 2];
-
-                    const hasNoData = totalAhorroActual === 0 && promedioMensual === 0;
+                    const saldoDe = (c) => balancesPorCuenta[c.id]?.[mes]?.acumulado || 0;
+                    const totalAhorroActual = cuentasAhorro.reduce((acc, c) => acc + saldoDe(c), 0);
+                    // La proyeccion solo considera las cuentas con ahorro
+                    // automatico: lo manual no tiene un aporte fijo que proyectar.
+                    const cuentasAuto = cuentasAhorro.filter(esAhorroAutomatico);
+                    const saldoAuto = cuentasAuto.reduce((acc, c) => acc + saldoDe(c), 0);
+                    const aporteMensual = cuentasAuto.reduce((acc, c) => acc + c.montoAutomatico, 0);
+                    const proyecciones = [3, 6, 12].map(n => ({ n, monto: saldoAuto + aporteMensual * n }));
 
                     return (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-                        <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
-                          <div className="p-3 sm:p-5">
-                            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                              <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                                <PiggyBank className="text-emerald-500 dark:text-emerald-400" size={16} />
-                              </div>
-                              <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Resumen de Ahorros</span>
+                        <div className="bg-white dark:bg-dark-normal rounded-3xl border border-slate-200/70 dark:border-dark-lighter shadow-fluid p-4 sm:p-5">
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="w-10 h-10 rounded-xl grid place-items-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"><PiggyBank size={18} /></span>
+                              <span className="text-[15px] font-bold text-slate-800 dark:text-slate-100">Ahorros</span>
                             </div>
-                            {hasNoData ? (
-                              <div className="text-center py-4 sm:py-6">
-                                <PiggyBank className="mx-auto text-slate-300 dark:text-slate-600 mb-2 sm:mb-3" size={28} />
-                                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">Sin datos de ahorro aún</p>
-                                <p className="text-xs sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Ve a la pestaña <span className="font-bold text-emerald-500">Gestión de Ahorros</span> para registrar depósitos o gastos.</p>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                                  <span className="text-xs sm:text-xs font-bold text-emerald-500/70 uppercase tracking-wider">Balance total</span>
-                                  <div className="text-lg sm:text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(totalAhorroActual)}</div>
-                                </div>
-                                <div className="space-y-1.5 sm:space-y-2">
-                                  {cuentasAhorro.map(c => {
-                                    const saldo = balancesPorCuenta[c.id]?.[mes]?.acumulado || 0;
-                                    return (
-                                      <div key={c.id} className="flex items-center justify-between p-2 sm:p-2.5 rounded-lg bg-slate-50 dark:bg-dark-lighter/30">
-                                        <div className="flex items-center gap-1.5 min-w-0">
-                                          {(() => { const bi = getAhorroBankInfo(c.banco); return bi ? <img src={bi.logo} alt={c.banco} className="w-5 h-3 sm:w-6 sm:h-4 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} /> : null; })()}
-                                          <div className="min-w-0">
-                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200 block truncate">{c.nombre}</span>
-                                            <span className="text-xs sm:text-xs text-slate-400">{c.banco}</span>
-                                          </div>
-                                        </div>
-                                        <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(saldo)}</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </>
-                            )}
+                            <span className="text-lg font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">{formatCurrency(totalAhorroActual)}</span>
                           </div>
+                          {cuentasAhorro.length === 0 ? (
+                            <div className="text-center py-5">
+                              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Sin cuentas de ahorro aún</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Créalas en la pestaña <span className="font-bold text-emerald-600 dark:text-emerald-400">Gestión de Ahorros</span>.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {cuentasAhorro.map(c => (
+                                <div key={c.id} className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-dark-lighter/40">
+                                  <LogoBanco src={getAhorroBankInfo(c.banco)?.logo || ''} nombre={c.banco} className="w-9 h-9 rounded-xl" textoClase="text-xs" />
+                                  <div className="flex-1 min-w-0">
+                                    <span className="block text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate">{c.nombre}</span>
+                                    <span className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
+                                      {esAhorroAutomatico(c) ? `Automático · +${formatCurrency(c.montoAutomatico)}/mes` : `Manual · ${c.banco}`}
+                                    </span>
+                                  </div>
+                                  <span className="text-[13px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200">{formatCurrency(saldoDe(c))}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
-                        <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
-                          <div className="p-3 sm:p-5">
-                            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                              <div className="p-1.5 sm:p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30">
-                                <TrendingUp className="text-indigo-500 dark:text-indigo-400" size={16} />
-                              </div>
-                              <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Proyección de Ahorro</span>
-                              {promedioMensual > 0 && (
-                                <span className={`ml-auto text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${trendUp ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-dark-lighter text-slate-500'}`}>
-                                  {trendUp ? 'Tendencia +' : 'Estable'}
-                                </span>
-                              )}
+                        <div className="bg-white dark:bg-dark-normal rounded-3xl border border-slate-200/70 dark:border-dark-lighter shadow-fluid p-4 sm:p-5">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="w-10 h-10 rounded-xl grid place-items-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"><TrendingUp size={18} /></span>
+                            <div className="min-w-0">
+                              <span className="block text-[15px] font-bold text-slate-800 dark:text-slate-100">Proyección de ahorro</span>
+                              <span className="block text-xs font-medium text-slate-500 dark:text-slate-400">Solo cuentas con ahorro automático</span>
                             </div>
-
-                            {hasNoData ? (
-                              <div className="text-center py-4 sm:py-6">
-                                <TrendingUp className="mx-auto text-slate-300 dark:text-slate-600 mb-2 sm:mb-3" size={28} />
-                                <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">Sin historial de depósitos</p>
-                                <p className="text-xs sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Registra depósitos en al menos un mes para ver tu proyección.</p>
-                              </div>
-                            ) : (
-                              <>
-                                <div className="mb-3 sm:mb-4">
-                                  <div className="flex justify-between items-center mb-1">
-                                    <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase">Promedio mensual</span>
-                                    <span className="text-xs font-mono font-black text-slate-600 dark:text-slate-300">{formatCurrency(promedioMensual)}</span>
-                                  </div>
-                                  <div className="flex gap-1 items-end h-6 sm:h-8">
-                                    {depositsByMonth.map((d, i) => (
-                                      <div
-                                        key={i}
-                                        className="flex-1 rounded-sm bg-indigo-200 dark:bg-indigo-800/50 transition hover:bg-indigo-400 dark:hover:bg-indigo-600"
-                                        style={{ height: `${Math.max((d / maxDeposit) * 100, 4)}%` }}
-                                        title={last6Months[i]}
-                                      ></div>
-                                    ))}
-                                  </div>
-                                  <div className="flex justify-between text-xs sm:text-xs text-slate-400 mt-0.5">
-                                    {last6Months.map((m, i) => (
-                                      <span key={i} className="flex-1 text-center truncate">{m.split(' ')[0].substring(0, 3)}</span>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                                  <div className="p-2 sm:p-3 bg-slate-50 dark:bg-dark-lighter/30 rounded-xl text-center">
-                                    <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase">3 meses</span>
-                                    <div className="text-xs sm:text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion3Meses)}</div>
-                                  </div>
-                                  <div className="p-2 sm:p-3 bg-slate-50 dark:bg-dark-lighter/30 rounded-xl text-center">
-                                    <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase">6 meses</span>
-                                    <div className="text-xs sm:text-sm font-mono font-black text-indigo-600 dark:text-indigo-400">{formatCurrency(proyeccion6Meses)}</div>
-                                  </div>
-                                </div>
-                              </>
-                            )}
                           </div>
+                          {cuentasAuto.length === 0 ? (
+                            <div className="text-center py-5">
+                              <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Sin ahorro automático</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">Activa "Ahorro automático" en una cuenta de <span className="font-bold text-emerald-600 dark:text-emerald-400">Gestión de Ahorros</span> para ver cuánto tendrás.</p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between gap-2 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 px-3.5 py-3 mb-3">
+                                <span className="text-[13px] font-semibold text-indigo-700 dark:text-indigo-300">Aporte automático</span>
+                                <span className="text-[15px] font-extrabold tabular-nums text-indigo-700 dark:text-indigo-300">+{formatCurrency(aporteMensual)}/mes</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2">
+                                {proyecciones.map(p => (
+                                  <div key={p.n} className="p-2.5 rounded-2xl bg-slate-50 dark:bg-dark-lighter/40 text-center">
+                                    <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">En {p.n} meses</span>
+                                    <span className="block text-[13px] sm:text-sm font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{formatCurrency(p.monto)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     );
@@ -2365,101 +2390,125 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
             <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
 
-            <div className={`${theme.btnPrimary} rounded-3xl shadow-xl p-4 sm:p-5 flex items-center justify-between gap-3`}>
-              <span className="text-sm font-black uppercase tracking-wide text-white flex items-center gap-2">
-                <TrendingUp size={16} /> <span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span>
-              </span>
-              <span className="font-mono font-black text-lg text-white">{formatCurrency(totalAhorroMensual[dashboardMonth])}</span>
+            <div className={`${theme.btnPrimary} rounded-3xl shadow-xl p-4 sm:p-5 text-white`}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-black uppercase tracking-wide flex items-center gap-2">
+                  <TrendingUp size={16} /> <span className="hidden sm:inline">Ahorro Total Acumulado</span><span className="sm:hidden">Ahorro Total</span>
+                </span>
+                <span className="font-black text-xl tabular-nums">{formatCurrency(totalAhorroMensual[dashboardMonth])}</span>
+              </div>
+              {aporteAutomaticoMensual > 0 && (
+                <div className="mt-1.5 text-[13px] font-semibold text-white/85 flex items-center gap-1.5">
+                  <RefreshCw size={13} /> Ahorro automático: +{formatCurrency(aporteAutomaticoMensual)} al mes
+                </div>
+              )}
             </div>
 
             {cuentasAhorro.length === 0 ? (
               <div className="py-16 text-center text-slate-300 dark:text-slate-600 font-bold italic">Sin cuentas de ahorro</div>
             ) : (
-              <div className="space-y-2.5 sm:space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-start">
                 {cuentasAhorro.map((cuenta, cuentaIdx) => {
                   const mes = dashboardMonth;
+                  const mesCorto = mes.split(' ')[0];
                   const bi = getAhorroBankInfo(cuenta.banco);
                   const dep = ahorrosData[cuenta.id]?.[mes]?.deposito || 0;
                   const gas = ahorrosData[cuenta.id]?.[mes]?.gasto || 0;
-                  const saldo = balancesPorCuenta[cuenta.id]?.[mes]?.acumulado;
+                  const saldo = balancesPorCuenta[cuenta.id]?.[mes]?.acumulado || 0;
+                  const auto = esAhorroAutomatico(cuenta);
                   const isExpanded = !!expandedAhorroCuentas[cuenta.id];
                   return (
-                    <div key={cuenta.id} className="bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-kk-2xl shadow-fluid shadow-fluid-hover p-3 sm:p-4 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(cuentaIdx, 10) * 35}ms` }}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {bi ? (
-                            <img src={bi.logo} alt={cuenta.banco} className="w-10 h-7 object-contain flex-shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
-                          ) : (
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0"><Building2 size={16} /></div>
-                          )}
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-black text-sm truncate" style={{ color: THEME_COLOR_HEX[themeColor] || THEME_COLOR_HEX.indigo }}>{cuenta.banco} - {cuenta.nombre}</span>
-                              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded uppercase">Ahorro</span>
-                            </div>
+                    <div key={cuenta.id} className="bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter rounded-3xl shadow-fluid p-4 animate-row-enter" style={{ animationDelay: `${Math.min(cuentaIdx, 10) * 35}ms` }}>
+                      <div className="flex items-center gap-3">
+                        <LogoBanco src={bi?.logo || ''} nombre={cuenta.banco} className="w-11 h-11 rounded-2xl" textoClase="text-sm" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[15px] font-bold text-slate-800 dark:text-slate-100 truncate">{cuenta.nombre}</div>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{cuenta.banco}</span>
+                            {auto
+                              ? <span className="flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full"><RefreshCw size={10} /> Automático</span>
+                              : <span className="flex-shrink-0 text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-dark-lighter px-1.5 py-0.5 rounded-full">Manual</span>}
                           </div>
                         </div>
-                        <div className="flex gap-0.5 flex-shrink-0">
-                          <button onClick={() => {
-                            setNewAccount({ nombre: cuenta.nombre, banco: cuenta.banco });
-                            setAccountBancoSearch('');
-                            setEditingAccount(cuenta);
-                            setIsAddingAccount(true);
-                          }} aria-label={`Editar ${cuenta.nombre}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-emerald-500 transition-colors"><Pencil size={16} /></button>
-                          <button onClick={() => {
-                            setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
-                            const { [cuenta.id]: _, ...rest } = ahorrosData;
-                            setAhorrosData(rest);
-                            marcarGuardado('Cuenta eliminada', cuenta.nombre);
-                          }} aria-label={`Eliminar ${cuenta.nombre}`} className="inline-flex items-center justify-center min-w-[40px] min-h-[40px] text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={16} /></button>
+                        <button onClick={() => {
+                          setNewAccount({ nombre: cuenta.nombre, banco: cuenta.banco, automatico: !!cuenta.automatico, montoAutomatico: cuenta.montoAutomatico || '' });
+                          setAccountBancoSearch('');
+                          setEditingAccount(cuenta);
+                          setIsAddingAccount(true);
+                        }} aria-label={`Editar ${cuenta.nombre}`} className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-slate-100 dark:hover:bg-dark-lighter transition-colors"><Pencil size={16} /></button>
+                        <button onClick={() => {
+                          setCuentasAhorro(cuentasAhorro.filter(c => c.id !== cuenta.id));
+                          const { [cuenta.id]: _, ...rest } = ahorrosData;
+                          setAhorrosData(rest);
+                          marcarGuardado('Cuenta eliminada', cuenta.nombre);
+                        }} aria-label={`Eliminar ${cuenta.nombre}`} className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-dark-lighter transition-colors"><Trash2 size={16} /></button>
+                      </div>
+
+                      <div className="mt-4 flex items-end justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-500 dark:text-slate-400">Saldo a {mesCorto}</div>
+                          <div className="text-[28px] font-extrabold tabular-nums leading-tight text-slate-900 dark:text-white">{formatCurrency(saldo)}</div>
                         </div>
+                        {auto && (
+                          <div className="text-right text-xs font-semibold text-slate-500 dark:text-slate-400 pb-1">
+                            <span className="block text-sm font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">+{formatCurrency(cuenta.montoAutomatico)}</span>
+                            cada mes
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 mt-3">
-                        <div>
-                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-wide">Depósito</label>
-                          <div className="relative mt-1">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-bold text-emerald-500 opacity-70">+$</span>
+                        <label className="block rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 border-2 border-transparent focus-within:border-emerald-400 transition">
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400"><ArrowUpCircle size={12} /> Depósito {mesCorto.slice(0, 3)}</span>
+                          <span className="flex items-center gap-0.5">
+                            <span className="text-sm font-extrabold text-emerald-600/70">+$</span>
                             <input
                               type="text"
+                              inputMode="numeric"
                               placeholder="0"
                               value={dep ? new Intl.NumberFormat('es-CL').format(dep) : ''}
-                              onChange={(e) => { const raw = e.target.value.replace(/[^0-9\-]/g, ''); updateSavingData(cuenta.id, mes, 'deposito', parseInt(raw) || 0); }}
-                              className="w-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-right font-mono font-black text-sm py-2 pl-7 pr-2.5 rounded-lg border-2 border-transparent focus:border-emerald-400 outline-none transition"
+                              onChange={(e) => { const raw = e.target.value.replace(/[^0-9]/g, ''); updateSavingData(cuenta.id, mes, 'deposito', parseInt(raw) || 0); }}
+                              className="w-full min-w-0 bg-transparent text-emerald-800 dark:text-emerald-200 font-extrabold tabular-nums text-base outline-none placeholder:text-emerald-600/40"
                             />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black uppercase text-slate-400 tracking-wide flex items-center gap-1"><ArrowDownCircle size={11} /> Gasto / Retiro</label>
-                          <div className="relative mt-1">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm font-bold text-rose-500 opacity-70">-$</span>
+                          </span>
+                        </label>
+                        <label className="block rounded-2xl bg-rose-50 dark:bg-rose-900/20 px-3 py-2 border-2 border-transparent focus-within:border-rose-400 transition">
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-400"><ArrowDownCircle size={12} /> Retiro {mesCorto.slice(0, 3)}</span>
+                          <span className="flex items-center gap-0.5">
+                            <span className="text-sm font-extrabold text-rose-600/70">-$</span>
                             <input
                               type="text"
+                              inputMode="numeric"
                               placeholder="0"
                               value={gas ? new Intl.NumberFormat('es-CL').format(gas) : ''}
-                              onChange={(e) => { const raw = e.target.value.replace(/[^0-9\-]/g, ''); updateSavingData(cuenta.id, mes, 'gasto', parseInt(raw) || 0); }}
-                              className="w-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 text-right font-mono font-black text-sm py-2 pl-7 pr-2.5 rounded-lg border-2 border-transparent focus:border-rose-400 outline-none transition"
+                              onChange={(e) => { const raw = e.target.value.replace(/[^0-9]/g, ''); updateSavingData(cuenta.id, mes, 'gasto', parseInt(raw) || 0); }}
+                              className="w-full min-w-0 bg-transparent text-rose-800 dark:text-rose-200 font-extrabold tabular-nums text-base outline-none placeholder:text-rose-600/40"
                             />
-                          </div>
-                        </div>
+                          </span>
+                        </label>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2.5 px-0.5">
-                        <span className="text-xs font-black uppercase text-slate-400">Saldo {mes}</span>
-                        <span className="font-mono font-black text-sm text-slate-700 dark:text-slate-200">{formatCurrency(saldo)}</span>
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => { setRetiroCuenta(cuenta); setDetenerAutoRetiro(true); }}
+                          disabled={saldo <= 0}
+                          className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-2xl border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-sm font-extrabold hover:bg-rose-50 dark:hover:bg-rose-900/20 disabled:opacity-40 disabled:pointer-events-none transition active:scale-[0.98]"
+                        >
+                          <Wallet size={16} /> Retirar todo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedAhorroCuentas(prev => ({ ...prev, [cuenta.id]: !prev[cuenta.id] }))}
+                          aria-expanded={isExpanded}
+                          className="min-h-[44px] px-4 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300 text-sm font-extrabold transition active:scale-[0.98]"
+                        >
+                          Año <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setExpandedAhorroCuentas(prev => ({ ...prev, [cuenta.id]: !prev[cuenta.id] }))}
-                        className="w-full mt-2 flex items-center justify-center gap-1.5 text-xs font-black text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 py-1.5 transition"
-                      >
-                        {isExpanded ? 'Ocultar año completo' : 'Ver año completo'}
-                        <ChevronDown size={14} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>
 
                       {isExpanded && (
-                        <div className="grid grid-cols-3 gap-1.5 mt-1">
+                        <div className="grid grid-cols-3 gap-1.5 mt-3 animate-slide-down">
                           {filteredMonths.map(m => {
                             const acc = balancesPorCuenta[cuenta.id]?.[m]?.acumulado;
                             return (
@@ -2467,10 +2516,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                                 key={m}
                                 type="button"
                                 onClick={() => setDashboardMonth(m)}
-                                className={`rounded-lg px-1.5 py-1.5 text-center transition bg-slate-100 dark:bg-dark-lightest text-slate-600 dark:text-slate-300 ${m === mes ? 'ring-2 ring-indigo-400' : ''}`}
+                                className={`rounded-xl px-1.5 py-1.5 text-center transition bg-slate-50 dark:bg-dark-lighter/60 text-slate-600 dark:text-slate-300 ${m === mes ? 'ring-2 ring-emerald-400' : ''}`}
                               >
-                                <div className="text-[9px] font-black uppercase opacity-70">{m.split(' ')[0].substring(0, 3)}</div>
-                                <div className="text-[11px] font-mono font-black">{formatCurrency(acc)}</div>
+                                <div className="text-[10px] font-bold uppercase opacity-70">{m.split(' ')[0].substring(0, 3)}</div>
+                                <div className="text-[12px] font-extrabold tabular-nums">{formatCurrency(acc)}</div>
                               </button>
                             );
                           })}
@@ -3049,6 +3098,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <FilaCampo icono={Tag} etiqueta="Nombre" required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} placeholder="Ej: Vacaciones" />
             </Grupo>
 
+            <Grupo>
+              <FilaInterruptor icono={RefreshCw} texto="Ahorro automático" detalle="Se deposita solo cada mes y entra en la proyección" activo={!!newAccount.automatico} onChange={v => setNewAccount({ ...newAccount, automatico: v })} colorActivo="bg-emerald-600" />
+              {newAccount.automatico && (
+                <FilaCampo
+                  icono={CircleDollarSign}
+                  etiqueta="Cada mes"
+                  inputMode="numeric"
+                  required
+                  value={newAccount.montoAutomatico ? `$${new Intl.NumberFormat('es-CL').format(parseInt(String(newAccount.montoAutomatico).replace(/[^0-9]/g, ''), 10) || 0)}` : ''}
+                  onChange={e => setNewAccount({ ...newAccount, montoAutomatico: e.target.value.replace(/[^0-9]/g, '') })}
+                  placeholder="$0"
+                />
+              )}
+            </Grupo>
+
             <Seccion titulo="Institución financiera">
               <SelectorBanco
                 bancos={filtrarBancos(BANCOS_CHILE, accountBancoSearch)}
@@ -3060,6 +3124,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             </Seccion>
           </Hoja>
         )}
+
+        {retiroCuenta && (() => {
+          const saldoRetiro = balancesPorCuenta[retiroCuenta.id]?.[dashboardMonth]?.acumulado || 0;
+          return (
+            <Hoja
+              onSubmit={confirmarRetiroTotal}
+              onClose={cerrarRetiro}
+              icono={Wallet}
+              titulo="Retirar todo"
+              subtitulo={`${retiroCuenta.nombre} · ${retiroCuenta.banco}`}
+              tono="bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300"
+              estiloFondo={animModal('retiro', false).fondo}
+              estiloTarjeta={animModal('retiro', false).tarjeta}
+              pie={<BotonesPie onCancel={cerrarRetiro} texto={`Retirar ${formatCurrency(saldoRetiro)}`} clasesPrimario="bg-rose-600 hover:bg-rose-700 shadow-rose-600/30" />}
+            >
+              <div className="rounded-3xl p-[18px] bg-rose-600 text-white flex flex-col gap-1">
+                <span className="text-[13px] font-bold text-white/85">Saldo que se retira</span>
+                <span className="text-[34px] font-extrabold tabular-nums leading-tight">{formatCurrency(saldoRetiro)}</span>
+                <span className="text-[13px] font-semibold text-white/85">Se registra como retiro de {dashboardMonth} y la cuenta queda en $0.</span>
+              </div>
+              {esAhorroAutomatico(retiroCuenta) ? (
+                <Grupo>
+                  <FilaInterruptor icono={Ban} texto="Detener el ahorro automático" detalle="Deja de depositar y sale de la proyección" activo={detenerAutoRetiro} onChange={setDetenerAutoRetiro} colorActivo="bg-rose-600" />
+                </Grupo>
+              ) : (
+                <p className="px-1 text-[13px] font-semibold text-slate-500 dark:text-slate-400">Esta cuenta es manual, así que no cuenta en la proyección.</p>
+              )}
+            </Hoja>
+          );
+        })()}
 
         {isAddingSub && (
           <Hoja
