@@ -235,6 +235,17 @@ const resendLimiter = rateLimit({
 // El esquema se aplica con `npm run migrate` en el despliegue, no al arrancar.
 // Ver server/migrations/run.js.
 
+// Las claves de transacciones son `tx:<usuario>:<filtros>`, `tx:meses:<usuario>`
+// y `tx:pendientes:<usuario>:<pagina>`. Antes se borraba con el patron
+// `tx:*:<usuario>`, que no coincide con ninguna (no es un comodin): tras
+// eliminar o editar, la lista seguia saliendo de la cache 30 s y la
+// transaccion volvia a aparecer.
+function invalidarCacheTx(userId) {
+  cache.delByPattern(`tx:${userId}:`);
+  cache.del(`tx:meses:${userId}`);
+  cache.delByPattern(`tx:pendientes:${userId}:`);
+}
+
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -981,7 +992,9 @@ app.get('/api/transacciones', authenticateToken, async (req, res) => {
     const { mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order, fecha_desde, fecha_hasta } = req.query;
 
     const cacheKey = `tx:${userId}:${JSON.stringify({ mes, categoria, banco, limit, offset, revisado, search, tipo_transaccion, sort_by, sort_order, fecha_desde, fecha_hasta })}`;
-    const cached = cache.get(cacheKey);
+    // fresh=1 (tras un cambio del propio usuario) salta la cache: en Vercel
+    // otra instancia puede tener todavia la lista anterior.
+    const cached = req.query.fresh === '1' ? null : cache.get(cacheKey);
     if (cached) {
       return res.json(cached);
     }
@@ -1107,9 +1120,7 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     }
 
     const updated = await db.get('SELECT * FROM transacciones_extraidas WHERE id = ?', req.params.id);
-    cache.delByPattern(`tx:*:${req.user.id}`);
-    cache.del(`tx:meses:${req.user.id}`);
-    cache.delByPattern(`tx:pendientes:${req.user.id}`);
+    invalidarCacheTx(req.user.id);
     res.json({ transaction: updated });
   } catch (error) {
     console.error(error);
@@ -1153,9 +1164,7 @@ app.post('/api/transacciones/manual', authenticateToken, async (req, res) => {
     );
 
     const tx = rows[0];
-    cache.delByPattern(`tx:*:${userId}`);
-    cache.del(`tx:meses:${userId}`);
-    cache.delByPattern(`tx:pendientes:${userId}`);
+    invalidarCacheTx(userId);
     res.status(201).json({ transaction: tx });
   } catch (error) {
     console.error('[ManualEntry] Error:', error.message);
@@ -1171,9 +1180,7 @@ app.post('/api/transacciones/revisar', authenticateToken, async (req, res) => {
     // lo encuentra ya terminado.
     const job = await runJob('revisar-correos', async () => {
       const result = await fetchLatestTransactions(userId);
-      cache.delByPattern(`tx:*:${userId}`);
-      cache.del(`tx:meses:${userId}`);
-      cache.delByPattern(`tx:pendientes:${userId}`);
+      invalidarCacheTx(userId);
       return result;
     });
     res.json({ jobId: job.id, status: 'completed', result: job.result });
@@ -1193,9 +1200,7 @@ app.get('/api/transacciones/revisar/status/:jobId', authenticateToken, async (re
 app.post('/api/transacciones/reprocesar', authenticateToken, async (req, res) => {
   try {
     const result = await reprocessPendingTransactions(req.user.id);
-    cache.delByPattern(`tx:*:${req.user.id}`);
-    cache.del(`tx:meses:${req.user.id}`);
-    cache.delByPattern(`tx:pendientes:${req.user.id}`);
+    invalidarCacheTx(req.user.id);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1366,9 +1371,7 @@ app.post('/api/webhook/email', async (req, res) => {
       console.warn('[Webhook] Error guardando parsing_log/plantilla:', logErr.message);
     }
 
-    cache.delByPattern(`tx:*:${actualUserId}`);
-    cache.del(`tx:meses:${actualUserId}`);
-    cache.delByPattern(`tx:pendientes:${actualUserId}`);
+    invalidarCacheTx(actualUserId);
 
     if (esNuevoWebhook) sendPushToUser(actualUserId, 'Nueva transacción detectada',
       `${parsed.comercio || 'Transacción'} — $${Number(parsed.monto).toLocaleString('es-CL')}`,
@@ -1389,7 +1392,7 @@ app.get('/api/transacciones/pendientes', authenticateToken, async (req, res) => 
     const { limit, offset } = req.query;
 
     const cacheKey = `tx:pendientes:${userId}:${JSON.stringify({ limit, offset })}`;
-    const cached = cache.get(cacheKey);
+    const cached = req.query.fresh === '1' ? null : cache.get(cacheKey);
     if (cached) return res.json(cached);
 
     const countResult = await db.get("SELECT COUNT(*) as count FROM transacciones_extraidas WHERE user_id = ? AND deleted_at IS NULL AND (revisado = FALSE OR revisado IS NULL)", userId);
@@ -1416,9 +1419,7 @@ app.delete('/api/transacciones/:id', authenticateToken, async (req, res) => {
     if (!tx) return res.status(404).json({ error: 'Transacción no encontrada' });
     if (tx.user_id !== req.user.id) return res.status(403).json({ error: 'No autorizado' });
     await db.run('UPDATE transacciones_extraidas SET deleted_at = NOW() WHERE id = ?', req.params.id);
-    cache.delByPattern(`tx:*:${req.user.id}`);
-    cache.del(`tx:meses:${req.user.id}`);
-    cache.delByPattern(`tx:pendientes:${req.user.id}`);
+    invalidarCacheTx(req.user.id);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar transacción' });

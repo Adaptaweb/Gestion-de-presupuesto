@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import { marcarCambioTx, conFresco } from './lib/txFresco.js';
 import {
   Mail, RefreshCw, Trash2, ExternalLink, Loader2, Inbox, Filter,
   Plus, X, Edit3, Check, ChevronLeft, ChevronRight,
@@ -1185,7 +1186,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       params.set('revisado', 'true');
       params.set('limit', '10');
       params.set('offset', String(currentPage * 10));
-      const res = await fetch(`/api/transacciones?${params.toString()}`, { headers: getHeaders() });
+      const res = await fetch(conFresco(`/api/transacciones?${params.toString()}`), { headers: getHeaders() });
       const data = await res.json();
       if (res.ok) {
         setTransactions(data.transactions || []);
@@ -1211,7 +1212,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       params.set('revisado', 'true');
       params.set('limit', '1');
       params.set('offset', '0');
-      const res = await fetch(`/api/transacciones?${params.toString()}`, { headers: getHeaders() });
+      const res = await fetch(conFresco(`/api/transacciones?${params.toString()}`), { headers: getHeaders() });
       const data = await res.json();
       if (res.ok) {
         setSummary(data.summary || []);
@@ -1245,7 +1246,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       params.set('revisado', 'true');
       params.set('limit', '10');
       params.set('offset', String(page * 10));
-      const res = await fetch(`/api/transacciones?${params.toString()}`, { headers: getHeaders() });
+      const res = await fetch(conFresco(`/api/transacciones?${params.toString()}`), { headers: getHeaders() });
       const data = await res.json();
       if (res.ok) {
         setTransactions(data.transactions || []);
@@ -1253,7 +1254,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         setLastCheck(data.lastCheck);
         if (data.pendientes_count !== undefined) setPendientesCount(data.pendientes_count);
       }
-      const pendRes = await fetch('/api/transacciones/pendientes?limit=1', { headers: getHeaders() });
+      const pendRes = await fetch(conFresco('/api/transacciones/pendientes?limit=1'), { headers: getHeaders() });
       const pendData = await pendRes.json();
       if (pendData.count !== undefined) setPendientesCount(pendData.count);
     } catch (err) {
@@ -1302,7 +1303,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   const fetchPendientesCount = useCallback(async () => {
     try {
-      const res = await fetch('/api/transacciones/pendientes?limit=1', { headers: getHeaders() });
+      const res = await fetch(conFresco('/api/transacciones/pendientes?limit=1'), { headers: getHeaders() });
       const data = await res.json();
       if (res.ok !== false) setPendientesCount(data.count || 0);
     } catch (e) { console.error(e); }
@@ -1310,7 +1311,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
   const fetchPendientes = useCallback(async () => {
     try {
-      const res = await fetch('/api/transacciones/pendientes?limit=100', { headers: getHeaders() });
+      const res = await fetch(conFresco('/api/transacciones/pendientes?limit=100'), { headers: getHeaders() });
       const data = await res.json();
       if (res.ok !== false) {
         setPendingTxs(data.transactions || []);
@@ -1325,6 +1326,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setRevisando(true);
     notifyInfo('Buscando correos', 'Revisando Gmail por transacciones nuevas.');
     try {
+      marcarCambioTx();
       const res = await fetch('/api/transacciones/revisar', { method: 'POST', headers: getHeaders() });
       const { jobId } = await res.json();
       if (!jobId) throw new Error('No se pudo iniciar la revisión');
@@ -1366,6 +1368,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setReprocessing(true);
     notifyInfo('Reprocesando', 'Volviendo a clasificar las transacciones con IA.');
     try {
+      marcarCambioTx();
       const res = await fetch('/api/transacciones/reprocesar', { method: 'POST', headers: getHeaders() });
       const result = await res.json();
       if (result.error) throw new Error(result.error);
@@ -1478,6 +1481,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       itemType: 'transacción',
       onConfirm: async () => {
         await notifyPromise((async () => {
+          marcarCambioTx();
           const res = await fetch(`/api/transacciones/${id}`, { method: 'DELETE', headers: getHeaders() });
           if (!res.ok) throw new Error(`El servidor respondió ${res.status}`);
           setTransactions(prev => prev.filter(tx => tx.id !== id));
@@ -1511,6 +1515,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const handleUpdateTx = async () => {
     if (!editingTx) return;
     try {
+      marcarCambioTx();
       const res = await notifyPromise(fetch(`/api/transacciones/${editingTx.id}`, {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
@@ -1589,6 +1594,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     const txType = reviewTipoTransaccion || tx.tipo_transaccion || 'gasto';
     const categoria = txType === 'interno' ? 'Interno' : reviewCat;
     try {
+      marcarCambioTx();
       const res = await fetch(`/api/transacciones/${tx.id}`, {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({
@@ -1621,6 +1627,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     const newType = txType === 'gasto' ? 'no_es_gasto' : 'no_es_ingreso';
     const newCat = txType === 'gasto' ? 'No es Gasto' : 'No es Ingreso';
     try {
+      marcarCambioTx();
       const res = await fetch(`/api/transacciones/${tx.id}`, {
         method: 'PUT', headers: getHeaders(),
         body: JSON.stringify({

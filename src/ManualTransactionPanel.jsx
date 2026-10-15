@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { marcarCambioTx } from './lib/txFresco.js';
 import {
   Loader2, Plus, CalendarDays, ShoppingCart, TrendingUp, Check,
 } from 'lucide-react';
@@ -68,6 +69,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
     setSaving(true);
     setError('');
     try {
+      marcarCambioTx();
       const res = await fetch('/api/transacciones/manual', {
         method: 'POST',
         headers: {
@@ -111,6 +113,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
     const newType = tipo === 'gasto' ? 'no_es_gasto' : 'no_es_ingreso';
     const newCat = tipo === 'gasto' ? 'No es Gasto' : 'No es Ingreso';
     try {
+      marcarCambioTx();
       const res = await fetch('/api/transacciones/manual', {
         method: 'POST',
         headers: {

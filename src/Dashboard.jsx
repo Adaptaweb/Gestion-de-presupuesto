@@ -11,6 +11,7 @@ import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Ste
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
 import { esUrlRemota, descargarIconoComoDataUrl } from './lib/iconos.js';
+import { marcarCambioTx, conFresco } from './lib/txFresco.js';
 import {
   Activity,
   ArrowDownCircle,
@@ -763,7 +764,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     // Igual que en Transacciones: solo las ya clasificadas (revisado). Las
     // pendientes aun pueden terminar como "no es gasto". limit=1 porque aqui
     // solo se usan los totales, no la lista.
-    fetch(`/api/transacciones?mes=${mesParam}&revisado=true&limit=1`, { headers: getHeaders() })
+    fetch(conFresco(`/api/transacciones?mes=${mesParam}&revisado=true&limit=1`), { headers: getHeaders() })
       .then(r => r.json())
       .then(data => {
         if (cancelled) return;
@@ -1210,6 +1211,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   // La transaccion pendiente sale del historial y de los totales: queda solo en Cuotas.
   const marcarTxOrigen = (id, tipo) => {
+    marcarCambioTx();
     fetch(`/api/transacciones/${id}`, {
       method: 'PUT', headers: getHeaders(),
       body: JSON.stringify({ tipo_transaccion: tipo, tipo_gasto: null, revisado: true })
