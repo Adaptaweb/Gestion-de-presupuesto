@@ -34,7 +34,6 @@ import {
   Mail,
   Moon,
   Pencil,
-  PieChart,
   PiggyBank,
   Plus,
   Receipt,
@@ -530,7 +529,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [abonoIconSearch, setAbonoIconSearch] = useState('');
   const [abonoChileCat, setAbonoChileCat] = useState('agua');
   const [abonoBancoSearch, setAbonoBancoSearch] = useState('');
-  const [dashSections, setDashSections] = useState({ cuotas: true, subs: true, fijos: true, abonos: true });
+  const [dashSections, setDashSections] = useState({ cuotas: false, subs: false, fijos: false, abonos: true });
   const toggleDashSection = (key) => setDashSections(prev => ({ ...prev, [key]: !prev[key] }));
 
   const filteredDebtIcons = useMemo(() => {
@@ -1569,7 +1568,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
                 <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
               </h2>
-              <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
+              <div className="w-full sm:w-72">
+                <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
+              </div>
             </div>
 
             {(() => {
@@ -1582,11 +1583,22 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               const sueldo = totalesMensuales[mes]?.sueldo || 0;
               const disponibleExtras = sueldo + totalAbonos - (totalCuotas + totalGastos + totalSubs);
               const totalGastado = totalCuotas + totalGastos + totalSubs;
-              const pctCuotas = sueldo > 0 ? (totalCuotas / sueldo) * 100 : 0;
-              const pctGastos = sueldo > 0 ? (totalGastos / sueldo) * 100 : 0;
-              const pctSubs = sueldo > 0 ? (totalSubs / sueldo) * 100 : 0;
-              const pctGastado = sueldo > 0 ? (totalGastado / sueldo) * 100 : 0;
-              const pctDisponible = sueldo > 0 ? Math.max(0, (disponibleExtras / sueldo) * 100) : 0;
+              // Los porcentajes se miden sobre todo lo que entra en el mes
+              // (sueldo + abonos), no solo sobre el sueldo.
+              const ingresosMes = sueldo + totalAbonos;
+              const pctGastado = ingresosMes > 0 ? (totalGastado / ingresosMes) * 100 : 0;
+              const pctDisponible = ingresosMes > 0 ? Math.max(0, (disponibleExtras / ingresosMes) * 100) : 0;
+              // Cuanto se puede gastar por dia: en el mes en curso cuenta desde
+              // hoy (incluido); un mes futuro reparte entre todos sus dias y uno
+              // pasado ya no tiene dias por delante.
+              const hoy = new Date();
+              const [nombreMes, anioMes] = mes.split(' ');
+              const diasDelMes = new Date(Number(anioMes), MONTH_NAMES.indexOf(nombreMes) + 1, 0).getDate();
+              const mesVal = toDateVal(mes);
+              const hoyVal = hoy.getFullYear() * 12 + hoy.getMonth();
+              const diasRestantes = mesVal === hoyVal ? diasDelMes - hoy.getDate() + 1 : mesVal > hoyVal ? diasDelMes : 0;
+              const porDia = diasRestantes > 0 && disponibleExtras > 0 ? disponibleExtras / diasRestantes : 0;
+              const colorHeroe = disponibleExtras >= 0 ? THEME_COLOR_HEX[themeColor] : '#e11d48';
               const saludColor = pctGastado < 60 ? 'text-emerald-500' : pctGastado < 80 ? 'text-amber-500' : 'text-rose-500';
               const saludLabel = pctGastado < 60 ? 'Saludable' : pctGastado < 80 ? 'Moderado' : 'Alerta';
               const saludBg = pctGastado < 60 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : pctGastado < 80 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400';
@@ -1620,324 +1632,214 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 return typeof val === 'string' ? { className: val } : { style: { backgroundColor: val.backgroundColor } };
               };
 
-              const donutSegments = [
-                { label: 'Cuotas', value: totalCuotas, pct: pctCuotas, color: theme.bgLight.replace('/50', ''), darkColor: theme.bgLightDark },
-                { label: 'Gastos', value: totalGastos, pct: pctGastos, color: 'bg-slate-400', darkColor: 'dark:bg-slate-500' },
-                { label: 'Suscripciones', value: totalSubs, pct: pctSubs, color: 'bg-rose-400', darkColor: 'dark:bg-rose-400' },
-                { label: 'Disponible', value: Math.max(0, disponibleExtras), pct: pctDisponible, color: 'bg-emerald-400', darkColor: 'dark:bg-emerald-400' }
-              ].filter(s => s.value > 0);
-
-              const donutColors = [
-                THEME_COLOR_HEX[themeColor],
-                '#94a3b8',
-                '#fb7185',
-                '#34d399'
-              ];
+              // Fila desplegable de la lista del mes (Cuotas, Gastos, Suscripciones).
+              // El detalle se monta siempre y se abre animando grid-template-rows.
+              const filaResumen = ({ clave, icono: Icono, iconoClase, titulo, detalle, monto, cargando, children }) => {
+                const abierta = !!dashSections[clave];
+                return (
+                  <div key={clave}>
+                    <button
+                      type="button"
+                      onClick={() => toggleDashSection(clave)}
+                      aria-expanded={abierta}
+                      className="w-full flex items-center gap-3 py-3.5 text-left"
+                    >
+                      <span className={`w-10 h-10 rounded-xl grid place-items-center flex-shrink-0 ${iconoClase}`}>
+                        <Icono size={18} />
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-[15px] font-bold text-slate-800 dark:text-slate-100">{titulo}</span>
+                        <span className="block text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{detalle}</span>
+                      </span>
+                      <span className="text-[15px] font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                        {cargando ? <span className="inline-block w-20 h-5 rounded skeleton align-middle" /> : formatCurrency(monto)}
+                      </span>
+                      <ChevronDown size={18} className={`text-slate-400 flex-shrink-0 transition-transform duration-300 ${abierta ? 'rotate-180' : ''}`} />
+                    </button>
+                    <div className={`grid transition-[grid-template-rows] duration-300 ease-fluid ${abierta ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                      <div className="overflow-hidden" inert={abierta ? undefined : ''}>
+                        <div className="pb-3.5 space-y-2">{children}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              };
+              const filaVacia = (texto) => <div className="py-3 text-center text-xs font-bold text-slate-400">{texto}</div>;
+              const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
               return (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '0ms' }}>
-                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className={`p-1 sm:p-1.5 rounded-lg ${theme.bgLight} ${theme.bgLightDark}`}>
-                            <CreditCard className={theme.tabText} size={14} strokeWidth={1.75} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Cuotas</span>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-start">
+                    <div
+                      className="rounded-[28px] p-5 sm:p-6 text-white flex flex-col gap-3.5 animate-row-enter"
+                      style={{ background: `color-mix(in srgb, ${colorHeroe} 62%, #000)`, boxShadow: `0 18px 40px -16px ${colorHeroe}8C` }}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2 text-[13px] font-bold text-white/80">
+                          <Wallet size={16} /> Disponible este mes
+                        </span>
+                        <span className="text-xs font-extrabold bg-white/15 px-2.5 py-1 rounded-full whitespace-nowrap">
+                          {disponibleExtras >= 0 ? `${pctDisponible.toFixed(0)}% libre` : 'Sobregirado'}
+                        </span>
+                      </div>
+                      <div className="text-[40px] sm:text-[44px] font-extrabold tracking-tight leading-none tabular-nums">
+                        {loadingResumenGastos ? <span className="inline-block w-48 h-10 rounded-xl bg-white/15 animate-pulse" /> : formatCurrency(disponibleExtras)}
+                      </div>
+                      {porDia > 0 && (
+                        <div className="flex items-center gap-2.5 rounded-2xl bg-white/[0.12] px-3.5 py-3 text-sm font-semibold text-white/90">
+                          <CalendarDays size={18} className="flex-shrink-0 text-white/80" />
+                          <span>Puedes gastar <b className="font-extrabold text-white">{formatCurrency(Math.floor(porDia))} al día</b> · {diasRestantes === 1 ? 'queda 1 día' : `quedan ${diasRestantes} días`}</span>
                         </div>
-                        <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${theme.tabText}`}>{formatCurrency(totalCuotas)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                          <span>{cuotasPagadasMes} pagadas</span>
-                          <span>·</span>
-                          <span>{cuotasPendientesMes} pendientes</span>
+                      )}
+                      <div className="flex flex-col gap-2">
+                        <div className="h-2.5 rounded-full bg-white/[0.18] overflow-hidden">
+                          <div className="h-full rounded-full bg-white transition-[width] duration-700 ease-fluid" style={{ width: `${Math.min(pctGastado, 100)}%` }} />
+                        </div>
+                        <div className="flex justify-between gap-2 text-[13px] font-semibold text-white/80 tabular-nums">
+                          <span>Usado {formatCurrency(totalGastado)}</span>
+                          <span>Entró {formatCurrency(ingresosMes)}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '60ms' }}>
-                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className="p-1 sm:p-1.5 rounded-lg bg-slate-100 dark:bg-dark-lighter">
-                            <Receipt className="text-slate-500 dark:text-slate-400" size={14} strokeWidth={1.75} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Gastos</span>
-                        </div>
-                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-slate-700 dark:text-slate-200">
-                          {loadingResumenGastos ? <span className="inline-block w-20 h-5 rounded skeleton" /> : formatCurrency(totalGastos)}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                          <span>{gastosPorCategoria.length} categorías</span>
-                          {gastosPorCategoria[0] && <span>·</span>}
-                          {gastosPorCategoria[0] && <span className="truncate">Top: {gastosPorCategoria[0].categoria}</span>}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '120ms' }}>
-                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className="p-1 sm:p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30">
-                            <RefreshCw className="text-rose-500 dark:text-rose-400" size={14} strokeWidth={1.75} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Suscripciones</span>
-                        </div>
-                        <div className="text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                          <span>{subsActivas.length} activas</span>
-                          {proximosCobros.length > 0 && <span>·</span>}
-                          {proximosCobros.length > 0 && <span>Próx: día {proximosCobros[0]?.dia}</span>}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bezel shadow-fluid shadow-fluid-hover transition-all duration-500 ease-fluid hover:-translate-y-1 animate-row-enter" style={{ animationDelay: '180ms' }}>
-                      <div className="bezel-core bg-white dark:bg-dark-normal p-3 sm:p-5">
-                        <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                          <div className={`p-1 sm:p-1.5 rounded-lg ${disponibleExtras >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'}`}>
-                            <Wallet className={disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'} size={14} strokeWidth={1.75} />
-                          </div>
-                          <span className="text-xs sm:text-xs font-black uppercase tracking-wider text-slate-400">Disponible</span>
-                        </div>
-                        <div className={`text-lg sm:text-2xl font-mono font-black mb-1 sm:mb-1.5 ${disponibleExtras >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>{formatCurrency(disponibleExtras)}</div>
-                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-xs text-slate-400">
-                          <span>{pctDisponible.toFixed(0)}% libre</span>
-                          <span>·</span>
-                          <span className="font-bold">{saludLabel}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
-                      <button onClick={() => toggleDashSection('cuotas')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-lighter/50 transition-colors group/section">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className={`p-1.5 sm:p-2 rounded-xl ${theme.bgLight} ${theme.bgLightDark}`}>
-                            <CreditCard className={theme.tabText} size={16} />
-                          </div>
-                          <div className="text-left">
-                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Cuotas Activas</span>
-                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full ${theme.badgeBg} ${theme.badgeBgDark} ${theme.badgeText} dark:${theme.badgeTextDark}`}>{cuotasActivas.length} este mes</span>
-                          </div>
-                        </div>
-                        <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.cuotas ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                      {dashSections.cuotas && (
-                        <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
-                          {cuotasActivas.map((d, i) => {
-                            const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
-                            let pagadas = 0; let cur = toDateVal(d.mesInicio); const end = toDateVal(mesTermino);
-                            while (cur <= end) { const m = fromDateVal(cur); if (!d.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(m.split(' ')[0])) { if (d.pagos?.[m]?.estado === 'PAGADA') pagadas++; } cur++; }
-                            const totalD = d.isContribuciones ? 4 : d.cuotasTotales;
-                            const pctD = totalD > 0 ? (pagadas / totalD) * 100 : 0;
-                            return (
-                              <div key={d.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all duration-300 ease-fluid hover:bg-slate-100 dark:hover:bg-dark-lighter/50 hover:translate-x-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-100 dark:bg-slate-300 overflow-hidden`}>
-                                  <div className={theme.tabText}>{renderDebtIcon(d)}</div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{d.descripcion}</span>
-                                    {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs sm:text-xs font-black px-1 sm:px-1.5 py-0.5 rounded uppercase hidden sm:inline">Legal</span>}
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <div className="flex-1 h-2 sm:h-1.5 bg-slate-100 dark:bg-dark-lighter rounded-full overflow-hidden">
-                                      <div className={`h-full rounded-full transition duration-500 ${theme.btnPrimary.split(' ')[0]}`} style={{ width: `${pctD}%` }}></div>
-                                    </div>
-                                    <span className="text-xs sm:text-xs font-bold text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
-                                  </div>
-                                </div>
-                                <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(d.valorCuota)}</span>
+                    <div className="lg:row-span-2 bg-white dark:bg-dark-normal rounded-3xl border border-slate-200/70 dark:border-dark-lighter shadow-fluid px-4 sm:px-5 py-0.5 divide-y divide-slate-100 dark:divide-dark-lighter animate-row-enter" style={{ animationDelay: '60ms' }}>
+                      {filaResumen({
+                        clave: 'cuotas',
+                        icono: CreditCard,
+                        iconoClase: `${theme.bgLight} ${theme.bgLightDark} ${theme.tabText}`,
+                        titulo: 'Cuotas',
+                        detalle: cuotasActivas.length ? `${plural(cuotasPagadasMes, 'pagada', 'pagadas')} · ${plural(cuotasPendientesMes, 'pendiente', 'pendientes')}` : 'Sin cuotas este mes',
+                        monto: totalCuotas,
+                        children: cuotasActivas.length === 0 ? filaVacia('Sin cuotas activas este mes') : cuotasActivas.map(d => {
+                          const mesTermino = calculateEndDate(d.mesInicio, d.isContribuciones ? 4 : d.cuotasTotales, d.isContribuciones);
+                          let pagadas = 0; let cur = toDateVal(d.mesInicio); const end = toDateVal(mesTermino);
+                          while (cur <= end) { const m = fromDateVal(cur); if (!d.isContribuciones || ['Abril', 'Junio', 'Septiembre', 'Noviembre'].includes(m.split(' ')[0])) { if (d.pagos?.[m]?.estado === 'PAGADA') pagadas++; } cur++; }
+                          const totalD = d.isContribuciones ? 4 : d.cuotasTotales;
+                          const pctD = totalD > 0 ? (pagadas / totalD) * 100 : 0;
+                          const pagada = d.pagos?.[mes]?.estado === 'PAGADA';
+                          return (
+                            <div key={d.id} className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-dark-lighter/40">
+                              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-300 overflow-hidden">
+                                <div className={theme.tabText}>{renderDebtIcon(d)}</div>
                               </div>
-                            );
-                          })}
-                          {cuotasActivas.length > 0 && (
-                            <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-dark-lighter">
-                              <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                              <span className={`text-xs sm:text-sm font-mono font-black ${theme.tabText}`}>{formatCurrency(totalCuotas)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate">{d.descripcion}</span>
+                                  <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-full flex-shrink-0 ${pagada ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-slate-200 dark:bg-dark-lightest text-slate-600 dark:text-slate-400'}`}>{pagada ? 'Pagada' : 'Pendiente'}</span>
+                                  {d.isContribuciones && <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full uppercase flex-shrink-0">Legal</span>}
+                                </div>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <div className="flex-1 h-1.5 bg-slate-200 dark:bg-dark-lighter rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${fondoDe(theme.btnPrimary)}`} style={{ width: `${pctD}%` }} />
+                                  </div>
+                                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">{pagadas}/{totalD}</span>
+                                </div>
+                              </div>
+                              <span className="text-[13px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 whitespace-nowrap">{formatCurrency(d.valorCuota)}</span>
                             </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                          );
+                        }),
+                      })}
 
-                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
-                      <div className="p-3 sm:p-5">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                          <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                            <PieChart className="text-emerald-500 dark:text-emerald-400" size={16} />
-                          </div>
-                          <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Distribución</span>
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                          <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
-                            <div className="w-full h-full rounded-full" style={{ background: `conic-gradient(${donutSegments.map((s, i) => {
-                              return `${donutColors[i]} ${i === 0 ? '0' : donutSegments.slice(0, i).reduce((a, x) => a + x.pct, 0)}% ${donutSegments.slice(0, i + 1).reduce((a, x) => a + x.pct, 0)}%`;
-                            }).join(', ')})` }}></div>
-                            <div className="absolute inset-2 sm:inset-3 rounded-full bg-white dark:bg-dark-normal flex flex-col items-center justify-center shadow-inner">
-                              <span className="text-xs sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Gastado</span>
-                              <span className="text-sm sm:text-lg font-mono font-black text-slate-800 dark:text-slate-100">{pctGastado.toFixed(0)}%</span>
+                      {filaResumen({
+                        clave: 'fijos',
+                        icono: Receipt,
+                        iconoClase: 'bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300',
+                        titulo: 'Gastos',
+                        detalle: gastosPorCategoria.length ? `${plural(gastosPorCategoria.length, 'categoría', 'categorías')} · Top: ${gastosPorCategoria[0].categoria}` : 'Sin gastos registrados',
+                        monto: totalGastos,
+                        cargando: loadingResumenGastos,
+                        children: loadingResumenGastos ? filaVacia('Cargando movimientos...') : gastosPorCategoria.length === 0 ? filaVacia('Sin gastos registrados en Transacciones este mes') : (() => {
+                          const maxTotal = Math.max(...gastosPorCategoria.map(c => c.total), 1);
+                          return gastosPorCategoria.map(c => (
+                            <div key={c.categoria} className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-dark-lighter/40">
+                              <span {...catStyle(c.categoria)} className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 truncate max-w-[40%] ${catStyle(c.categoria).className || ''}`}>{c.categoria}</span>
+                              <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-dark-lighter overflow-hidden">
+                                <div {...catBar(c.categoria)} className={`h-full rounded-full ${catBar(c.categoria).className || ''}`} style={{ width: `${(c.total / maxTotal) * 100}%`, ...(catBar(c.categoria).style || {}) }} />
+                              </div>
+                              <span className="text-[13px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 whitespace-nowrap">{formatCurrency(c.total)}</span>
                             </div>
-                          </div>
-                          <div className="space-y-1.5 sm:space-y-2.5 flex-1 w-full">
-                            {(() => {
-                              const textColors = [theme.tabText, 'text-slate-500 dark:text-slate-400', 'text-rose-500 dark:text-rose-400', 'text-emerald-500 dark:text-emerald-400'];
-                              return donutSegments.map((s, i) => (
-                              <div key={i} className="flex items-center justify-between group/legend hover:bg-slate-50 dark:hover:bg-dark-lighter/30 rounded-lg px-2 py-1.5 -mx-2 transition-colors">
-                                <div className="flex items-center gap-2 sm:gap-2.5">
-                                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-800" style={{ backgroundColor: donutColors[i] }}></div>
-                                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{s.label}</span>
-                                </div>
-                                <div className="text-right">
-                                  <span className={`text-xs font-mono font-black ${textColors[i]}`}>{formatCurrency(s.value)}</span>
-                                  <span className="text-xs sm:text-xs font-bold text-slate-400 ml-1 sm:ml-1.5">{s.pct.toFixed(0)}%</span>
-                                </div>
-                              </div>
-                            ));
-                            })()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                          ));
+                        })(),
+                      })}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
-                      <button onClick={() => toggleDashSection('subs')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-lighter/50 transition-colors group/section">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="p-1.5 sm:p-2 rounded-xl bg-rose-100 dark:bg-rose-900/30">
-                            <RefreshCw className="text-rose-500 dark:text-rose-400" size={16} />
-                          </div>
-                          <div className="text-left">
-                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Suscripciones</span>
-                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300`}>{subsActivas.length} activas</span>
-                          </div>
-                        </div>
-                        <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.subs ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                      {dashSections.subs && (
-                        <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
-                          {subsActivas.map((s, i) => {
-                            const monto = s.pagos?.[mes]?.monto || s.valor || 0;
-                            const subPagado = s.pagos?.[mes]?.estado === 'PAGADA';
-                            return (
-                              <div key={s.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all duration-300 ease-fluid hover:bg-slate-100 dark:hover:bg-dark-lighter/50 hover:translate-x-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
-                                  <div className="text-rose-500 dark:text-rose-400">{renderSubscriptionIcon(s)}</div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
-                                    <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full flex-shrink-0 ${subPagado ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 dark:bg-dark-lightest text-slate-500 dark:text-slate-400'}`}>{subPagado ? 'Pagado' : 'Pendiente'}</span>
+                      {filaResumen({
+                        clave: 'subs',
+                        icono: RefreshCw,
+                        iconoClase: 'bg-rose-100 dark:bg-rose-900/30 text-rose-500 dark:text-rose-400',
+                        titulo: 'Suscripciones',
+                        detalle: subsActivas.length ? `${plural(subsActivas.length, 'activa', 'activas')}${proximosCobros.length ? ` · Próx. día ${proximosCobros[0].dia}` : ''}` : 'Sin suscripciones este mes',
+                        monto: totalSubs,
+                        children: subsActivas.length === 0 ? filaVacia('Sin suscripciones activas este mes') : (
+                          <>
+                            {subsActivas.map(s => {
+                              const monto = s.pagos?.[mes]?.monto || s.valor || 0;
+                              const subPagado = s.pagos?.[mes]?.estado === 'PAGADA';
+                              return (
+                                <div key={s.id} className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-dark-lighter/40">
+                                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-100 dark:bg-rose-900/30 overflow-hidden">
+                                    <div className="text-rose-500 dark:text-rose-400">{renderSubscriptionIcon(s)}</div>
                                   </div>
-                                  <span className="text-xs sm:text-xs font-bold text-slate-400">Día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
-                                </div>
-                                <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(monto)}</span>
-                              </div>
-                            );
-                          })}
-                          {subsActivas.length > 0 && (
-                            <>
-                              {Object.keys(cobrosPorDia).length > 0 && (
-                                <div className="pt-2 sm:pt-3 border-t border-slate-100 dark:border-dark-lighter">
-                                  <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                                    <CalendarDays size={12} className="text-slate-400" />
-                                    <span className="text-xs sm:text-xs font-black text-slate-400 uppercase">Próximos cobros</span>
-                                  </div>
-                                  <div className="space-y-1 sm:space-y-1.5">
-                                    {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
-                                      <div key={dia} className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs">
-                                        <span className="w-full sm:w-16 font-bold text-slate-500 dark:text-slate-400">Día {dia}</span>
-                                        <span className="text-slate-400 text-xs">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-dark-lighter">
-                                <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                                <span className="text-xs sm:text-sm font-mono font-black text-rose-500 dark:text-rose-400">{formatCurrency(totalSubs)}</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter overflow-hidden transition-all duration-500 ease-fluid hover:-translate-y-0.5">
-                      <button onClick={() => toggleDashSection('fijos')} className="w-full flex items-center justify-between p-3 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-lighter/50 transition-colors group/section">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-dark-lighter">
-                            <Receipt className="text-slate-500 dark:text-slate-400" size={16} />
-                          </div>
-                          <div className="text-left">
-                            <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Gastos</span>
-                            <span className={`ml-1 sm:ml-2 text-xs sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-lighter text-slate-600 dark:text-slate-300`}>{gastosPorCategoria.length} categorías</span>
-                          </div>
-                        </div>
-                        <svg className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-400 transition-transform ${dashSections.fijos ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                      {dashSections.fijos && (
-                        <div className="px-3 sm:px-5 pb-3 sm:pb-5 space-y-2 sm:space-y-3 border-t border-slate-100 dark:border-dark-lighter pt-3 sm:pt-4 animate-slide-down">
-                          {loadingResumenGastos ? (
-                            <div className="py-4 text-center text-xs font-bold text-slate-400">Cargando movimientos...</div>
-                          ) : gastosPorCategoria.length === 0 ? (
-                            <div className="py-4 text-center text-xs font-bold text-slate-400">Sin gastos registrados en Transacciones este mes</div>
-                          ) : (
-                            <>
-                              {(() => {
-                                const maxTotal = Math.max(...gastosPorCategoria.map(c => c.total), 1);
-                                return gastosPorCategoria.map((c, i) => (
-                                  <div key={c.categoria} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-dark-lighter/30 transition-all duration-300 ease-fluid hover:bg-slate-100 dark:hover:bg-dark-lighter/50 hover:translate-x-0.5 animate-row-enter" style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
-                                    <span {...catStyle(c.categoria)} className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 truncate max-w-[40%] ${catStyle(c.categoria).className || ''}`}>{c.categoria}</span>
-                                    <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-dark-lighter overflow-hidden">
-                                      <div {...catBar(c.categoria)} className={`h-full rounded-full ${catBar(c.categoria).className || ''}`} style={{ width: `${(c.total / maxTotal) * 100}%`, ...(catBar(c.categoria).style || {}) }} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 truncate">{s.descripcion}</span>
+                                      <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-full flex-shrink-0 ${subPagado ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-slate-200 dark:bg-dark-lightest text-slate-600 dark:text-slate-400'}`}>{subPagado ? 'Pagado' : 'Pendiente'}</span>
                                     </div>
-                                    <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatCurrency(c.total)}</span>
+                                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Día {s.diaPago || 1} · {s.billingCycle === 'mensual' ? 'Mensual' : 'Anual'}</span>
                                   </div>
-                                ));
-                              })()}
-                              <div className="flex justify-between pt-2 border-t border-slate-100 dark:border-dark-lighter">
-                                <span className="text-xs font-black text-slate-400 uppercase">Total del mes</span>
-                                <span className="text-xs sm:text-sm font-mono font-black text-slate-500 dark:text-slate-400">{formatCurrency(totalGastos)}</span>
+                                  <span className="text-[13px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 whitespace-nowrap">{formatCurrency(monto)}</span>
+                                </div>
+                              );
+                            })}
+                            {Object.keys(cobrosPorDia).length > 0 && (
+                              <div className="pt-1.5 px-1 space-y-1">
+                                <div className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                  <CalendarDays size={13} /> Próximos cobros
+                                </div>
+                                {Object.entries(cobrosPorDia).map(([dia, cobros]) => (
+                                  <div key={dia} className="flex gap-2 text-xs">
+                                    <span className="w-12 flex-shrink-0 font-bold text-slate-600 dark:text-slate-300">Día {dia}</span>
+                                    <span className="text-slate-500 dark:text-slate-400">{cobros.map(c => `${c.nombre} ${formatCurrency(c.monto)}`).join(', ')}</span>
+                                  </div>
+                                ))}
                               </div>
-                            </>
-                          )}
-                        </div>
-                      )}
+                            )}
+                          </>
+                        ),
+                      })}
                     </div>
-                  </div>
 
-                  <div className="bg-white dark:bg-dark-normal rounded-kk-2xl shadow-fluid shadow-fluid-hover border border-slate-200/70 dark:border-dark-lighter p-3 sm:p-5 transition-all duration-500 ease-fluid hover:-translate-y-0.5 animate-fade-in">
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className={`p-1.5 sm:p-2 rounded-xl ${saludBg}`}>
-                          <Activity className={saludColor} size={16} />
+                    <div className="bg-white dark:bg-dark-normal rounded-3xl border border-slate-200/70 dark:border-dark-lighter shadow-fluid p-4 sm:p-5 flex flex-col gap-3.5 animate-row-enter" style={{ animationDelay: '120ms' }}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className={`w-10 h-10 rounded-xl grid place-items-center ${saludBg}`}>
+                            <Activity className={saludColor} size={18} />
+                          </span>
+                          <span className="text-[15px] font-bold text-slate-800 dark:text-slate-100">Salud financiera</span>
                         </div>
-                        <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">Salud Financiera</span>
+                        <span className={`text-xs font-extrabold px-2.5 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
                       </div>
-                      <span className={`text-xs sm:text-xs font-black px-2 sm:px-3 py-1 rounded-full ${saludBg}`}>{saludLabel}</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                      <div className="flex-1">
-                        <div className="h-2.5 sm:h-3 bg-slate-100 dark:bg-dark-lighter rounded-full overflow-hidden relative">
-                          <div className="absolute inset-0 flex">
-                            <div className="h-full bg-emerald-400" style={{ width: '60%' }}></div>
-                            <div className="h-full bg-amber-400" style={{ width: '20%' }}></div>
-                            <div className="h-full bg-rose-400" style={{ width: '20%' }}></div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <div className="relative h-2.5">
+                            <div className="flex h-full rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-300 dark:bg-emerald-500/70" style={{ width: '60%' }} />
+                              <div className="h-full bg-amber-300 dark:bg-amber-500/70" style={{ width: '20%' }} />
+                              <div className="h-full bg-rose-300 dark:bg-rose-500/70" style={{ width: '20%' }} />
+                            </div>
+                            <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-[3px] border-slate-800 shadow-md transition-[left] duration-700 ease-fluid" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 8px)` }} />
                           </div>
-                          <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white border-2 border-slate-800 rounded-full shadow-md transition duration-500" style={{ left: `calc(${Math.min(pctGastado, 100)}% - 6px)` }}></div>
+                          <div className="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5">
+                            <span>0%</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">60%</span>
+                            <span className="text-amber-600 dark:text-amber-400">80%</span>
+                            <span>100%</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between text-xs sm:text-xs font-bold text-slate-400 mt-1">
-                          <span>0%</span>
-                          <span className="text-emerald-500">60%</span>
-                          <span className="text-amber-500">80%</span>
-                          <span>100%</span>
+                        <div className="text-right">
+                          <div className={`text-2xl font-extrabold leading-none tabular-nums ${saludColor}`}>{pctGastado.toFixed(0)}%</div>
+                          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">usado</div>
                         </div>
-                      </div>
-                      <div className="text-right sm:min-w-[100px]">
-                        <div className={`text-xl sm:text-2xl font-mono font-black ${saludColor}`}>{pctGastado.toFixed(0)}%</div>
-                        <div className="text-xs sm:text-xs font-bold text-slate-400 uppercase">gastado</div>
                       </div>
                     </div>
                   </div>
