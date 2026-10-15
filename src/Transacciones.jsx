@@ -9,6 +9,7 @@ import {
   GraduationCap, Smartphone, Plane, Gift, PiggyBank, Landmark, Percent, CreditCard, Minus, Gamepad2
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
+import LogoK from './components/LogoK.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from 'boneyard-js/react';
@@ -1873,7 +1874,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       {/* Barra superior: en movil reemplaza a la cabecera global (logo, mes y
           pendientes en una fila); en desktop el logo ya esta arriba. */}
       <div className="flex items-center gap-2.5">
-        <img src="/KKiso.svg" alt="Kuentas Klaras" className="w-9 h-9 flex-shrink-0 md:hidden" />
+        <LogoK className="w-9 h-9 flex-shrink-0 md:hidden" />
         <div className="relative flex-1 md:flex-none md:w-80">
           <div className="flex items-center h-11 rounded-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-sm">
             <button onClick={goToPrevMonth} aria-label="Mes anterior" className="w-11 h-11 grid place-items-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex-shrink-0">

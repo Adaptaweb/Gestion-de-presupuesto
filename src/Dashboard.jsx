@@ -6,6 +6,7 @@ import NavPill from './components/NavPill.jsx';
 import BillingBanner from './components/BillingBanner.jsx';
 import PlanesModal from './components/PlanesModal.jsx';
 import ProfileSheet from './components/ProfileSheet.jsx';
+import LogoK from './components/LogoK.jsx';
 import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, LogoBanco } from './components/HojaFormulario.jsx';
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
@@ -189,7 +190,7 @@ const MonthNav = ({ value, months, years, onChange }) => {
 // misma composicion con su propio selector de mes.
 const BarraMes = ({ value, months, years, onChange, children }) => (
   <div className="flex items-center gap-2.5">
-    <img src="/KKiso.svg" alt="Kuentas Klaras" className="w-9 h-9 flex-shrink-0 md:hidden" />
+    <LogoK className="w-9 h-9 flex-shrink-0 md:hidden" />
     <div className="flex-1 min-w-0 md:flex-none md:w-80">
       <MonthNav value={value} months={months} years={years} onChange={onChange} />
     </div>
@@ -242,6 +243,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   // el resto de las pestanas. Ahora es un chip del header, visible siempre.
   const [showPresupuestoModal, setShowPresupuestoModal] = useState(false);
   const [presupuestoDraft, setPresupuestoDraft] = useState('');
+  const [repetirPresupuesto, setRepetirPresupuesto] = useState(false);
   const [cuentasAhorro, setCuentasAhorro] = useState([]);
   const [ahorrosData, setAhorrosData] = useState({});
   const [loadingData, setLoadingData] = useState(true);
@@ -1562,6 +1564,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const presupuestoMes = sueldos[dashboardMonth] || 0;
   const abrirPresupuesto = () => {
     setPresupuestoDraft(presupuestoMes ? String(presupuestoMes) : '');
+    setRepetirPresupuesto(false);
     setShowPresupuestoModal(true);
   };
   // Desde Transacciones, que lleva su propio mes: el presupuesto que se edita
@@ -1573,6 +1576,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     }
     const base = (mes && sueldos[mes]) || 0;
     setPresupuestoDraft(base ? String(base) : '');
+    setRepetirPresupuesto(false);
     setShowPresupuestoModal(true);
   };
   // En movil no hay cabecera global: el presupuesto se abre desde la barra de
@@ -1589,13 +1593,26 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
       {!(presupuestoMes > 0) && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-dark-normal" />}
     </button>
   );
+  const cerrarPresupuesto = () => {
+    if (modalSaliendo) return;
+    salirDeModal('presupuesto', false, () => setShowPresupuestoModal(false));
+  };
   const guardarPresupuesto = (e) => {
     if (e) e.preventDefault();
+    if (modalSaliendo) return;
     const monto = parseInt(presupuestoDraft, 10) || 0;
-    setSueldos({ ...sueldos, [dashboardMonth]: monto });
-    setShowPresupuestoModal(false);
-    marcarGuardado('Presupuesto guardado', `${dashboardMonth}: ${formatCurrency(monto)}`);
+    const nuevos = { ...sueldos, [dashboardMonth]: monto };
+    // "Usar tambien en los meses siguientes": el mismo monto para los meses
+    // que vienen despues de este en la planilla.
+    if (repetirPresupuesto) {
+      const desde = toDateVal(dashboardMonth);
+      months.forEach(m => { if (toDateVal(m) > desde) nuevos[m] = monto; });
+    }
+    setSueldos(nuevos);
+    marcarGuardado('Presupuesto guardado', `${dashboardMonth}: ${formatCurrency(monto)}${repetirPresupuesto ? ' y meses siguientes' : ''}`);
+    salirDeModal('presupuesto', true, () => setShowPresupuestoModal(false));
   };
+
 
   // Orden de abajo hacia arriba: la mas cercana al FAB es la mas usada.
   const fabDialActions = [
@@ -2802,115 +2819,90 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         />
         )}
 
-        {showPresupuestoModal && (
-          <div
-            className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4 animate-fade-in"
-            onClick={() => setShowPresupuestoModal(false)}
-          >
-            <div
-              className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-7 shadow-2xl animate-scale-in"
-              onClick={(e) => e.stopPropagation()}
+        {showPresupuestoModal && (() => {
+          const mes = dashboardMonth;
+          const tot = totalesMensuales[mes] || { cuotas: 0, suscripciones: 0, abonos: 0 };
+          const gastosMes = resumenGastosMes.total_gastos || 0;
+          // Misma formula que el Disponible del Resumen: si cambia alla, esta
+          // vista previa deja de decir la verdad.
+          const monto = parseInt(presupuestoDraft, 10) || 0;
+          const restante = monto + tot.abonos - (tot.cuotas + gastosMes + tot.suscripciones);
+          const mesAnterior = fromDateVal(toDateVal(mes) - 1);
+          const montoAnterior = sueldos[mesAnterior] || 0;
+          const ajustar = (factor) => setPresupuestoDraft(String(Math.max(0, Math.round((monto * factor) / 1000) * 1000)));
+          const chip = 'h-[34px] px-3 rounded-full bg-white/[0.16] text-white text-xs font-extrabold transition active:scale-95 disabled:opacity-40';
+          return (
+            <Hoja
+              onSubmit={guardarPresupuesto}
+              onClose={cerrarPresupuesto}
+              icono={Wallet}
+              titulo="Presupuesto"
+              subtitulo={mes !== mesActual ? `${mes} · cada mes guarda el suyo` : `${mes} · la plata con la que cuentas`}
+              tono={`${theme.bgModalLight} ${theme.tabText}`}
+              estiloFondo={animModal('presupuesto', false).fondo}
+              estiloTarjeta={animModal('presupuesto', false).tarjeta}
+              zClase="z-[70]"
+              pie={<BotonesPie onCancel={cerrarPresupuesto} texto="Guardar presupuesto" clasesPrimario={`${theme.btnPrimary} ${theme.shadowBtn || ''}`} />}
             >
-              <div className="flex justify-between items-start mb-4 sm:mb-5">
-                <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-2xl grid place-items-center flex-shrink-0 ${theme.bgLight} ${theme.bgLightDark}`}>
-                    <Wallet className={theme.tabText} size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-lg sm:text-xl font-black text-slate-800 dark:text-slate-100 leading-tight">Presupuesto del mes</h3>
-                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 capitalize">{dashboardMonth}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowPresupuestoModal(false)}
-                  aria-label="Cerrar"
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 -mr-1 transition"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 mb-5">
-                Es la plata con la que cuentas para <span className="font-bold text-slate-600 dark:text-slate-300 capitalize">{dashboardMonth}</span>.
-                El Resumen parte de este monto, le suma tus abonos y le resta cuotas, gastos fijos y suscripciones
-                para mostrarte cuánto te va quedando.
-              </p>
-
-              {dashboardMonth !== mesActual && (
-                <div className="flex items-start gap-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 px-3 py-2.5 mb-5">
-                  <CalendarDays className="text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" size={15} />
-                  <p className="text-xs font-bold text-amber-700 dark:text-amber-300">
-                    Cada mes guarda su propio presupuesto. Estás editando <span className="capitalize">{dashboardMonth}</span>, no {mesActual.toLowerCase()}.
-                  </p>
-                </div>
-              )}
-
-              <form onSubmit={guardarPresupuesto}>
-                <label htmlFor="presupuesto-input" className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
-                  Monto del mes
-                </label>
-                <div className="relative mb-5">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-black text-lg pointer-events-none">$</span>
+              <label className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex flex-col gap-1.5`}>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-white/80">Monto del mes</span>
+                <span className="flex items-baseline gap-1">
+                  <span className="text-[34px] font-extrabold text-white/75">$</span>
                   <input
-                    id="presupuesto-input"
                     type="text"
                     inputMode="numeric"
                     autoFocus
+                    aria-label="Monto del mes"
                     value={presupuestoDraft ? new Intl.NumberFormat('es-CL').format(parseInt(presupuestoDraft, 10)) : ''}
                     onChange={(e) => setPresupuestoDraft(e.target.value.replace(/[^0-9]/g, ''))}
                     placeholder="0"
-                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 pr-4 py-3 text-right font-mono font-black text-lg text-slate-800 dark:text-slate-100 outline-none ${theme.focusBorder} transition`}
+                    className="w-full min-w-0 bg-transparent border-0 outline-none text-[40px] font-extrabold tracking-tight tabular-nums text-white placeholder:text-white/50"
                   />
-                </div>
+                </span>
+                <span className="flex flex-wrap gap-1.5 mt-1">
+                  {montoAnterior > 0 && montoAnterior !== monto && (
+                    <button type="button" onClick={() => setPresupuestoDraft(String(montoAnterior))} className={chip}>
+                      Igual a {mesAnterior.split(' ')[0].toLowerCase()}
+                    </button>
+                  )}
+                  <button type="button" onClick={() => ajustar(1.1)} disabled={!monto} className={chip}>+10%</button>
+                  <button type="button" onClick={() => ajustar(0.9)} disabled={!monto} className={chip}>−10%</button>
+                </span>
+              </label>
 
-                {(() => {
-                  const mes = dashboardMonth;
-                  const tot = totalesMensuales[mes] || { cuotas: 0, suscripciones: 0, abonos: 0 };
-                  const gastosMes = resumenGastosMes.total_gastos || 0;
-                  // Misma formula que el Disponible del Resumen: si cambia alla,
-                  // esta vista previa deja de decir la verdad.
-                  const comprometido = tot.cuotas + gastosMes + tot.suscripciones;
-                  const monto = parseInt(presupuestoDraft, 10) || 0;
-                  const restante = monto + tot.abonos - comprometido;
-                  return (
-                    <div className="rounded-2xl bg-slate-50 dark:bg-dark-lighter/40 border border-slate-100 dark:border-dark-lighter p-3.5 space-y-2 mb-5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-slate-400 dark:text-slate-500">Abonos del mes</span>
-                        <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">+{formatCurrency(tot.abonos)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-slate-400 dark:text-slate-500">Cuotas, gastos y suscripciones</span>
-                        <span className="font-mono font-black text-slate-500 dark:text-slate-400">−{formatCurrency(comprometido)}</span>
-                      </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-dark-lightest">
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Te quedarían</span>
-                        <span className={`font-mono font-black text-base ${restante >= 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400'}`}>
-                          {formatCurrency(restante)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
+              <Grupo>
+                <Fila icono={TrendingUp} texto="Abonos del mes">
+                  <span className="text-[15px] font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">+{formatCurrency(tot.abonos)}</span>
+                </Fila>
+                <Fila icono={Receipt} texto="Gastos de Transacciones">
+                  <span className="text-[15px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200">−{formatCurrency(gastosMes)}</span>
+                </Fila>
+                <Fila icono={CreditCard} texto="Cuotas pagadas">
+                  <span className="text-[15px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200">−{formatCurrency(tot.cuotas)}</span>
+                </Fila>
+                <Fila icono={RefreshCw} texto="Suscripciones pagadas">
+                  <span className="text-[15px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200">−{formatCurrency(tot.suscripciones)}</span>
+                </Fila>
+              </Grupo>
 
-                <div className="flex gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setShowPresupuestoModal(false)}
-                    className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest transition active:scale-95"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className={`flex-[1.6] py-3 rounded-xl text-sm font-black text-white ${theme.btnPrimary} shadow-lg ${theme.shadowBtn} transition active:scale-95`}
-                  >
-                    Guardar presupuesto
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+              <div className={`flex items-center justify-between gap-3 rounded-[20px] px-4 py-3.5 ${restante >= 0 ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'}`}>
+                <span className="text-sm font-bold">{restante >= 0 ? 'Te quedarían' : 'Te faltarían'}</span>
+                <span className="text-2xl font-extrabold tabular-nums">{formatCurrency(Math.abs(restante))}</span>
+              </div>
+
+              <Grupo>
+                <FilaInterruptor
+                  icono={CalendarDays}
+                  texto="Usar también en los meses siguientes"
+                  detalle="Reemplaza el presupuesto de los meses que vienen"
+                  activo={repetirPresupuesto}
+                  onChange={setRepetirPresupuesto}
+                  colorActivo={fondoDe(theme.btnPrimary)}
+                />
+              </Grupo>
+            </Hoja>
+          );
+        })()}
 
         {isAddingDebt && (
           <Hoja
