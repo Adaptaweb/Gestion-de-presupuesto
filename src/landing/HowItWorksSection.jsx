@@ -100,7 +100,7 @@ const HowItWorksSection = ({ isDarkMode }) => {
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section className="relative py-24 lg:py-32 bg-gradient-to-b from-kk-light/30 dark:from-dark-darker to-white dark:to-dark-normal overflow-hidden">
+    <section id="como-funciona" className="scroll-mt-16 relative py-24 lg:py-32 bg-gradient-to-b from-kk-light/30 dark:from-dark-darker to-white dark:to-dark-normal overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-0 w-72 h-72 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/3 right-0 w-80 h-80 bg-kk-secondary/5 dark:bg-kk-secondary/5 rounded-full blur-3xl" />

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles, Bell, Smartphone, Eye } from 'lucide-react';
+import InstalarApp from './InstalarApp';
 
 const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled }) => {
   return (
@@ -60,7 +61,7 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
               </div>
               <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
                 <Smartphone size={16} className="text-kk-primary" />
-                Web App — no instalas nada
+                Se instala como app, sin tienda
               </div>
               <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
                 <Eye size={16} className="text-kk-primary" />
@@ -87,6 +88,15 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
               >
                 Iniciar Sesión
               </button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.75 }}
+              className="mt-10"
+            >
+              <InstalarApp />
             </motion.div>
           </div>
 
