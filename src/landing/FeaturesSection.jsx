@@ -19,9 +19,9 @@ const features = [
   },
   {
     icon: Smartphone,
-    title: 'Web App — no necesitas instalar nada',
+    title: 'Se instala como app, sin tienda',
     description:
-      'Funciona en tu celular, tu compu y tu tablet. Sin ir a ninguna tienda de apps. Sin ocupar espacio.',
+      'Agrégala a tu inicio en el celular, la compu o la tablet en segundos. Sin pasar por una tienda de apps y casi sin ocupar espacio.',
     color: 'from-violet-400 to-purple-500',
   },
   {
@@ -69,9 +69,23 @@ const FeaturesSection = () => {
             Todo lo que necesitas para{' '}
             <span className="text-kk-primary">controlar tu plata</span>
           </h2>
-          <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-            Sin instalaciones complicadas. Sin conexión a tu banco. Sin compartir claves.
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed">
+            Olvídate del Excel. Reenvía los correos de tu banco y la IA clasifica cada gasto al instante.
+            Una web app que centraliza todo: gastos, ingresos, deudas y ahorros en un solo lugar.
           </p>
+          <div className="flex flex-wrap justify-center gap-3 mt-8">
+            {[
+              [Sparkles, 'Se cargan solos con tu correo'],
+              [Bell, 'Notificaciones al instante'],
+              [Smartphone, 'Se instala como app, sin tienda'],
+              [Eye, 'Todo en un solo lugar'],
+            ].map(([Icono, texto]) => (
+              <div key={texto} className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
+                <Icono size={16} className="text-kk-primary" />
+                {texto}
+              </div>
+            ))}
+          </div>
         </motion.div>
 
         <motion.div

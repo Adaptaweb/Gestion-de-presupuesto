@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight, Sparkles, Bell, Smartphone, Eye } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import InstalarApp from './InstalarApp';
 
 const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled }) => {
@@ -28,51 +28,28 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-kk-primary dark:text-white mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-kk-primary dark:text-white mb-8"
             >
               Tus finanzas{' '}
               <span className="text-kk-primary">claras</span>
               , bajo control.
             </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8 font-medium"
-            >
-              Olvídate del Excel. Reenvía los correos de tu banco y la IA clasifica cada gasto al instante. 
-              Una web app que centraliza todo: gastos, ingresos, deudas y ahorros en un solo lugar.
-            </motion.p>
-
+            {/* Lo primero tras el titulo: instalarla como app. El texto que
+                explica el producto y sus puntos fuertes pasaron a Funciones. */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.45 }}
-              className="flex flex-wrap gap-3 mb-10"
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mb-8"
             >
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
-                <Sparkles size={16} className="text-kk-primary" />
-                Se cargan solos con tu correo
-              </div>
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
-                <Bell size={16} className="text-kk-primary" />
-                Notificaciones al instante
-              </div>
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
-                <Smartphone size={16} className="text-kk-primary" />
-                Se instala como app, sin tienda
-              </div>
-              <div className="flex items-center gap-2 bg-kk-light/80 dark:bg-dark-lighter/80 border border-kk-primary/10 dark:border-kk-primary/20 rounded-full px-4 py-2 text-sm font-bold text-kk-primary dark:text-slate-200">
-                <Eye size={16} className="text-kk-primary" />
-                Todo en un solo lugar
-              </div>
+              <InstalarApp />
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
+              transition={{ duration: 0.6, delay: 0.45 }}
               className="flex flex-wrap gap-4"
             >
               <button
@@ -90,14 +67,6 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
               </button>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.75 }}
-              className="mt-10"
-            >
-              <InstalarApp />
-            </motion.div>
           </div>
 
           <motion.div
