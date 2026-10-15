@@ -1082,6 +1082,13 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [totalCount, setTotalCount] = useState(0);
   const [pendientesCount, setPendientesCount] = useState(0);
   const [showEditModal, setShowEditModal] = useState(false);
+  // Edicion abierta desde la tarjeta de pendientes: en vez de aparecer encima,
+  // la tarjeta gira y de canto la reemplaza el formulario; al cerrarlo gira de
+  // vuelta. `editSaliendo` mantiene el formulario mientras hace su medio giro.
+  const [editDesdeReview, setEditDesdeReview] = useState(false);
+  const [editSaliendo, setEditSaliendo] = useState(false);
+  const giroReviewRef = useRef(null);
+  const giroReviewAnim = useRef(null);
   const [editingTx, setEditingTx] = useState(null);
   const [editComercio, setEditComercio] = useState('');
   const [editCategoria, setEditCategoria] = useState('');
@@ -1512,11 +1519,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       });
       const data = await res.json();
       if (res.ok) {
-        setShowEditModal(false);
-        setEditingTx(null);
         if (showReview) {
           const updated = await fetchPendientes();
-          if (updated.length === 0) {
+          cerrarEdicion(updated.length === 0 ? () => {
             setReviewVisible(false);
             setTimeout(() => {
               setShowReview(false);
@@ -1524,8 +1529,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               fetchTransactions();
               fetchSummary();
             }, REVIEW_EXIT_MS);
-          }
+          } : undefined);
         } else {
+          cerrarEdicion();
           fetchTransactions();
         }
       }
@@ -1679,10 +1685,51 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setReviewTipoTransaccion(null);
   };
 
+  const girarTarjetaReview = (frames, ms, easing) => {
+    const el = giroReviewRef.current;
+    const reducido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const previa = giroReviewAnim.current;
+    if (!el?.animate) return null;
+    const anim = el.animate(frames, { duration: reducido ? 1 : ms, easing, fill: 'forwards' });
+    previa?.cancel();
+    giroReviewAnim.current = anim;
+    return anim;
+  };
+
   const handleEditReviewTx = () => {
     const tx = pendingTxs[reviewIdx];
-    if (!tx) return;
-    handleEditTx(tx);
+    if (!tx || editDesdeReview) return;
+    setEditDesdeReview(true);
+    const anim = girarTarjetaReview(
+      [{ transform: 'none', opacity: 1 }, { transform: 'perspective(1200px) rotateY(90deg) scale(0.96)', opacity: 0.6 }],
+      REVIEW_FLIP_MS, 'cubic-bezier(0.5, 0, 0.9, 0.6)',
+    );
+    const abrir = () => handleEditTx(tx);
+    if (anim) anim.onfinish = abrir; else abrir();
+  };
+
+  // Cierra el formulario de edicion. Si se abrio desde pendientes, el
+  // formulario hace su medio giro y la tarjeta completa el suyo de vuelta.
+  // `despues` (p. ej. cerrar la revision porque ya no quedan pendientes)
+  // corre en cuanto el formulario sale, sin devolver la tarjeta.
+  const cerrarEdicion = (despues) => {
+    if (!editDesdeReview) {
+      setShowEditModal(false);
+      if (typeof despues === 'function') despues();
+      return;
+    }
+    if (editSaliendo) return;
+    setEditSaliendo(true);
+    setTimeout(() => {
+      setShowEditModal(false);
+      setEditSaliendo(false);
+      setEditDesdeReview(false);
+      if (typeof despues === 'function') { despues(); return; }
+      girarTarjetaReview(
+        [{ transform: 'perspective(1200px) rotateY(-90deg) scale(0.96)', opacity: 0.6 }, { transform: 'none', opacity: 1 }],
+        620, 'cubic-bezier(0.3, 0.6, 0.35, 1.18)',
+      );
+    }, REVIEW_FLIP_MS);
   };
 
   // La compra sigue pendiente hasta que se guarde la cuota en Dashboard.
@@ -2147,13 +2194,18 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {/* Edit Transaction Modal */}
       {showEditModal && editingTx && (
-        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md ${showReview ? 'z-[60]' : 'z-50'} flex items-center justify-center p-3 sm:p-4`}>
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto custom-scrollbar">
+        <div className={`fixed inset-0 ${editDesdeReview ? '' : 'bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md'} ${showReview ? 'z-[60]' : 'z-50'} flex items-center justify-center p-3 sm:p-4`}>
+          {/* Desde pendientes el fondo ya lo pone la revision; el formulario
+              solo completa el giro de la tarjeta (y lo deshace al salir). */}
+          <div
+            className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto custom-scrollbar"
+            style={editDesdeReview ? { animation: editSaliendo ? `kkFlipOut ${REVIEW_FLIP_MS}ms cubic-bezier(0.5, 0, 0.9, 0.6) forwards` : 'kkFlipIn 620ms cubic-bezier(0.3, 0.6, 0.35, 1.18) both' } : undefined}
+          >
             <div className="flex justify-between items-center mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                 <Edit3 className={theme.tabText} size={20} /> Editar Transaccion
               </h3>
-              <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+              <button onClick={() => cerrarEdicion()} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
             </div>
             <div className="space-y-4">
               <div className="bg-slate-50 dark:bg-dark-lighter rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400">
@@ -2216,7 +2268,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                 </select>
               </div>
               <div className="flex gap-2 pt-2">
-                <button onClick={() => setShowEditModal(false)} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition">Cancelar</button>
+                <button onClick={() => cerrarEdicion()} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition">Cancelar</button>
                 <button onClick={handleUpdateTx} className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition">
                   <Save size={16} /> Guardar
                 </button>
@@ -2326,6 +2378,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             getOrigen={() => (reviewDesdeBoton.current ? pendientesBtnRef.current : null)}
             colorBoton={pendientesCount > 0 ? 'bg-orange-500' : 'bg-slate-100 dark:bg-dark-normal'}
           >
+          <div ref={giroReviewRef}>
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}
@@ -2361,6 +2414,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             onCreateCategoria={onCreateCategoria}
             categorias={categorias}
           />
+          </div>
           </ReviewMorph>
         </div>
       )}
