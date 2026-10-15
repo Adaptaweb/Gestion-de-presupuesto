@@ -47,7 +47,6 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import Footer from './components/Footer';
 import Transacciones from './Transacciones.jsx';
 import ConfigModal from './components/ConfigModal.jsx';
 import FilterRulesModal from './components/FilterRulesModal.jsx';
@@ -1549,6 +1548,17 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     setPresupuestoDraft(presupuestoMes ? String(presupuestoMes) : '');
     setShowPresupuestoModal(true);
   };
+  // Desde Transacciones, que lleva su propio mes: el presupuesto que se edita
+  // es el de ese mes.
+  const abrirPresupuestoDe = (mes) => {
+    if (mes) {
+      if (!months.includes(mes)) ensureMonthsRange(mes, mes);
+      setDashboardMonth(mes);
+    }
+    const base = (mes && sueldos[mes]) || 0;
+    setPresupuestoDraft(base ? String(base) : '');
+    setShowPresupuestoModal(true);
+  };
   const guardarPresupuesto = (e) => {
     if (e) e.preventDefault();
     const monto = parseInt(presupuestoDraft, 10) || 0;
@@ -1573,7 +1583,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         {/* Una sola fila en todos los tamanos: en movil el logo ocupaba su
             propia linea y empujaba los controles a una segunda fila. El logo
             mide 5:1, asi que en pantallas estrechas baja a h-8 para dejar sitio. */}
-        <header className="flex flex-row justify-between items-center mb-4 md:mb-6 gap-2 sm:gap-3 md:gap-6">
+        {/* En movil, Transacciones trae su propia barra (logo, mes y pendientes). */}
+        <header className={`${activeTab === 'transacciones' ? 'hidden md:flex' : 'flex'} flex-row justify-between items-center mb-4 md:mb-6 gap-2 sm:gap-3 md:gap-6`}>
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-8 sm:h-9 md:h-10 w-auto" />
           </div>
@@ -2652,6 +2663,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             pendingAction={txAction}
             onActionHandled={() => setTxAction(null)}
             presupuestos={sueldos}
+            onEditarPresupuesto={abrirPresupuestoDe}
+            colorTema={THEME_COLOR_HEX[themeColor]}
             onPasarACuotas={handlePasarACuotas}
             onPasarASuscripcion={handlePasarASuscripcion}
             refreshToken={txRefreshToken}
@@ -3558,7 +3571,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           isDeleting={isDeleting}
         />
       </div>
-      <Footer />
     </div>
     </div>
   );

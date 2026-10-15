@@ -1,8 +1,9 @@
 import {
   User, Users, Palette, BrainCircuit,
   LogOut, ChevronDown, Check, Loader2, RefreshCw,
-  Settings2, Filter, Tags, Bell, Mail, RotateCw, RotateCcw, CreditCard,
+  Settings2, Filter, Tags, Bell, Mail, RotateCw, RotateCcw, CreditCard, FileText, Shield,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -38,6 +39,7 @@ export function UserMenu({
   onToggleNotifications,
   onOpenPlanes, onRepetirTutorial,
 }) {
+  const navigate = useNavigate()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -240,6 +242,20 @@ export function UserMenu({
             <span>Recargar app</span>
           </DropdownMenuItem>
 
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        {/* Antes vivian en el footer de la app; ahora el footer queda solo en la landing. */}
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => navigate('/terminos')} className="p-2 rounded-lg cursor-pointer">
+            <FileText size={16} className="mr-2 text-slate-500" />
+            <span>Términos y Condiciones</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/privacidad')} className="p-2 rounded-lg cursor-pointer">
+            <Shield size={16} className="mr-2 text-slate-500" />
+            <span>Política de Privacidad</span>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />

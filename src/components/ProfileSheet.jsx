@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
   ChevronRight, CreditCard, Bell, Tags, RotateCcw, Moon, Sun, RefreshCw, LogOut,
-  Users, Mail, RotateCw, Filter, Settings2, BrainCircuit, Loader2, Check,
+  Users, Mail, RotateCw, Filter, Settings2, BrainCircuit, Loader2, Check, FileText, Shield,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { THEME_COLORS, THEME_COLOR_HEX, COLOR_NAMES } from './user-dropdown.jsx';
 
 // Etiqueta corta del plan para la cabecera de la hoja.
@@ -66,6 +67,7 @@ const ProfileSheet = ({
   isPushSubscribed, isPushLoading, onToggleNotifications, onLogout,
 }) => {
   const [saliendo, setSaliendo] = useState(false);
+  const navigate = useNavigate();
   if (!open) return null;
 
   const esAdmin = user.role === 'admin';
@@ -182,6 +184,13 @@ const ProfileSheet = ({
             <LogOut size={16} /> Cerrar sesión
           </button>
         </div>
+
+        {/* Antes vivian en el footer de la app; ahora el footer queda solo en la landing. */}
+        <div className="bg-white/65 dark:bg-white/[0.06] border border-white/70 dark:border-white/10 rounded-[20px] overflow-hidden">
+          <Fila icono={FileText} texto="Términos y Condiciones" primero onClick={accion(() => navigate('/terminos'))}><ChevronRight size={18} className="text-slate-400" /></Fila>
+          <Fila icono={Shield} texto="Política de Privacidad" onClick={accion(() => navigate('/privacidad'))}><ChevronRight size={18} className="text-slate-400" /></Fila>
+        </div>
+        <p className="text-center text-xs font-semibold text-slate-400 dark:text-slate-500 pb-1">© {new Date().getFullYear()} Kuentas Klaras</p>
       </div>
     </div>
   );

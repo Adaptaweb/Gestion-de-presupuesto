@@ -5,7 +5,7 @@ import {
   Utensils, Bus, Wrench, Clapperboard, HeartPulse, Home, ShoppingBag,
   MoreHorizontal, ArrowRight, Zap, CalendarDays, CalendarRange, Ban,
   Banknote, TrendingUp, Wallet, Clock, Save, ShoppingCart, ArrowLeftRight,
-  Bell, ArrowUpDown, ArrowUp, ArrowDown,
+  Bell, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, SlidersHorizontal,
   GraduationCap, Smartphone, Plane, Gift, PiggyBank, Landmark, Percent, CreditCard, Minus, Gamepad2
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
@@ -713,18 +713,19 @@ const TxWidgetsSkeleton = () => (
   </div>
 );
 
+// Fila de un movimiento dentro del grupo de su dia: icono de la categoria con
+// el logo del banco encima, comercio, categoria y tarjeta, y el monto con signo.
 const TransactionCard = ({
-  tx, idx, hex, emoji, badge, isDarkMode,
+  tx, idx, hex, emoji, isDarkMode, logo, primero, mostrarFecha,
   formatCurrency, formatDate, formatTime, onEdit, onDelete, onOpenDetail,
 }) => {
   const isMuted = tx.tipo_transaccion === 'no_es_gasto'
     || tx.tipo_transaccion === 'no_es_ingreso'
     || tx.tipo_transaccion === 'interno';
   const isIngreso = tx.tipo_transaccion === 'ingreso';
-  const movimiento = tx.tipo_movimiento || tx.tipo_tarjeta || '';
-  const mutedChip = 'bg-slate-100 text-slate-400 dark:bg-slate-800/50 dark:text-slate-500';
-
-  const metaParts = [tx.categoria, tx.banco, movimiento].filter(Boolean);
+  const tarjeta = normalizeTipoTarjeta(tx.tipo_tarjeta || tx.tipo_movimiento || '');
+  const metaParts = [tx.categoria, tarjeta !== 'Otro' ? tarjeta : null, logo ? null : tx.banco].filter(Boolean);
+  const signo = isMuted ? '' : isIngreso ? '+' : '−';
 
   return (
     <div
@@ -733,57 +734,47 @@ const TransactionCard = ({
       onClick={() => onOpenDetail(tx)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenDetail(tx); } }}
       aria-label={`Ver detalle de ${tx.comercio || 'transacción'}`}
-      className={`group relative flex items-center gap-3 pl-4 sm:pl-4 pr-2 sm:pr-3 py-2.5 sm:py-3 rounded-[18px] overflow-hidden cursor-pointer transition-all duration-300 ease-fluid hover:-translate-y-0.5 hover:shadow-md hover:shadow-slate-200/60 dark:hover:shadow-black/30 active:scale-[0.99] animate-row-enter ${
-        isMuted ? 'bg-slate-50 dark:bg-white/[0.02]' : 'bg-slate-50/80 dark:bg-white/[0.03]'
-      }`}
-      style={{
-        animationDelay: `${Math.min(idx || 0, 8) * 35}ms`,
-        ...(isMuted ? {} : { backgroundColor: hexToRgba(hex, isDarkMode ? 0.08 : 0.06) }),
-      }}
+      className={`group relative flex items-center gap-3 px-3.5 py-3 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.03] active:bg-slate-100 dark:active:bg-white/5 animate-row-enter ${primero ? '' : 'border-t border-slate-100 dark:border-white/5'}`}
+      style={{ animationDelay: `${Math.min(idx || 0, 8) * 30}ms` }}
     >
       <span
-        className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-full ${isMuted ? 'bg-slate-200 dark:bg-white/10' : ''}`}
-        style={isMuted ? undefined : { background: `linear-gradient(180deg, ${hex}, ${hexToRgba(hex, 0.35)})` }}
-      />
-
-      <div
-        className={`w-10 h-10 sm:w-[42px] sm:h-[42px] rounded-full flex-shrink-0 grid place-items-center ${
-          isMuted ? 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500' : ''
-        }`}
-        style={isMuted ? undefined : { backgroundColor: hexToRgba(hex, isDarkMode ? 0.2 : 0.16), color: hex }}
+        className={`relative w-[42px] h-[42px] rounded-[14px] flex-shrink-0 grid place-items-center ${isMuted ? 'bg-slate-100 dark:bg-white/5 grayscale' : ''}`}
+        style={isMuted ? undefined : { backgroundColor: hexToRgba(hex, isDarkMode ? 0.2 : 0.14) }}
       >
         <span className="text-lg leading-none">{emoji}</span>
-      </div>
+        {logo && (
+          <img
+            src={logo}
+            alt=""
+            className="absolute -right-1 -bottom-1 w-[18px] h-[18px] rounded-md bg-white object-contain p-[1.5px] ring-2 ring-white dark:ring-dark-normal"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        )}
+      </span>
 
       <div className="min-w-0 flex-1">
-        <p className={`truncate text-[15px] sm:text-base font-black leading-tight ${
-          isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'
-        }`}>
+        <p className={`truncate text-[15px] font-bold leading-tight ${isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'}`}>
           {tx.comercio || 'Sin comercio'}
         </p>
-        <p className={`mt-0.5 truncate text-[11px] font-bold ${isMuted ? 'text-slate-300 dark:text-slate-600' : 'text-slate-400 dark:text-slate-500'}`}>
+        <p className={`mt-0.5 truncate text-xs font-medium ${isMuted ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
           {metaParts.join(' · ')}
         </p>
       </div>
 
       <div className="flex-shrink-0 text-right">
-        <div className={`text-[15px] sm:text-base font-black tabular-nums leading-tight ${
-          isMuted
-            ? 'text-slate-400 dark:text-slate-500'
-            : isIngreso
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-slate-800 dark:text-white'
+        <div className={`text-[15px] font-extrabold tabular-nums leading-tight ${
+          isMuted ? 'text-slate-400 dark:text-slate-500' : isIngreso ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'
         }`}>
-          {!isMuted && isIngreso ? '+' : ''}{formatCurrency(tx.monto)}
+          {signo}{formatCurrency(tx.monto)}
         </div>
-        <div className="mt-0.5 text-[10.5px] font-bold text-slate-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
-          {formatDate(tx.fecha)}
+        <div className="mt-0.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
+          {mostrarFecha ? formatDate(tx.fecha) : formatTime(tx.fecha)}
         </div>
       </div>
 
-      {/* En desktop las acciones aparecen al hover; en tactil no hay hover,
-          asi que ahi quedan siempre visibles. */}
-      <div className="flex-shrink-0 hidden sm:flex flex-col items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+      {/* En desktop las acciones aparecen al hover; en tactil se llega a ellas
+          desde el detalle que abre la fila. */}
+      <div className="flex-shrink-0 hidden sm:flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(tx); }}
           className="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
@@ -990,7 +981,7 @@ const TransactionDetailModal = ({
   );
 };
 
-const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos, onPasarACuotas, onPasarASuscripcion, refreshToken }) => {
+const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats, ingresosCats, onCreateCategoria, getCatStyle, getCatBar, getCatIconBg, getCatIconColor, getCatText, onOpenTutorial, pendingAction, onActionHandled, presupuestos, onPasarACuotas, onPasarASuscripcion, refreshToken, onEditarPresupuesto, colorTema }) => {
   const SkeletonBar = ({ w = '60px', h = '12px', className = '' }) => (
     <span className={`skeleton inline-block ${className}`} style={{ width: w, height: h }} />
   );
@@ -1022,9 +1013,6 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     CATEGORY_HEX[catName] || CATEGORY_HEX_DEFAULT[catName] || CATEGORY_HEX_DEFAULT['Otros'];
 
   const dateToInputStr = (d) => d.toISOString().slice(0, 10);
-
-  const formatMonthLabel = (date) =>
-    date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
   const MONTHS_SHORT = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -1073,6 +1061,23 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [monthDate, setMonthDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [filterDateRange, setFilterDateRange] = useState(getMonthRange(today));
   const [pendingDateRange, setPendingDateRange] = useState(null);
+  const [verTodasCategorias, setVerTodasCategorias] = useState(false);
+  const [filtroBancoBusqueda, setFiltroBancoBusqueda] = useState('');
+  const THEME_HEX = colorTema || '#2DBC8B';
+  // Cabecera de cada grupo de movimientos: "Hoy", "Ayer" o "Lunes 13" (con el
+  // mes si no es el que se esta viendo).
+  const etiquetaDia = (dia) => {
+    const [y, m, d] = String(dia).split('-').map(Number);
+    if (!y || !m || !d) return 'Sin fecha';
+    const fecha = new Date(y, m - 1, d);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const dif = Math.round((hoy - fecha) / 86400000);
+    if (dif === 0) return 'Hoy';
+    if (dif === 1) return 'Ayer';
+    const otroMes = fecha.getMonth() !== monthDate.getMonth() || fecha.getFullYear() !== monthDate.getFullYear();
+    const texto = fecha.toLocaleDateString('es-CL', otroMes ? { weekday: 'long', day: 'numeric', month: 'short' } : { weekday: 'long', day: 'numeric' });
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  };
   const [filterCat, setFilterCat] = useState('');
   const [filterTipo, setFilterTipo] = useState('');
   const [filterBanco, setFilterBanco] = useState('');
@@ -1289,9 +1294,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   };
 
   const activeFilters = [
-    { key: 'filterCat', label: `Categoría: ${filterCat}`, value: filterCat, clear: () => setFilterCat('') },
-    { key: 'filterTipo', label: `Tipo: ${filterTipo}`, value: filterTipo, clear: () => setFilterTipo('') },
-    { key: 'filterBanco', label: `Banco: ${filterBanco}`, value: filterBanco, clear: () => setFilterBanco('') },
+    { key: 'filterCat', label: filterCat, value: filterCat, clear: () => setFilterCat('') },
+    { key: 'filterTipo', label: { gasto: 'Gastos', ingreso: 'Ingresos', interno: 'Internos' }[filterTipo] || filterTipo, value: filterTipo, clear: () => setFilterTipo('') },
+    { key: 'filterBanco', label: filterBanco, value: filterBanco, clear: () => setFilterBanco('') },
   ].filter(f => f.value);
 
   const fetchPendientesCount = useCallback(async () => {
@@ -1786,38 +1791,45 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   // Se repite arriba y abajo de la lista de transacciones, asi que va como
   // una sola definicion en vez de duplicar el bloque.
   const FilterRow = () => (
-    <div ref={refFilaHorizontal} className="flex gap-2 overflow-x-auto no-scrollbar">
-      <button onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }} className="flex-shrink-0 flex items-center gap-1.5 bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition whitespace-nowrap">
-        <Filter size={14} /> Filtrar{activeFilters.length > 0 && ` (${activeFilters.length})`}
-      </button>
-      <button onClick={refreshTable} disabled={pageLoading || loading} title="Actualizar" className="flex-shrink-0 flex items-center justify-center bg-white dark:bg-dark-normal hover:bg-slate-50 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300 w-9 h-9 rounded-xl border border-slate-200 dark:border-dark-lighter transition disabled:opacity-50">
-        <RefreshCw size={14} className={pageLoading ? 'animate-spin' : ''} />
-      </button>
-      <span className="w-px flex-shrink-0 bg-slate-200 dark:bg-dark-lighter mx-0.5" />
-      <button
-        onClick={() => setFilterTipo('')}
-        className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-          filterTipo === '' ? `${theme.btnPrimary} text-white` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'
-        }`}
-      >
-        Todos
-      </button>
-      <button
-        onClick={() => setFilterTipo('gasto')}
-        className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-          filterTipo === 'gasto' ? `${theme.btnPrimary} text-white` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'
-        }`}
-      >
-        Gastos
-      </button>
-      <button
-        onClick={() => setFilterTipo('ingreso')}
-        className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-          filterTipo === 'ingreso' ? `${theme.btnPrimary} text-white` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'
-        }`}
-      >
-        Ingresos
-      </button>
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2">
+        <div role="tablist" aria-label="Tipo de movimiento" className="flex-1 grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-200/70 dark:bg-white/[0.06]">
+          {[['', 'Todos'], ['gasto', 'Gastos'], ['ingreso', 'Ingresos']].map(([valor, texto]) => (
+            <button
+              key={texto}
+              role="tab"
+              aria-selected={filterTipo === valor}
+              onClick={() => setFilterTipo(valor)}
+              className={`h-9 rounded-xl text-[13px] font-extrabold transition ${filterTipo === valor ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => { setShowFilterModal(true); setPendingDateRange(filterDateRange); }}
+          aria-label={activeFilters.length > 0 ? `Filtros, ${activeFilters.length} activos` : 'Filtros'}
+          className={`relative w-11 h-11 flex-shrink-0 grid place-items-center rounded-2xl border transition ${activeFilters.length > 0 ? `${fondoDe(theme.btnPrimary)} border-transparent text-white` : 'bg-white dark:bg-dark-normal border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}
+        >
+          <SlidersHorizontal size={18} />
+          {activeFilters.length > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-extrabold grid place-items-center">{activeFilters.length}</span>
+          )}
+        </button>
+        <button onClick={refreshTable} disabled={pageLoading || loading} aria-label="Actualizar" className="w-11 h-11 flex-shrink-0 grid place-items-center rounded-2xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition disabled:opacity-50">
+          <RefreshCw size={17} className={pageLoading ? 'animate-spin' : ''} />
+        </button>
+      </div>
+      {activeFilters.length > 0 && (
+        <div ref={refFilaHorizontal} className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          {activeFilters.map(f => (
+            <button key={f.key} type="button" onClick={f.clear} className="flex-shrink-0 inline-flex items-center gap-1.5 h-8 pl-3 pr-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold">
+              {f.label} <X size={13} />
+            </button>
+          ))}
+        </div>
+      )}
+      <SortChips sortConfig={sortConfig} onSort={handleSort} />
     </div>
   );
 
@@ -1858,84 +1870,134 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   return (
     <>
       <div className="animate-fade-in duration-500 space-y-6 px-4 sm:px-6 w-full max-w-5xl mx-auto pb-24">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        {/* En movil Pendientes se empuja al borde derecho: es la accion mas
-            importante de la pantalla y ahi cae bajo el pulgar. */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3 whitespace-nowrap">
-            <Mail className={theme.tabText} size={20} /> Transacciones
-          </h2>
-          {pendientesCount > 0 ? (
-            <button ref={pendientesBtnRef} onClick={handleOpenReview} className="relative flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/30 dark:shadow-orange-900/40 transition active:scale-95 whitespace-nowrap">
-              <Bell size={16} />
-              Pendientes
-              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-black min-w-[22px] h-5 flex items-center justify-center rounded-full px-1 shadow-md ring-2 ring-white dark:ring-dark-normal">
-                {pendientesCount}
-              </span>
+      {/* Barra superior: en movil reemplaza a la cabecera global (logo, mes y
+          pendientes en una fila); en desktop el logo ya esta arriba. */}
+      <div className="flex items-center gap-2.5">
+        <img src="/KKiso.svg" alt="Kuentas Klaras" className="w-9 h-9 flex-shrink-0 md:hidden" />
+        <div className="relative flex-1 md:flex-none md:w-80">
+          <div className="flex items-center h-11 rounded-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-sm">
+            <button onClick={goToPrevMonth} aria-label="Mes anterior" className="w-11 h-11 grid place-items-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex-shrink-0">
+              <ChevronLeft size={18} />
             </button>
-          ) : (
-            <button ref={pendientesBtnRef} onClick={handleOpenReview} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-dark-normal text-slate-400 dark:text-slate-500 rounded-xl text-xs font-bold border border-slate-200 dark:border-dark-lighter transition active:scale-95 hover:bg-slate-200 dark:hover:bg-dark-lighter whitespace-nowrap">
-              <Bell size={14} />
-              Sin pendientes
+            <button
+              onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }}
+              aria-expanded={showMonthPicker}
+              className="flex-1 min-w-0 h-11 flex items-center justify-center gap-1.5 text-[15px] font-extrabold text-slate-800 dark:text-slate-100 truncate"
+            >
+              {mesPresupuestoKey}
+              <ChevronDown size={15} className={`text-slate-400 transition-transform ${showMonthPicker ? 'rotate-180' : ''}`} />
             </button>
+            <button onClick={goToNextMonth} aria-label="Mes siguiente" className="w-11 h-11 grid place-items-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition flex-shrink-0">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          {showMonthPicker && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
+              <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl p-3 animate-scale-in">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <button onClick={() => setPickerYear(pickerYear - 1)} aria-label="Año anterior" className="w-9 h-9 grid place-items-center hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl transition text-slate-500 dark:text-slate-400">
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-sm font-extrabold text-slate-700 dark:text-slate-200">{pickerYear}</span>
+                  <button onClick={() => setPickerYear(pickerYear + 1)} aria-label="Año siguiente" className="w-9 h-9 grid place-items-center hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl transition text-slate-500 dark:text-slate-400">
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-1">
+                  {MONTHS_SHORT.map((name, i) => {
+                    const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
+                    return (
+                      <button
+                        key={name}
+                        onClick={() => {
+                          const d = new Date(pickerYear, i, 1);
+                          setMonthDate(d);
+                          setFilterDateRange(getMonthRange(d));
+                          setShowMonthPicker(false);
+                        }}
+                        className={`px-2 py-2.5 rounded-xl text-xs font-bold transition ${
+                          isCurrent
+                            ? `${fondoDe(theme.btnPrimary)} text-white`
+                            : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
           )}
         </div>
+        <span className="hidden md:block flex-1" />
+        <button
+          ref={pendientesBtnRef}
+          onClick={handleOpenReview}
+          aria-label={pendientesCount > 0 ? `Pendientes, ${pendientesCount} por revisar` : 'Sin pendientes'}
+          className={`relative flex-shrink-0 h-11 min-w-[44px] px-0 sm:px-4 flex items-center justify-center gap-2 rounded-full text-sm font-extrabold transition active:scale-95 ${
+            pendientesCount > 0
+              ? 'bg-orange-50 dark:bg-orange-500/15 border border-orange-200 dark:border-orange-500/30 text-orange-600 dark:text-orange-300'
+              : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-400 dark:text-slate-500'
+          }`}
+        >
+          <Bell size={19} />
+          <span className="hidden sm:inline">{pendientesCount > 0 ? 'Pendientes' : 'Sin pendientes'}</span>
+          {pendientesCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[11px] font-extrabold grid place-items-center ring-2 ring-kk-background dark:ring-dark-darker">
+              {pendientesCount}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* El mes manda sobre widgets y lista, asi que va primero, ocupando
-          todo el ancho: abajo obligaba a bajar para cambiar de mes. */}
-      <div className="relative">
-        <div className="flex items-center justify-between gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
-          <button onClick={goToPrevMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl transition text-slate-500 dark:text-slate-400">
-            <ChevronLeft size={18} />
-          </button>
-          <button onClick={() => { setShowMonthPicker(!showMonthPicker); setPickerYear(monthDate.getFullYear()); }} className="flex-1 text-center text-sm font-black text-slate-700 dark:text-slate-200 capitalize hover:bg-slate-100 dark:hover:bg-dark-lighter px-2 py-1.5 rounded-xl transition">
-            {formatMonthLabel(monthDate)}
-          </button>
-          <button onClick={goToNextMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl transition text-slate-500 dark:text-slate-400">
-            <ChevronRight size={18} />
-          </button>
-        </div>
-        {showMonthPicker && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setShowMonthPicker(false)} />
-            <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3">
-              <div className="flex items-center justify-between mb-2 px-1">
-                <button onClick={() => setPickerYear(pickerYear - 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                  <ChevronLeft size={16} />
-                </button>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{pickerYear}</span>
-                <button onClick={() => setPickerYear(pickerYear + 1)} className="p-1 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-lg transition text-slate-500 dark:text-slate-400">
-                  <ChevronRight size={16} />
-                </button>
+      {/* Gastado del mes y avance sobre el presupuesto. El anillo abre el
+          presupuesto de este mes. */}
+      {(() => {
+        const pct = presupuestoMes > 0 ? (totalGastos / presupuestoMes) * 100 : 0;
+        const circ = 2 * Math.PI * 27;
+        const tono = pct >= 100 ? '#e11d48' : pct >= 80 ? '#f59e0b' : THEME_HEX;
+        return (
+          <section className="rounded-[26px] bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter shadow-fluid p-[18px] flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[13px] font-bold text-slate-500 dark:text-slate-400">Gastado en {MONTH_NAMES[monthDate.getMonth()].toLowerCase()}</div>
+                <div className="text-[34px] font-extrabold tracking-tight leading-tight tabular-nums text-slate-900 dark:text-white">
+                  {summaryLoading && !hasWidgets ? <SkeletonBar w="150px" h="34px" /> : formatCurrency(totalGastos)}
+                </div>
               </div>
-              <div className="grid grid-cols-4 gap-1">
-                {MONTHS_SHORT.map((name, i) => {
-                  const isCurrent = monthDate.getMonth() === i && monthDate.getFullYear() === pickerYear;
-                  return (
-                    <button
-                      key={name}
-                      onClick={() => {
-                        const d = new Date(pickerYear, i, 1);
-                        setMonthDate(d);
-                        setFilterDateRange(getMonthRange(d));
-                        setShowMonthPicker(false);
-                      }}
-                      className={`px-2 py-2 rounded-lg text-xs font-bold transition ${
-                        isCurrent
-                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                          : 'hover:bg-slate-100 dark:hover:bg-dark-lighter text-slate-600 dark:text-slate-300'
-                      }`}
-                    >
-                      {name}
-                    </button>
-                  );
-                })}
-              </div>
+              <button
+                type="button"
+                onClick={() => onEditarPresupuesto?.(mesPresupuestoKey)}
+                aria-label={presupuestoMes > 0 ? `Editar presupuesto de ${mesPresupuestoKey}` : `Definir presupuesto de ${mesPresupuestoKey}`}
+                className="relative w-16 h-16 flex-shrink-0 grid place-items-center rounded-full transition active:scale-95"
+              >
+                <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" className="absolute inset-0 -rotate-90">
+                  <circle cx="32" cy="32" r="27" fill="none" strokeWidth="7" className="stroke-slate-100 dark:stroke-white/10" />
+                  {presupuestoMes > 0 && (
+                    <circle cx="32" cy="32" r="27" fill="none" strokeWidth="7" strokeLinecap="round" stroke={tono}
+                      strokeDasharray={`${Math.max(0.5, Math.min(pct, 100)) / 100 * circ} ${circ}`}
+                      style={{ transition: 'stroke-dasharray 700ms cubic-bezier(0.22, 1, 0.36, 1)' }} />
+                  )}
+                </svg>
+                {presupuestoMes > 0
+                  ? <span className="text-[13px] font-extrabold tabular-nums" style={{ color: tono }}>{Math.round(pct)}%</span>
+                  : <Plus size={20} className="text-slate-400" />}
+              </button>
             </div>
-          </>
-        )}
-      </div>
+            <div className="h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+              <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: tono }} />
+            </div>
+            <div className="flex items-center justify-between gap-2 text-[13px] font-semibold text-slate-500 dark:text-slate-400">
+              {presupuestoMes > 0
+                ? <span className="whitespace-nowrap">de <b className="font-extrabold text-slate-700 dark:text-slate-200">{formatCurrency(presupuestoMes)}</b><span className="hidden sm:inline"> de presupuesto</span></span>
+                : <button type="button" onClick={() => onEditarPresupuesto?.(mesPresupuestoKey)} className={`font-extrabold ${theme.tabText}`}>Define tu presupuesto</button>}
+              {totalIngresos > 0 && <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">Ingresos +{formatCurrency(totalIngresos)}</span>}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Los bones los captura boneyard-js del UI real (`npm run bones`), asi
           que el skeleton sigue al widget aunque este cambie. <TxWidgetsSkeleton>
@@ -1944,102 +2006,91 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       <Skeleton name="tx-widgets" loading={widgetsLoading} animate="shimmer" transition={200} fallback={<TxWidgetsSkeleton />}>
       {hasWidgets ? (
         (() => {
+        // Una tarjeta por banco, aunque los correos lo escriban distinto
+        // ("Banco de Chile", "BANCO DE CHILE"): adentro, su total en debito y
+        // en credito por separado, porque son cupos distintos.
+        const claveBanco = (nombre) => String(nombre || 'Otros')
+          .normalize('NFD').replace(/[̀-ͯ]/g, '')
+          .toLowerCase().replace(/^banco\s+(de\s+)?/, '').replace(/[^a-z0-9]/g, '') || 'otros';
         const bankGroups = {};
         for (const row of bankTotals) {
           if (row.total <= 0) continue;
           const bank = row.banco || 'Otros';
+          const clave = claveBanco(bank);
           // El COUNT de Postgres llega como texto: sin convertir, la suma
           // concatenaba y la tarjeta mostraba "014 movimientos".
           const cantidad = Number(row.count) || 0;
-          if (!bankGroups[bank]) bankGroups[bank] = { bank, count: 0, sortTotal: 0, tipos: [] };
-          bankGroups[bank].count += cantidad;
-          bankGroups[bank].sortTotal += row.total;
+          if (!bankGroups[clave]) bankGroups[clave] = { bank, count: 0, sortTotal: 0, tipos: { 'Débito': 0, 'Crédito': 0 } };
+          const g = bankGroups[clave];
+          if (!BANK_GRADIENT[g.bank] && BANK_GRADIENT[bank]) g.bank = bank;
+          g.count += cantidad;
+          g.sortTotal += row.total;
           const tipo = normalizeTipoTarjeta(row.tipo_tarjeta);
-          const yaVisto = bankGroups[bank].tipos.find(t => t.tipo === tipo);
-          if (yaVisto) {
-            yaVisto.total += row.total;
-            yaVisto.count += cantidad;
-          } else {
-            bankGroups[bank].tipos.push({ tipo, total: row.total, count: cantidad });
-          }
+          g.tipos[tipo] = (g.tipos[tipo] || 0) + row.total;
         }
-        // Debito y credito son cupos distintos: cada uno se muestra en su
-        // propia linea dentro de la tarjeta, nunca sumados en un solo total.
         const bankCards = Object.values(bankGroups).sort((a, b) => b.sortTotal - a.sortTotal);
         const gastoSummary = summary
           .filter(s => !['Interno', 'No es Gasto', 'No es Ingreso'].includes(s.categoria) && s.tipo !== 'ingreso')
           .sort((a, b) => b.total - a.total);
-        const maxGasto = Math.max(...gastoSummary.map(s => s.total), 1);
-        const stackTotal = Math.max(totalGastos, gastoSummary.reduce((acc, s) => acc + s.total, 0), 1);
+        const stackTotal = Math.max(gastoSummary.reduce((acc, s) => acc + s.total, 0), 1);
+        const catsVisibles = verTodasCategorias ? gastoSummary : gastoSummary.slice(0, 5);
 
         return (
-          <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade space-y-5">
-
-            <div className="flex flex-col gap-2.5 p-4 rounded-3xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-fluid">
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Gastado en {formatMonthLabel(monthDate).split(' ')[0]}</div>
-                  <div className="mt-0.5 text-2xl sm:text-3xl font-black tracking-tight text-slate-800 dark:text-white">{formatCurrency(totalGastos)}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Presupuesto</div>
-                  <div className="mt-0.5 text-sm font-black text-slate-700 dark:text-slate-200">
-                    {presupuestoMes > 0 ? formatCurrency(presupuestoMes) : 'Sin definir'}
-                  </div>
-                  <div className="mt-0.5 text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400">
-                    Ingresos +{formatCurrency(totalIngresos)}
-                  </div>
-                </div>
-              </div>
-              {gastoSummary.length > 0 && (
-                <div className="flex h-2 rounded-full overflow-hidden">
-                  {gastoSummary.map(s => (
-                    <span key={s.categoria} style={{ width: `${(s.total / stackTotal) * 100}%`, backgroundColor: catHex(s.categoria) }} />
-                  ))}
-                </div>
-              )}
-            </div>
+          <div key={(filterDateRange.from?.toISOString() || '') + '-' + filterCat} className="animate-slide-fade space-y-4">
 
             {gastoSummary.length > 0 && (
-              <div className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between px-0.5">
-                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categorías con más gasto</span>
-                  <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500">{gastoSummary.length} categoría{gastoSummary.length === 1 ? '' : 's'}</span>
+              <section className="rounded-3xl bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter shadow-fluid p-4 flex flex-col gap-3">
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-[15px] font-extrabold text-slate-800 dark:text-slate-100">En qué se fue</h3>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{gastoSummary.length} categoría{gastoSummary.length === 1 ? '' : 's'}</span>
                 </div>
-                <div className="rounded-3xl bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-fluid overflow-hidden">
-                  <div className="max-h-[260px] overflow-y-auto custom-scrollbar p-4 space-y-3.5">
-                    {gastoSummary.map(s => {
-                      const hex = catHex(s.categoria);
-                      return (
-                        <div key={s.categoria} className="flex flex-col gap-1.5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.16), color: hex }}>
-                              <span className="text-sm leading-none">{CATEGORY_EMOJI[s.categoria] || CATEGORY_EMOJI_DEFAULT[s.categoria] || '💳'}</span>
-                            </div>
-                            <span className="flex-1 text-[13px] font-black text-slate-700 dark:text-slate-200 truncate">{s.categoria}</span>
-                            <span className="text-[13px] font-black text-slate-700 dark:text-slate-200 flex-shrink-0">{formatCurrency(s.total)}</span>
-                          </div>
-                          <div className="h-[9px] rounded-full bg-slate-100 dark:bg-dark-lighter overflow-hidden ml-[38px]">
-                            <div className="h-full rounded-full" style={{ width: `${(s.total / maxGasto) * 100}%`, background: `linear-gradient(90deg, ${hexToRgba(hex, 0.75)}, ${hex})` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="flex h-3 gap-[3px]" aria-hidden="true">
+                  {gastoSummary.map(s => (
+                    <span key={s.categoria} className="rounded-full min-w-[4px] transition-opacity" style={{ width: `${(s.total / stackTotal) * 100}%`, backgroundColor: catHex(s.categoria), opacity: filterCat && filterCat !== s.categoria ? 0.3 : 1 }} />
+                  ))}
                 </div>
-              </div>
+                <div className="flex flex-col">
+                  {catsVisibles.map(s => {
+                    const activa = filterCat === s.categoria;
+                    return (
+                      <button
+                        key={s.categoria}
+                        type="button"
+                        onClick={() => setFilterCat(activa ? '' : s.categoria)}
+                        aria-pressed={activa}
+                        title={activa ? 'Quitar filtro' : `Ver solo ${s.categoria}`}
+                        className={`flex items-center gap-2.5 min-h-[40px] -mx-2 px-2 rounded-xl text-left transition ${activa ? 'bg-slate-100 dark:bg-white/[0.06]' : 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'}`}
+                      >
+                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: catHex(s.categoria) }} />
+                        <span className="text-sm leading-none">{CATEGORY_EMOJI[s.categoria] || CATEGORY_EMOJI_DEFAULT[s.categoria] || '💳'}</span>
+                        <span className="flex-1 min-w-0 truncate text-sm font-bold text-slate-700 dark:text-slate-200">{s.categoria}</span>
+                        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 tabular-nums">{Math.round((s.total / stackTotal) * 100)}%</span>
+                        <span className="text-sm font-extrabold tabular-nums text-slate-800 dark:text-slate-100 w-[84px] text-right">{formatCurrency(s.total)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {gastoSummary.length > 5 && (
+                  <button type="button" onClick={() => setVerTodasCategorias(v => !v)} className="self-start text-xs font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                    {verTodasCategorias ? 'Ver menos' : `Ver las ${gastoSummary.length}`}
+                    <ChevronDown size={14} className={verTodasCategorias ? 'rotate-180' : ''} />
+                  </button>
+                )}
+              </section>
             )}
 
             {bankCards.length > 0 && (
               <div className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between px-0.5">
-                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Gasto por tarjeta</span>
-                  <span className="text-[10.5px] font-bold text-slate-400 dark:text-slate-500">{bankCards.length} medio{bankCards.length === 1 ? '' : 's'}</span>
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="text-[15px] font-extrabold text-slate-800 dark:text-slate-100">Gasto por banco</h3>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{bankCards.length} banco{bankCards.length === 1 ? '' : 's'}</span>
                 </div>
-                <div ref={refFilaHorizontal} className="flex gap-3 overflow-x-auto no-scrollbar pb-1.5">
+                <div ref={refFilaHorizontal} className="flex gap-3 overflow-x-auto no-scrollbar pb-1.5 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {bankCards.map(group => {
                     const bank = group.bank;
                     const [c1, c2, c3] = BANK_GRADIENT[bank] || BANK_GRADIENT_FALLBACK;
+                    const icono = BANK_ICONS[bank] || logoBanco(bank);
+                    const lineas = Object.entries(group.tipos).filter(([tipo, total]) => tipo !== 'Otro' || total > 0);
                     return (
                       <div
                         key={bank}
@@ -2049,9 +2100,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                         <span className="absolute -right-5 -top-6 w-[110px] h-[110px] rounded-full bg-white/[0.06]" />
                         <div className="relative flex items-center justify-between">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            {BANK_ICONS[bank] && (
+                            {icono && (
                               <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 p-[3px]">
-                                <img src={BANK_ICONS[bank]} alt="" className="w-full h-full object-contain" />
+                                <img src={icono} alt="" className="w-full h-full object-contain" />
                               </span>
                             )}
                             <span className="text-[11px] font-black text-white/90 truncate">{bank}</span>
@@ -2059,14 +2110,17 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
                           <span className="w-5 h-3.5 rounded-[3px] flex-shrink-0" style={{ background: 'linear-gradient(135deg, #FDE68A, #F59E0B)' }} />
                         </div>
                         <div className="relative flex flex-col gap-1">
-                          {group.tipos.map(t => (
-                            <div key={t.tipo} className="flex items-center justify-between gap-2">
-                              <span className="text-[9.5px] font-black uppercase tracking-wide text-white/60 truncate">{t.tipo}</span>
-                              <span className="text-[13px] font-black text-white flex-shrink-0">{formatCurrency(t.total)}</span>
+                          {lineas.map(([tipo, total]) => (
+                            <div key={tipo} className={`flex items-center justify-between gap-2 ${total > 0 ? '' : 'opacity-50'}`}>
+                              <span className="text-[9.5px] font-black uppercase tracking-wide text-white/70 truncate">{tipo}</span>
+                              <span className="text-[13px] font-black text-white flex-shrink-0 tabular-nums">{formatCurrency(total)}</span>
                             </div>
                           ))}
                         </div>
-                        <span className="relative mt-auto text-[9.5px] font-bold text-white/50">{group.count} movimiento{group.count === 1 ? '' : 's'}</span>
+                        <div className="relative mt-auto flex items-center justify-between gap-2">
+                          <span className="text-[9.5px] font-bold text-white/60">{group.count} movimiento{group.count === 1 ? '' : 's'}</span>
+                          <span className="text-[11px] font-black text-white tabular-nums">{formatCurrency(group.sortTotal)}</span>
+                        </div>
                       </div>
                     );
                   })}
@@ -2081,65 +2135,91 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       </Skeleton>
       )}
 
-
-
-      <div className="flex items-center justify-between px-0.5">
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Transacciones</span>
+      <div className="flex items-center justify-between gap-2 px-1 pt-1">
+        <h3 className="text-[17px] font-extrabold text-slate-800 dark:text-slate-100">Movimientos</h3>
+        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{totalCount} en total</span>
       </div>
 
       <FilterRow />
 
-      <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-dark-lighter overflow-hidden">
+      <div className="-mt-1">
         <Skeleton
           name="tx-list"
           loading={listLoading}
           animate="shimmer"
           transition={200}
           fallback={(
-            <div className="p-3 sm:p-4 space-y-2.5">
-              <div className="px-1 pb-1"><SortChips sortConfig={sortConfig} onSort={handleSort} /></div>
-              {Array.from({ length: 8 }).map((_, i) => (
+            <div className="rounded-[22px] bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter p-2 space-y-1.5">
+              {Array.from({ length: 6 }).map((_, i) => (
                 <TransactionCardSkeleton key={i} />
               ))}
             </div>
           )}
         >
         {listLoading ? null : transactions.length === 0 && !loading ? (
-          <div className="text-center py-16">
-            <Inbox size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-            <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">No hay transacciones clasificadas</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Presiona "Configurar" para importar correos bancarios anteriores y luego clasifícalas en Pendientes</p>
+          <div className="text-center py-14 rounded-[22px] bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter">
+            <Inbox size={44} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+            <p className="text-slate-500 dark:text-slate-400 font-bold mb-2">{activeFilters.length > 0 ? 'Ningún movimiento con estos filtros' : 'No hay transacciones clasificadas'}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 px-6">{activeFilters.length > 0 ? 'Prueba quitando algún filtro.' : 'Clasifica tus movimientos en Pendientes para verlos aquí.'}</p>
           </div>
         ) : (
           <>
-            <div className={`animate-slide-fade relative p-3 sm:p-4 ${pageLoading ? 'opacity-60 pointer-events-none transition-opacity duration-150' : ''}`}>
+            <div className={`animate-slide-fade relative space-y-3 ${pageLoading ? 'opacity-60 pointer-events-none transition-opacity duration-150' : ''}`}>
               {pageLoading && (
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                   <Loader2 size={28} className="animate-spin text-slate-400 dark:text-slate-500" />
                 </div>
               )}
-              <div className="px-1 pb-3">
-                <SortChips sortConfig={sortConfig} onSort={handleSort} />
-              </div>
-              <div className="space-y-2 sm:space-y-2.5">
-                {transactions.map((tx, txIdx) => (
-                  <TransactionCard
-                    key={tx.id}
-                    idx={txIdx}
-                    tx={tx}
-                    hex={catHex(tx.categoria)}
-                    emoji={CATEGORY_EMOJI[tx.categoria] || CATEGORY_EMOJI_DEFAULT[tx.categoria] || '💳'}
-                    badge={catBadgeStyle(tx.categoria)}
-                    isDarkMode={isDarkMode}
-                    formatCurrency={formatCurrency}
-                    formatDate={formatDate}
-                    formatTime={formatTime}
-                    onEdit={handleReclasificarTx}
-                    onDelete={handleDeleteTx}
-                    onOpenDetail={setSelectedTx}
-                  />
-                ))}
-              </div>
+              {(() => {
+                // Por fecha se agrupan por dia; con otro orden, una sola lista
+                // con la fecha en cada fila.
+                const porDia = sortConfig.key === 'fecha';
+                const grupos = [];
+                transactions.forEach((tx, i) => {
+                  const dia = String(tx.fecha || '').slice(0, 10);
+                  const ultimo = grupos[grupos.length - 1];
+                  if (porDia && ultimo && ultimo.dia === dia) ultimo.items.push({ tx, i });
+                  else if (!porDia && ultimo) ultimo.items.push({ tx, i });
+                  else grupos.push({ dia, items: [{ tx, i }] });
+                });
+                return grupos.map(g => {
+                  const neto = g.items.reduce((acc, { tx }) => (
+                    tx.tipo_transaccion === 'ingreso' ? acc + Number(tx.monto || 0)
+                      : (!tx.tipo_transaccion || tx.tipo_transaccion === 'gasto') ? acc - Number(tx.monto || 0) : acc
+                  ), 0);
+                  return (
+                    <section key={g.dia + g.items[0].tx.id} className="flex flex-col gap-1.5">
+                      {porDia && (
+                        <div className="flex items-center justify-between px-1.5 text-[13px] font-extrabold text-slate-500 dark:text-slate-400">
+                          <span>{etiquetaDia(g.dia)}</span>
+                          {neto !== 0 && <span className={`tabular-nums ${neto > 0 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>{neto > 0 ? '+' : '−'}{formatCurrency(Math.abs(neto))}</span>}
+                        </div>
+                      )}
+                      <div className="rounded-[22px] bg-white dark:bg-dark-normal border border-slate-200/70 dark:border-dark-lighter overflow-hidden">
+                        {g.items.map(({ tx, i }, k) => (
+                          <TransactionCard
+                            key={tx.id}
+                            idx={i}
+                            primero={k === 0}
+                            mostrarFecha={!porDia}
+                            tx={tx}
+                            hex={catHex(tx.categoria)}
+                            emoji={CATEGORY_EMOJI[tx.categoria] || CATEGORY_EMOJI_DEFAULT[tx.categoria] || '💳'}
+                            logo={logoBanco(tx.banco)}
+                            isDarkMode={isDarkMode}
+                            formatCurrency={formatCurrency}
+                            formatDate={formatDate}
+                            formatTime={formatTime}
+                            onEdit={handleReclasificarTx}
+                            onDelete={handleDeleteTx}
+                            onOpenDetail={setSelectedTx}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                });
+              })()}
             </div>
             {totalCount > 10 && (() => {
               const totalPages = Math.ceil(totalCount / 10);
@@ -2149,40 +2229,35 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               if (endPage - startPage < maxVisible) startPage = Math.max(0, endPage - maxVisible);
               const pages = [];
               for (let i = startPage; i < endPage; i++) pages.push(i);
+              const irA = (p) => { setPage(p); fetchTransactions(true, p); };
+              const claseNum = (activo) => `w-9 h-9 rounded-full text-xs font-extrabold transition ${activo ? `${fondoDe(theme.btnPrimary)} text-white shadow-md` : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`;
 
               return (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-dark-lighter">
-                  <button onClick={() => { const newP = Math.max(0, page - 1); setPage(newP); fetchTransactions(true, newP); }} disabled={page === 0}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:cursor-not-allowed transition">
-                    Anterior
+                <div className="flex items-center justify-between gap-2 pt-4">
+                  <button onClick={() => irA(Math.max(0, page - 1))} disabled={page === 0} aria-label="Página anterior"
+                    className="w-10 h-10 grid place-items-center rounded-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">
+                    <ChevronLeft size={18} />
                   </button>
                   <div className="flex items-center gap-1">
                     {startPage > 0 && (
                       <>
-                        <button onClick={() => { setPage(0); fetchTransactions(true, 0); }} className="w-8 h-8 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition">1</button>
-                        {startPage > 1 && <span className="px-1 text-slate-400 text-xs">…</span>}
+                        <button onClick={() => irA(0)} className={claseNum(false)}>1</button>
+                        {startPage > 1 && <span className="px-0.5 text-slate-400 text-xs">…</span>}
                       </>
                     )}
                     {pages.map(p => (
-                      <button key={p} onClick={() => { setPage(p); fetchTransactions(true, p); }}
-                        className={`w-8 h-8 rounded-lg text-xs font-bold transition ${
-                          p === page
-                            ? 'bg-emerald-500 text-white shadow-md'
-                            : 'bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter'
-                        }`}>
-                        {p + 1}
-                      </button>
+                      <button key={p} onClick={() => irA(p)} aria-current={p === page ? 'page' : undefined} className={claseNum(p === page)}>{p + 1}</button>
                     ))}
                     {endPage < totalPages && (
                       <>
-                        {endPage < totalPages - 1 && <span className="px-1 text-slate-400 text-xs">…</span>}
-                        <button onClick={() => { const lp = totalPages - 1; setPage(lp); fetchTransactions(true, lp); }} className="w-8 h-8 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter transition">{totalPages}</button>
+                        {endPage < totalPages - 1 && <span className="px-0.5 text-slate-400 text-xs">…</span>}
+                        <button onClick={() => irA(totalPages - 1)} className={claseNum(false)}>{totalPages}</button>
                       </>
                     )}
                   </div>
-                  <button onClick={() => { const newP = page + 1; setPage(newP); fetchTransactions(true, newP); }} disabled={(page + 1) * 10 >= totalCount}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:cursor-not-allowed transition">
-                    Siguiente
+                  <button onClick={() => irA(page + 1)} disabled={(page + 1) * 10 >= totalCount} aria-label="Página siguiente"
+                    className="w-10 h-10 grid place-items-center rounded-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">
+                    <ChevronRight size={18} />
                   </button>
                 </div>
               );
@@ -2294,89 +2369,92 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         </Hoja>
       )}
 
-      {/* Table Filter Modal */}
+      {/* Filtros: hoja como los demas formularios. Tipo, categoria y banco se
+          aplican al tocar; el rango de fechas al pulsar Aplicar. */}
       {showFilterModal && (
-        <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-sm p-4 sm:p-6 shadow-2xl animate-scale-in">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                <Filter size={20} className={theme.tabText} /> Filtros de tabla
-              </h3>
-              <button onClick={() => setShowFilterModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+        <Hoja
+          onSubmit={(e) => { e.preventDefault(); if (pendingDateRange?.from) setFilterDateRange(pendingDateRange); setShowFilterModal(false); }}
+          onClose={() => setShowFilterModal(false)}
+          icono={SlidersHorizontal}
+          titulo="Filtros"
+          subtitulo={activeFilters.length > 0 ? `${activeFilters.length} activo${activeFilters.length === 1 ? '' : 's'}` : 'Ajusta qué movimientos ver'}
+          tono={`${theme.bgModalLight} ${theme.tabText}`}
+          pie={(
+            <>
+              <button type="button" onClick={handleClearFilters} className="flex-1 min-h-[54px] rounded-[18px] bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[15px] font-extrabold transition active:scale-[0.98]">
+                Limpiar
+              </button>
+              <button type="submit" className={`flex-[2] min-h-[54px] rounded-[18px] ${theme.btnPrimary} text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98]`}>
+                <Check size={18} /> Aplicar
+              </button>
+            </>
+          )}
+        >
+          <Seccion titulo="Tipo">
+            <Segmentado
+              opciones={[{ valor: '', texto: 'Todos' }, { valor: 'gasto', texto: 'Gastos' }, { valor: 'ingreso', texto: 'Ingresos' }, { valor: 'interno', texto: 'Internos' }]}
+              valor={filterTipo}
+              onChange={setFilterTipo}
+            />
+          </Seccion>
+
+          <Seccion titulo="Fechas">
+            <div className="rounded-[20px] bg-white/65 dark:bg-white/[0.06] border border-white/70 dark:border-white/10 p-2">
+              <Calendar
+                mode="range"
+                selected={pendingDateRange}
+                onSelect={(range) => { if (range?.from) setPendingDateRange(range); }}
+                numberOfMonths={1}
+                captionLayout="dropdown"
+                fromYear={2020}
+                toYear={new Date().getFullYear() + 1}
+                className="rounded-lg mx-auto"
+              />
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Rango de fechas</label>
-                <Calendar
-                  mode="range"
-                  selected={pendingDateRange}
-                  onSelect={(range) => {
-                    if (range?.from) setPendingDateRange(range);
-                  }}
-                  numberOfMonths={1}
-                  captionLayout="dropdown"
-                  fromYear={2020}
-                  toYear={new Date().getFullYear() + 1}
-                  className="rounded-lg mx-auto"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Categoría</label>
-                <select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="">Todas las categorías</option>
-                  {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo</label>
-                <select value={filterTipo} onChange={e => setFilterTipo(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="">Todos los tipos</option>
-                  <option value="gasto">Gasto</option>
-                  <option value="ingreso">Ingreso</option>
-                  <option value="interno">Interno</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Banco</label>
-                <select value={filterBanco} onChange={e => setFilterBanco(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="">Todos los bancos</option>
-                  {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
-                  <option value="Otros">Otros</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Ordenar por</label>
-                <select value={`${sortConfig.key}-${sortConfig.dir}`} onChange={e => { const [key, dir] = e.target.value.split('-'); setSortConfig({ key, dir }); }} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="fecha-desc">Fecha ↓</option>
-                  <option value="fecha-asc">Fecha ↑</option>
-                  <option value="monto-desc">Monto ↓</option>
-                  <option value="monto-asc">Monto ↑</option>
-                  <option value="comercio-asc">Comercio A-Z</option>
-                  <option value="comercio-desc">Comercio Z-A</option>
-                </select>
-              </div>
-              {activeFilters.length > 0 && (
-                <div className="pt-2 border-t border-slate-100 dark:border-dark-lighter">
-                  <div className="flex flex-wrap gap-1.5 items-center">
-                    {activeFilters.map(f => (
-                      <span key={f.key} className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                        {f.label}
-                        <button onClick={() => { f.clear(); }} className="hover:text-red-500 transition-colors"><X size={10} /></button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="flex gap-2 pt-2">
-                <button onClick={handleClearFilters} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition">Limpiar</button>
-                <button onClick={() => { setFilterDateRange(pendingDateRange); setShowFilterModal(false); }} className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition">
-                  <Check size={16} /> Aceptar
-                </button>
-              </div>
+          </Seccion>
+
+          <Seccion titulo={`Categoría${filterCat ? ` · ${filterCat}` : ''}`}>
+            <div ref={refFilaHorizontal} className="flex gap-3 overflow-x-auto no-scrollbar px-0.5 pt-1.5 pb-2">
+              {['', ...CATEGORY_LIST].map(c => {
+                const activa = filterCat === c;
+                return (
+                  <button key={c || 'todas'} type="button" onClick={() => setFilterCat(c)} aria-pressed={activa} className="flex-shrink-0 w-[68px] flex flex-col items-center gap-1.5">
+                    <span className={`w-12 h-12 rounded-full grid place-items-center text-xl leading-none transition ${activa ? `${fondoDe(theme.btnPrimary)} scale-110 shadow-md text-white` : 'bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10'}`}>
+                      {c ? (CATEGORY_EMOJI[c] || '•') : <Check size={18} className={activa ? '' : 'text-slate-400'} />}
+                    </span>
+                    <span className={`text-[11px] leading-tight text-center w-full truncate ${activa ? `font-extrabold ${theme.tabText}` : 'font-bold text-slate-500 dark:text-slate-400'}`}>{c || 'Todas'}</span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-        </div>
+          </Seccion>
+
+          <Seccion titulo={`Banco${filterBanco ? ` · ${filterBanco}` : ''}`}>
+            <SelectorBanco
+              bancos={filtrarBancos(BANCOS_EDICION, filtroBancoBusqueda)}
+              busqueda={filtroBancoBusqueda}
+              onBuscar={setFiltroBancoBusqueda}
+              seleccionado={filterBanco}
+              onElegir={b => setFilterBanco(filterBanco === b.valor ? '' : b.valor)}
+            />
+          </Seccion>
+
+          <Seccion titulo="Ordenar por">
+            <div className="grid grid-cols-2 gap-2">
+              {[['fecha', 'desc', 'Más recientes'], ['fecha', 'asc', 'Más antiguos'], ['monto', 'desc', 'Mayor monto'], ['monto', 'asc', 'Menor monto'], ['comercio', 'asc', 'Comercio A-Z'], ['comercio', 'desc', 'Comercio Z-A']].map(([key, dir, texto]) => {
+                const activo = sortConfig.key === key && sortConfig.dir === dir;
+                return (
+                  <button key={texto} type="button" onClick={() => setSortConfig({ key, dir })} aria-pressed={activo}
+                    className={`min-h-[44px] rounded-2xl text-[13px] font-extrabold border transition ${activo ? `${fondoDe(theme.btnPrimary)} border-transparent text-white` : 'bg-white/70 dark:bg-white/[0.06] border-white/80 dark:border-white/10 text-slate-600 dark:text-slate-300'}`}>
+                    {texto}
+                  </button>
+                );
+              })}
+            </div>
+          </Seccion>
+        </Hoja>
       )}
+
 
         </div>
 
