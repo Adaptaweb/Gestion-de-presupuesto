@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  X, Check, Loader2, Plus, Zap, CalendarDays, CalendarRange, ShoppingCart, TrendingUp,
+  Loader2, Plus, CalendarDays, ShoppingCart, TrendingUp, Check,
 } from 'lucide-react';
 import {
   CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_HEX, CATEGORY_RING_COLOR,
@@ -8,6 +8,14 @@ import {
 } from './constants.js';
 import { notifyOk, notifyError } from './lib/notify.js';
 import { useFilaHorizontal } from './hooks/useFilaHorizontal.js';
+import { Hoja, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe } from './components/HojaFormulario.jsx';
+
+const SALIDA_MS = 320;
+// Bancos con su logo real; "Otros" va sin logo.
+const BANCOS = [
+  ...Object.entries(BANK_ICONS).map(([nombre, logo]) => ({ id: nombre, nombre, logo })),
+  { id: 'Otros', nombre: 'Otros', logo: '' },
+];
 
 const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDarkMode }) => {
   const [tipo, setTipo] = useState('gasto');
@@ -22,17 +30,19 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
   const [tipoGasto, setTipoGasto] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [visible, setVisible] = useState(false);
+  const [bancoBusqueda, setBancoBusqueda] = useState('');
+  // Salida animada: { guardado } mientras la hoja sale; se desmonta al terminar.
+  const [saliendo, setSaliendo] = useState(null);
 
-  useEffect(() => {
-    if (show) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true));
-      });
-    } else {
-      setVisible(false);
-    }
-  }, [show]);
+  const salir = (guardado, despues) => {
+    setSaliendo({ guardado });
+    setTimeout(() => {
+      resetForm();
+      setSaliendo(null);
+      if (typeof despues === 'function') despues();
+      onClose();
+    }, SALIDA_MS);
+  };
 
   const resetForm = () => {
     setTipo('gasto');
@@ -44,14 +54,12 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
     setCategoria('Otros');
     setTipoGasto(null);
     setError('');
+    setBancoBusqueda('');
   };
 
   const handleClose = () => {
-    setVisible(false);
-    setTimeout(() => {
-      resetForm();
-      onClose();
-    }, 250);
+    if (saliendo) return;
+    salir(false);
   };
 
   const handleConfirm = async () => {
@@ -82,12 +90,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
       const data = await res.json();
       if (res.ok) {
         notifyOk('Transacción guardada', `${comercio || 'Ingreso manual'} · $${new Intl.NumberFormat('es-CL').format(Math.abs(parseFloat(monto) || 0))}`);
-        setVisible(false);
-        setTimeout(() => {
-          resetForm();
-          if (typeof onCreated === 'function') onCreated();
-          onClose();
-        }, 250);
+        salir(true, onCreated);
       } else {
         // La validacion del formulario sigue inline; el fallo al guardar sale
         // como toast porque el panel se cierra al terminar.
@@ -130,12 +133,7 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
       const data = await res.json();
       if (res.ok) {
         notifyOk('Transacción guardada', `${comercio || 'Ingreso manual'} · $${new Intl.NumberFormat('es-CL').format(Math.abs(parseFloat(monto) || 0))}`);
-        setVisible(false);
-        setTimeout(() => {
-          resetForm();
-          if (typeof onCreated === 'function') onCreated();
-          onClose();
-        }, 250);
+        salir(true, onCreated);
       } else {
         // La validacion del formulario sigue inline; el fallo al guardar sale
         // como toast porque el panel se cierra al terminar.
@@ -151,195 +149,136 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
   if (!show) return null;
 
   const isGasto = tipo === 'gasto';
-  const inputClass = `w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-3.5 py-3 text-sm font-bold outline-none ${theme.focusBorder} transition text-slate-800 dark:text-slate-200`;
+  // Ingreso en verde; gasto en el color del tema.
+  const fondoHero = isGasto ? fondoDe(theme.btnPrimary) : 'bg-emerald-600';
+  const animTarjeta = saliendo
+    ? { animation: `${saliendo.guardado ? 'kkModalGuardado' : 'kkModalCierre'} ${SALIDA_MS}ms cubic-bezier(0.4, 0, 0.9, 0.6) forwards` }
+    : undefined;
+  const animFondo = saliendo
+    ? { animation: `kkModalScrimOut ${SALIDA_MS}ms ease-in forwards` }
+    : { animation: 'kkModalScrimIn 300ms ease-out' };
 
   return (
-    <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 transition-opacity duration-300" style={{ opacity: visible ? 1 : 0 }}>
-      <div
-        className={`w-full max-w-md mx-auto max-h-[100dvh] sm:max-h-[90dvh] flex flex-col bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl overflow-hidden transition duration-300 ${
-          visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-        }`}
-      >
-        <div className="relative flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0">
-          <button onClick={handleClose} aria-label="Cancelar" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition active:scale-90">
-            <X size={16} />
-          </button>
-          <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-            <Plus size={15} /> Ingreso manual
-          </h3>
-          <span className="w-9" />
-        </div>
-
-        <div className="flex-1 px-5 py-1 overflow-y-scroll no-scrollbar flex flex-col gap-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-
-          <div className="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 gap-1">
-            <button
-              onClick={() => setTipo('gasto')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition duration-200 ${
-                isGasto ? 'bg-white dark:bg-dark-lighter shadow-sm text-amber-600 dark:text-amber-300' : 'text-slate-400 dark:text-slate-500'
-              }`}
-            >
-              <ShoppingCart size={13} /> Gasto
-            </button>
-            <button
-              onClick={() => setTipo('ingreso')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition duration-200 ${
-                !isGasto ? 'bg-white dark:bg-dark-lighter shadow-sm text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'
-              }`}
-            >
-              <TrendingUp size={13} /> Ingreso
-            </button>
-          </div>
-
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5 block">Monto *</label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-black text-slate-400">$</span>
-              <input
-                type="number"
-                value={monto}
-                onChange={e => setMonto(e.target.value)}
-                placeholder="0"
-                className={`${inputClass} pl-8 text-lg`}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5 block">Comercio</label>
-              <input
-                value={comercio}
-                onChange={e => setComercio(e.target.value)}
-                placeholder="Ej: Starbucks"
-                className={inputClass}
-              />
-            </div>
-            <div className="min-w-0">
-              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5 block">Fecha</label>
-              <input
-                type="date"
-                value={fecha}
-                onChange={e => setFecha(e.target.value)}
-                className={`${inputClass} min-w-0 [color-scheme:light] dark:[color-scheme:dark]`}
-                style={{ paddingLeft: '10px', paddingRight: '8px' }}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5 block">Banco</label>
-              <select
-                value={banco}
-                onChange={e => setBanco(e.target.value)}
-                className={inputClass}
-              >
-                <option value="">—</option>
-                {Object.keys(BANK_ICONS).map(b => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-                <option value="Otros">Otros</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5 block">Tipo tarjeta</label>
-              <select
-                value={tipoTarjeta}
-                onChange={e => setTipoTarjeta(e.target.value)}
-                className={inputClass}
-              >
-                <option value="">—</option>
-                <option value="Débito">Débito</option>
-                <option value="Crédito">Crédito</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between px-0.5">
-              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">Categoría</label>
-              <span className="text-xs font-black text-slate-500 dark:text-slate-400">{categoria}</span>
-            </div>
-            <div ref={filaCategorias} className="flex gap-3.5 overflow-x-auto no-scrollbar px-0.5 pt-2 pb-2.5" style={{ scrollbarWidth: 'none' }}>
-              {CATEGORY_LIST.map(cat => {
-                const selected = categoria === cat;
-                const hex = CATEGORY_HEX[cat] || CATEGORY_HEX['Otros'];
-                const ringClass = CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60';
-                return (
-                  <button key={cat} onClick={() => setCategoria(cat)} data-seleccionado={selected ? 'true' : undefined} className="flex-shrink-0 flex flex-col items-center gap-1.5">
-                    <span
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-xl leading-none transition duration-200 ${
-                        selected
-                          ? `scale-110 shadow-md ring-2 ring-offset-2 ring-offset-white dark:ring-offset-dark-normal ${ringClass}`
-                          : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500'
-                      }`}
-                      style={selected ? { backgroundColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.16), color: hex } : {}}
-                    >
-                      {CATEGORY_EMOJI[cat]}
-                    </span>
-                    <span className={`text-[10px] leading-tight text-center whitespace-nowrap transition ${selected ? 'font-black text-slate-700 dark:text-slate-200' : 'font-bold text-slate-400 dark:text-slate-500'}`}>
-                      {cat}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {isGasto && (
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500 px-0.5">Frecuencia</label>
-              <div className="flex bg-slate-100 dark:bg-white/5 rounded-2xl p-1 gap-1">
-                {[
-                  { key: 'variable', label: 'Variable', icon: Zap, color: 'text-amber-600 dark:text-amber-300' },
-                  { key: 'mensual', label: 'Mensual', icon: CalendarDays, color: 'text-sky-600 dark:text-sky-300' },
-                  { key: 'anual', label: 'Anual', icon: CalendarRange, color: 'text-violet-600 dark:text-violet-300' },
-                ].map(opt => {
-                  const selected = tipoGasto === opt.key;
-                  return (
-                    <button
-                      key={opt.key}
-                      onClick={() => setTipoGasto(tipoGasto === opt.key ? null : opt.key)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition duration-200 ${
-                        selected ? `bg-white dark:bg-dark-lighter shadow-sm ${opt.color}` : 'text-slate-400 dark:text-slate-500'
-                      }`}
-                    >
-                      <opt.icon size={13} />
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 px-3.5 py-2.5 rounded-2xl text-xs font-bold">{error}</div>
-          )}
-
-          <div className="pb-1" />
-        </div>
-
-        <div className="flex-shrink-0 px-5 pt-3.5 pb-[calc(14px+env(safe-area-inset-bottom,0px))] space-y-2 border-t border-slate-200 dark:border-white/5 bg-white/80 dark:bg-dark-normal/70 backdrop-blur-xl">
+    <Hoja
+      onSubmit={(e) => { e.preventDefault(); if (!saving && !saliendo) handleConfirm(); }}
+      onClose={handleClose}
+      icono={Plus}
+      titulo="Ingreso manual"
+      subtitulo={isGasto ? 'Registra un gasto' : 'Registra un ingreso'}
+      tono={`${theme.bgModalLight} ${theme.tabText}`}
+      zClase="z-50"
+      estiloFondo={animFondo}
+      estiloTarjeta={animTarjeta}
+      pie={(
+        <>
           <button
-            onClick={handleConfirm}
-            disabled={saving}
-            className={`w-full flex items-center justify-center gap-2 py-3 ${theme.btnPrimary} text-white rounded-2xl font-bold text-sm shadow-lg transition disabled:opacity-50 active:scale-95`}
-          >
-            {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-            {isGasto ? 'Confirmar gasto' : 'Confirmar ingreso'}
-          </button>
-          <button
+            type="button"
             onClick={handleConfirmNoEs}
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-xs font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition disabled:opacity-50"
+            className="flex-1 min-h-[54px] rounded-[18px] bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10 text-slate-600 dark:text-slate-300 text-sm font-extrabold transition active:scale-[0.98] disabled:opacity-50"
           >
-            {isGasto ? 'No es Gasto' : 'No es Ingreso'}
+            {isGasto ? 'No es gasto' : 'No es ingreso'}
           </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className={`flex-[2] min-h-[54px] rounded-[18px] ${isGasto ? theme.btnPrimary : 'bg-emerald-600 hover:bg-emerald-700'} text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98] disabled:opacity-60`}
+          >
+            {saving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} strokeWidth={2.6} />}
+            {isGasto ? 'Guardar gasto' : 'Guardar ingreso'}
+          </button>
+        </>
+      )}
+    >
+      <label className={`rounded-3xl p-[18px] ${fondoHero} text-white flex flex-col gap-1.5 transition-colors duration-300`}>
+        <span className="text-xs font-extrabold uppercase tracking-wider opacity-90">{isGasto ? 'Monto del gasto' : 'Monto del ingreso'}</span>
+        <span className="flex items-center gap-1">
+          <span className="text-4xl font-extrabold opacity-80">{isGasto ? '$' : '+$'}</span>
+          <input
+            type="number"
+            inputMode="decimal"
+            value={monto}
+            onChange={e => { setMonto(e.target.value); if (error) setError(''); }}
+            placeholder="0"
+            aria-label="Monto"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-4xl font-extrabold text-white placeholder:text-white/50 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+        </span>
+      </label>
+
+      <Segmentado
+        opciones={[{ valor: 'gasto', texto: 'Gasto' }, { valor: 'ingreso', texto: 'Ingreso' }]}
+        valor={tipo}
+        onChange={setTipo}
+      />
+
+      {error && (
+        <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 px-3.5 py-2.5 rounded-2xl text-sm font-bold">{error}</div>
+      )}
+
+      <Grupo>
+        <FilaCampo icono={isGasto ? ShoppingCart : TrendingUp} etiqueta="Comercio" value={comercio} onChange={e => setComercio(e.target.value)} placeholder="Ej: Starbucks" />
+        <Fila icono={CalendarDays} texto="Fecha">
+          <Pastilla type="date" value={fecha} onChange={e => setFecha(e.target.value)} aria-label="Fecha" style={{ width: 160 }} />
+        </Fila>
+      </Grupo>
+
+      <Seccion titulo={`Categoría · ${categoria}`}>
+        <div ref={filaCategorias} className="flex gap-3 overflow-x-auto no-scrollbar px-0.5 pt-1.5 pb-2" style={{ scrollbarWidth: 'none' }}>
+          {CATEGORY_LIST.map(cat => {
+            const selected = categoria === cat;
+            const hex = CATEGORY_HEX[cat] || CATEGORY_HEX['Otros'];
+            const ringClass = CATEGORY_RING_COLOR[cat] || 'ring-slate-400 dark:ring-slate-300/60';
+            return (
+              <button key={cat} type="button" onClick={() => setCategoria(cat)} aria-pressed={selected} data-seleccionado={selected ? 'true' : undefined} className="flex-shrink-0 w-[68px] flex flex-col items-center gap-1.5">
+                <span
+                  className={`w-12 h-12 rounded-full grid place-items-center text-xl leading-none transition duration-200 ${
+                    selected
+                      ? `scale-110 shadow-md ring-2 ring-offset-2 ring-offset-slate-50 dark:ring-offset-dark-normal ${ringClass}`
+                      : 'bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10'
+                  }`}
+                  style={selected ? { backgroundColor: hexToRgba(hex, isDarkMode ? 0.22 : 0.16), color: hex } : {}}
+                >
+                  {CATEGORY_EMOJI[cat]}
+                </span>
+                <span className={`text-[11px] leading-tight text-center w-full truncate ${selected ? 'font-extrabold text-slate-800 dark:text-slate-100' : 'font-bold text-slate-500 dark:text-slate-400'}`}>
+                  {cat}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </div>
-    </div>
+      </Seccion>
+
+      {isGasto && (
+        <Seccion titulo="Frecuencia">
+          <Segmentado
+            opciones={[{ valor: 'variable', texto: 'Variable' }, { valor: 'mensual', texto: 'Mensual' }, { valor: 'anual', texto: 'Anual' }]}
+            valor={tipoGasto}
+            onChange={v => setTipoGasto(tipoGasto === v ? null : v)}
+          />
+        </Seccion>
+      )}
+
+      <Seccion titulo="Tarjeta">
+        <Segmentado
+          opciones={[{ valor: '', texto: 'Sin dato' }, { valor: 'Débito', texto: 'Débito' }, { valor: 'Crédito', texto: 'Crédito' }]}
+          valor={tipoTarjeta}
+          onChange={setTipoTarjeta}
+        />
+      </Seccion>
+
+      <Seccion titulo="Banco o medio de pago">
+        <SelectorBanco
+          bancos={BANCOS.filter(b => !bancoBusqueda || b.nombre.toLowerCase().includes(bancoBusqueda.toLowerCase()))}
+          busqueda={bancoBusqueda}
+          onBuscar={setBancoBusqueda}
+          seleccionado={banco}
+          onElegir={b => setBanco(banco === b.nombre ? '' : b.nombre)}
+          bordeActivo={theme.borderAccent}
+        />
+      </Seccion>
+    </Hoja>
   );
 };
 
