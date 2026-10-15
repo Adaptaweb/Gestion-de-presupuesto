@@ -9,9 +9,11 @@ import { X, Search, Check } from 'lucide-react';
 // Primera clase de theme.btnPrimary / btnSub: el fondo del color del tema.
 export const fondoDe = (clases) => (clases || '').split(' ')[0];
 
-export const Hoja = ({ onSubmit, onClose, icono: Icono, titulo, subtitulo, tono, estiloFondo, estiloTarjeta, pie, children }) => (
+// `sinFondo`: otra capa ya pone el fondo difuminado (p. ej. la revision de
+// pendientes cuando el formulario completa su giro). `zClase` cambia el z-index.
+export const Hoja = ({ onSubmit, onClose, icono: Icono, titulo, subtitulo, tono, estiloFondo, estiloTarjeta, pie, sinFondo, zClase = 'z-[60]', children }) => (
   <div
-    className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-end md:items-center justify-center md:p-4"
+    className={`fixed inset-0 ${sinFondo ? '' : 'bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md'} ${zClase} flex items-end md:items-center justify-center md:p-4`}
     style={estiloFondo}
   >
     <form

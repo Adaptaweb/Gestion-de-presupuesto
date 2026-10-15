@@ -15,6 +15,7 @@ import { Skeleton } from 'boneyard-js/react';
 import { MONTH_NAMES } from './constants/dashboard.js';
 import { notifyOk, notifyError, notifyInfo, notifyPromise } from './lib/notify.js';
 import { useFilaHorizontal, refFilaHorizontal } from './hooks/useFilaHorizontal.js';
+import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe } from './components/HojaFormulario.jsx';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -59,6 +60,12 @@ const BANK_GRADIENT = {
   'Banco Paris': ['#312E81', '#3730A3', '#4338CA'],
 };
 const BANK_GRADIENT_FALLBACK = ['#1E293B', '#334155', '#475569'];
+
+// Bancos del formulario de edicion con su logo real; "Otros" va sin logo.
+const BANCOS_EDICION = [
+  ...Object.entries(BANK_ICONS).map(([nombre, logo]) => ({ id: nombre, nombre, logo })),
+  { id: 'Otros', nombre: 'Otros', logo: '' },
+];
 
 // Duracion de la salida del modal de pendientes; se desmonta al terminar.
 const REVIEW_EXIT_MS = 380;
@@ -1082,6 +1089,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
   const [totalCount, setTotalCount] = useState(0);
   const [pendientesCount, setPendientesCount] = useState(0);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editBancoBusqueda, setEditBancoBusqueda] = useState('');
   // Edicion abierta desde la tarjeta de pendientes: en vez de aparecer encima,
   // la tarjeta gira y de canto la reemplaza el formulario; al cerrarlo gira de
   // vuelta. `editSaliendo` mantiene el formulario mientras hace su medio giro.
@@ -1490,6 +1498,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setEditTipoTransaccion(normalizedTipo);
     setEditTipoTarjeta(tx.tipo_tarjeta || '');
     setEditBanco(tx.banco || '');
+    setEditBancoBusqueda('');
     setEditFecha(tx.fecha || '');
     setEditMonto(tx.monto != null ? String(tx.monto) : '');
     setShowEditModal(true);
@@ -2194,88 +2203,100 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {/* Edit Transaction Modal */}
       {showEditModal && editingTx && (
-        <div className={`fixed inset-0 ${editDesdeReview ? '' : 'bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md'} ${showReview ? 'z-[60]' : 'z-50'} flex items-center justify-center p-3 sm:p-4`}>
-          {/* Desde pendientes el fondo ya lo pone la revision; el formulario
-              solo completa el giro de la tarjeta (y lo deshace al salir). */}
-          <div
-            className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-6 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto custom-scrollbar"
-            style={editDesdeReview ? { animation: editSaliendo ? `kkFlipOut ${REVIEW_FLIP_MS}ms cubic-bezier(0.5, 0, 0.9, 0.6) forwards` : 'kkFlipIn 620ms cubic-bezier(0.3, 0.6, 0.35, 1.18) both' } : undefined}
-          >
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                <Edit3 className={theme.tabText} size={20} /> Editar Transaccion
-              </h3>
-              <button onClick={() => cerrarEdicion()} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+        <Hoja
+          onSubmit={(e) => { e.preventDefault(); handleUpdateTx(); }}
+          onClose={() => cerrarEdicion()}
+          icono={Edit3}
+          titulo="Editar transacción"
+          subtitulo={editingTx.asunto || null}
+          tono={`${theme.bgModalLight} ${theme.tabText}`}
+          // Desde pendientes el fondo ya lo pone la revision; el formulario
+          // solo completa el giro de la tarjeta (y lo deshace al salir).
+          sinFondo={editDesdeReview}
+          zClase={showReview ? 'z-[60]' : 'z-50'}
+          estiloTarjeta={editDesdeReview ? { animation: editSaliendo ? `kkFlipOut ${REVIEW_FLIP_MS}ms cubic-bezier(0.5, 0, 0.9, 0.6) forwards` : 'kkFlipIn 620ms cubic-bezier(0.3, 0.6, 0.35, 1.18) both' } : undefined}
+          pie={<BotonesPie onCancel={() => cerrarEdicion()} texto="Guardar cambios" clasesPrimario={`${theme.btnPrimary} ${theme.shadowBtn || ''}`} />}
+        >
+          <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex items-center gap-3.5`}>
+            <span className="w-14 h-14 rounded-[18px] bg-white grid place-items-center flex-shrink-0 overflow-hidden">
+              {BANK_ICONS[editBanco]
+                ? <img src={BANK_ICONS[editBanco]} alt="" className="w-10 h-10 object-contain" />
+                : <span className={`text-2xl leading-none ${theme.tabText}`}>{CATEGORY_EMOJI[editCategoria] || (editComercio || '?').trim().charAt(0).toUpperCase()}</span>}
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[17px] font-extrabold truncate">{editComercio || 'Sin comercio'}</div>
+              <div className="text-[13px] font-bold opacity-90 truncate">{[editBanco, String(editFecha || '').slice(0, 10)].filter(Boolean).join(' · ') || 'Sin banco'}</div>
             </div>
-            <div className="space-y-4">
-              <div className="bg-slate-50 dark:bg-dark-lighter rounded-xl p-3 text-xs text-slate-500 dark:text-slate-400">
-                <span className="font-bold text-slate-600 dark:text-slate-300">Detalle:</span>{' '}
-                {editingTx.asunto || '(sin detalle)'}
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Comercio</label>
-                <input value={editComercio} onChange={e => setEditComercio(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Monto</label>
-                  <input type="number" value={editMonto} onChange={e => setEditMonto(e.target.value)} placeholder="0" className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
-                </div>
-                <div>
-                  <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Fecha</label>
-                  <input type="date" value={editFecha} onChange={e => setEditFecha(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo</label>
-                <select value={editTipoTransaccion} onChange={e => setEditTipoTransaccion(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="gasto">Gasto</option>
-                  <option value="ingreso">Ingreso</option>
-                  <option value="interno">Interno</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Categoria</label>
-                <select value={editCategoria} onChange={e => setEditCategoria(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  {CATEGORY_LIST.map(c => (<option key={c} value={c}>{c}</option>))}
-                </select>
-                {onCreateCategoria && (
-                  <button
-                    onClick={() => {
-                      const name = prompt('Nombre de la nueva categoría:');
-                      if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setEditCategoria(c.nombre)).catch(e => console.error(e));
-                    }}
-                    className="mt-1.5 flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-blue-500 transition"
-                  >
-                    <Plus size={12} /> Nueva categoría
-                  </button>
-                )}
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Tipo de tarjeta</label>
-                <select value={editTipoTarjeta} onChange={e => setEditTipoTarjeta(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="">—</option>
-                  <option value="Débito">Débito</option>
-                  <option value="Crédito">Crédito</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase text-slate-400 mb-1 block">Banco / Medio de pago</label>
-                <select value={editBanco} onChange={e => setEditBanco(e.target.value)} className="w-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200">
-                  <option value="">—</option>
-                  {Object.keys(BANK_ICONS).map(b => (<option key={b} value={b}>{b}</option>))}
-                  <option value="Otros">Otros</option>
-                </select>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => cerrarEdicion()} className="flex-1 bg-slate-100 dark:bg-dark-lighter hover:bg-slate-200 dark:hover:bg-dark-lightest text-slate-600 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-bold transition">Cancelar</button>
-                <button onClick={handleUpdateTx} className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg transition">
-                  <Save size={16} /> Guardar
-                </button>
-              </div>
+            <div className="text-right flex-shrink-0">
+              <div className="text-[26px] font-extrabold leading-tight tabular-nums">{editTipoTransaccion === 'ingreso' ? '+' : ''}${Math.round(Number(editMonto) || 0).toLocaleString('es-CL')}</div>
+              <div className="text-xs font-extrabold opacity-90">{editTipoTransaccion === 'ingreso' ? 'Ingreso' : editTipoTransaccion === 'interno' ? 'Interno' : 'Gasto'}</div>
             </div>
           </div>
-        </div>
+
+          <Segmentado
+            opciones={[{ valor: 'gasto', texto: 'Gasto' }, { valor: 'ingreso', texto: 'Ingreso' }, { valor: 'interno', texto: 'Interno' }]}
+            valor={editTipoTransaccion}
+            onChange={setEditTipoTransaccion}
+          />
+
+          <Grupo>
+            <FilaCampo icono={ShoppingBag} etiqueta="Comercio" value={editComercio} onChange={e => setEditComercio(e.target.value)} placeholder="Nombre" />
+            <FilaCampo icono={Banknote} etiqueta="Monto" type="number" inputMode="numeric" value={editMonto} onChange={e => setEditMonto(e.target.value)} placeholder="0" />
+            <Fila icono={CalendarDays} texto="Fecha">
+              <Pastilla type="date" value={String(editFecha || '').slice(0, 10)} onChange={e => setEditFecha(e.target.value)} aria-label="Fecha" style={{ width: 160 }} />
+            </Fila>
+          </Grupo>
+
+          <Seccion titulo={`Categoría · ${editCategoria}`}>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar px-0.5 pt-1.5 pb-2" style={{ scrollbarWidth: 'none' }}>
+              {CATEGORY_LIST.map(c => {
+                const activa = editCategoria === c;
+                return (
+                  <button key={c} type="button" onClick={() => setEditCategoria(c)} aria-pressed={activa} className="flex-shrink-0 w-[68px] flex flex-col items-center gap-1.5">
+                    <span className={`w-12 h-12 rounded-full grid place-items-center text-xl leading-none transition ${activa ? `${fondoDe(theme.btnPrimary)} scale-110 shadow-md` : 'bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10'}`}>
+                      {CATEGORY_EMOJI[c] || '•'}
+                    </span>
+                    <span className={`text-[11px] leading-tight text-center w-full truncate ${activa ? `font-extrabold ${theme.tabText}` : 'font-bold text-slate-500 dark:text-slate-400'}`}>{c}</span>
+                  </button>
+                );
+              })}
+              {onCreateCategoria && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const name = prompt('Nombre de la nueva categoría:');
+                    if (name) onCreateCategoria({ nombre: name, tipo: 'gasto' }).then(c => setEditCategoria(c.nombre)).catch(e => console.error(e));
+                  }}
+                  className="flex-shrink-0 w-[68px] flex flex-col items-center gap-1.5"
+                >
+                  <span className="w-12 h-12 rounded-full grid place-items-center border-2 border-dashed border-slate-300 dark:border-white/15 text-slate-400"><Plus size={18} /></span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Nueva</span>
+                </button>
+              )}
+            </div>
+          </Seccion>
+
+          <Seccion titulo="Tarjeta">
+            <Segmentado
+              opciones={[{ valor: '', texto: 'Sin dato' }, { valor: 'Débito', texto: 'Débito' }, { valor: 'Crédito', texto: 'Crédito' }]}
+              // Los correos traen "credito"/"debito" en minusculas y sin tilde:
+              // se marca la opcion equivalente sin reescribir el valor guardado.
+              valor={/^cr[eé]dito$/i.test(editTipoTarjeta) ? 'Crédito' : /^d[eé]bito$/i.test(editTipoTarjeta) ? 'Débito' : editTipoTarjeta}
+              onChange={setEditTipoTarjeta}
+            />
+          </Seccion>
+
+          <Seccion titulo="Banco o medio de pago">
+            <SelectorBanco
+              bancos={BANCOS_EDICION.filter(b => !editBancoBusqueda || b.nombre.toLowerCase().includes(editBancoBusqueda.toLowerCase()))}
+              busqueda={editBancoBusqueda}
+              onBuscar={setEditBancoBusqueda}
+              seleccionado={editBanco}
+              onElegir={b => setEditBanco(editBanco === b.nombre ? '' : b.nombre)}
+              bordeActivo={theme.borderAccent}
+            />
+          </Seccion>
+        </Hoja>
       )}
 
       {/* Table Filter Modal */}
