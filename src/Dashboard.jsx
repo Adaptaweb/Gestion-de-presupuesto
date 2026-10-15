@@ -1607,7 +1607,10 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-	      <div className="min-h-[100dvh] bg-kk-background dark:bg-dark-darker p-1 md:p-2 pb-28 md:pb-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+	      {/* Movil: margen superior extra sobre la zona segura. iOS difumina por
+	          defecto la franja de arriba (barra de estado y de Safari) y la barra
+	          del mes quedaba bajo ese desenfoque. */}
+	      <div className="min-h-[100dvh] bg-kk-background dark:bg-dark-darker p-1 md:p-2 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] md:pt-2 pb-28 md:pb-2 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-[100%] lg:max-w-[1920px] mx-auto">
 
         {/* Una sola fila en todos los tamanos: en movil el logo ocupaba su
