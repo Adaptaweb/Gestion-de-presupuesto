@@ -968,6 +968,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   const handleSaveFixed = (e) => {
     e.preventDefault();
+    if (modalSaliendo) return;
     console.log('[DEBUG] Guardando gasto fijo:', newFixed);
     if (editingItem) {
       setGastosFijos(gastosFijos.map(g => g.id === editingItem.id ? { ...newFixed, id: g.id, pagos: g.pagos } : g));
@@ -975,24 +976,30 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
       setGastosFijos([...gastosFijos, { ...newFixed, id: `fixed-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Gasto fijo actualizado' : 'Gasto fijo creado', newFixed.descripcion);
-    setIsAddingFixed(false);
-    setEditingItem(null);
-    setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
-    setFixedIconSearch('');
+    salirDeModal('fijo', true, () => {
+      setIsAddingFixed(false);
+      setEditingItem(null);
+      setNewFixed({ descripcion: '', diaPago: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+      setFixedIconSearch('');
+      setFixedBancoSearch('');
+    });
   };
 
   const handleSaveAbono = (e) => {
     e.preventDefault();
+    if (modalSaliendo) return;
     if (editingItem) {
       setAbonos(abonos.map(a => a.id === editingItem.id ? { ...newAbono, id: a.id, pagos: a.pagos } : a));
     } else {
       setAbonos([...abonos, { ...newAbono, id: `abono-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Abono actualizado' : 'Abono creado', newAbono.descripcion);
-    setIsAddingAbono(false);
-    setEditingItem(null);
-    setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
-    setAbonoIconSearch('');
+    salirDeModal('abono', true, () => {
+      setIsAddingAbono(false);
+      setEditingItem(null);
+      setNewAbono({ descripcion: '', diaPago: 1, facturacionAuto: false, iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+      setAbonoIconSearch('');
+    });
   };
 
   const handleEditItem = (item) => {
@@ -1112,17 +1119,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
   const handleSaveAccount = (e) => {
     e.preventDefault();
-    if (!newAccount.nombre || !newAccount.banco) return;
+    if (modalSaliendo || !newAccount.nombre || !newAccount.banco) return;
     if (editingAccount) {
       setCuentasAhorro(cuentasAhorro.map(c => c.id === editingAccount.id ? { ...newAccount, id: c.id } : c));
     } else {
       setCuentasAhorro([...cuentasAhorro, { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substr(2, 6)}` }]);
     }
     marcarGuardado(editingAccount ? 'Cuenta actualizada' : 'Cuenta creada', newAccount.nombre);
-    setIsAddingAccount(false);
-    setEditingAccount(null);
-    setNewAccount({ nombre: '', banco: '' });
-    setAccountBancoSearch('');
+    salirDeModal('cuenta', true, () => {
+      setIsAddingAccount(false);
+      setEditingAccount(null);
+      setNewAccount({ nombre: '', banco: '' });
+      setAccountBancoSearch('');
+    });
   };
 
   const handleContribucionesChange = (e) => {
@@ -1226,6 +1235,18 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         ? { animation: `${modalSaliendo.guardado ? 'kkModalGuardado' : 'kkModalCierre'} ${SALIDA_MODAL_MS}ms cubic-bezier(0.4, 0, 0.9, 0.6) forwards` }
         : desdePendiente ? { animation: 'kkFlipIn 620ms cubic-bezier(0.3, 0.6, 0.35, 1.18) both' } : undefined,
     };
+  };
+  const cerrarModalFijo = () => {
+    if (modalSaliendo) return;
+    salirDeModal('fijo', false, () => { setIsAddingFixed(false); setEditingItem(null); setFixedBancoSearch(''); });
+  };
+  const cerrarModalAbono = () => {
+    if (modalSaliendo) return;
+    salirDeModal('abono', false, () => { setIsAddingAbono(false); setEditingItem(null); setAbonoIconSearch(''); });
+  };
+  const cerrarModalCuenta = () => {
+    if (modalSaliendo) return;
+    salirDeModal('cuenta', false, () => { setIsAddingAccount(false); setEditingAccount(null); setNewAccount({ nombre: '', banco: '' }); setAccountBancoSearch(''); });
   };
   const cerrarModalSub = () => {
     if (modalSaliendo) return;
@@ -2905,65 +2926,53 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {isAddingFixed && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  <Receipt className="text-slate-800 dark:text-slate-200" size={20} /> {editingItem ? 'Editar Gasto' : 'Nuevo Gasto Fijo'}
-                </h3>
-                <button onClick={() => { setIsAddingFixed(false); setEditingItem(null); setFixedBancoSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+          <Hoja
+            onSubmit={handleSaveFixed}
+            onClose={cerrarModalFijo}
+            icono={Receipt}
+            titulo={editingItem ? 'Editar gasto fijo' : 'Nuevo gasto fijo'}
+            tono="bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200"
+            estiloFondo={animModal('fijo', false).fondo}
+            estiloTarjeta={animModal('fijo', false).tarjeta}
+            pie={<BotonesPie onCancel={cerrarModalFijo} texto={editingItem ? 'Guardar cambios' : 'Guardar gasto'} clasesPrimario={`${theme.btnFixed} ${theme.shadowBtn}`} />}
+          >
+            <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnFixed)} text-white flex items-center gap-3.5`}>
+              <span className="w-14 h-14 rounded-[18px] bg-white/15 grid place-items-center flex-shrink-0 overflow-hidden">
+                {newFixed.bancoLogo
+                  ? <span className="w-10 h-10 rounded-xl bg-white grid place-items-center"><img src={newFixed.bancoLogo} alt="" className="w-8 h-8 object-contain" /></span>
+                  : <Receipt size={24} />}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[17px] font-extrabold truncate">{newFixed.descripcion || 'Nuevo gasto fijo'}</div>
+                <div className="text-[13px] font-bold opacity-80 truncate">Se paga el día {newFixed.diaPago || 1}{newFixed.banco ? ` · ${newFixed.banco}` : ''}</div>
               </div>
-              <form onSubmit={handleSaveFixed} className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Gastos Comunes, Luz, Internet..." />
-                </div>
+              {newFixed.facturacionAuto && <span className="text-xs font-extrabold px-2.5 py-1.5 rounded-full bg-white/20 whitespace-nowrap">Automático</span>}
+            </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
-                  </div>
-                  <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-                    <label className="relative inline-flex items-center cursor-pointer gap-3">
-                      <input type="checkbox" className="sr-only peer" checked={newFixed.facturacionAuto} onChange={e => setNewFixed({ ...newFixed, facturacionAuto: e.target.checked })} />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
-                      <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
-                    </label>
-                  </div>
-                </div>
+            <Grupo>
+              <FilaCampo icono={Tag} etiqueta="Descripción" required value={newFixed.descripcion} onChange={e => setNewFixed({ ...newFixed, descripcion: e.target.value })} placeholder="Ej: Luz, Internet" />
+              <Fila icono={Clock} texto="Día de pago">
+                <Pastilla type="number" inputMode="numeric" min="1" max="31" value={newFixed.diaPago} onChange={e => setNewFixed({ ...newFixed, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} aria-label="Día de pago" style={{ width: 72 }} />
+              </Fila>
+              <FilaInterruptor icono={RefreshCw} texto="Facturación automática" detalle="Se marca pagado cada mes" activo={!!newFixed.facturacionAuto} onChange={v => setNewFixed({ ...newFixed, facturacionAuto: v })} colorActivo={fondoDe(theme.btnFixed)} />
+            </Grupo>
 
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
-                  <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input type="text" value={fixedBancoSearch} onChange={(e) => setFixedBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" placeholder="Buscar banco..." />
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
-                    {(fixedBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(fixedBancoSearch.toLowerCase())) : BANCOS_CHILE).map(b => (
-                      <button type="button" key={b.id} onClick={() => { setNewFixed({ ...newFixed, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setFixedBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                        <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {newFixed.banco && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <img src={newFixed.bancoLogo} alt={newFixed.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{newFixed.banco}</span>
-                    </div>
-                  )}
-                  {newFixed.banco && (
-                    <div>
-                      <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
-                      <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                        <button type="button" onClick={() => setNewFixed({ ...newFixed, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newFixed.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <Seccion titulo="Banco y tarjeta">
+              <SelectorBanco
+                bancos={fixedBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(fixedBancoSearch.toLowerCase())) : BANCOS_CHILE}
+                busqueda={fixedBancoSearch}
+                onBuscar={setFixedBancoSearch}
+                seleccionado={newFixed.banco}
+                onElegir={b => setNewFixed({ ...newFixed, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })}
+                bordeActivo={theme.borderAccent}
+              />
+              {newFixed.banco && (
+                <Segmentado opciones={[{ valor: 'visa', texto: 'Visa' }, { valor: 'mastercard', texto: 'Mastercard' }]} valor={newFixed.tipoTarjeta} onChange={v => setNewFixed({ ...newFixed, tipoTarjeta: v })} />
+              )}
+            </Seccion>
 
+            <Seccion titulo="Icono">
+              <div>
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                   <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
                   <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
@@ -3022,42 +3031,41 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <input value={newFixed.iconUrl} onChange={e => setNewFixed({ ...newFixed, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
-
-                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Registrar Gasto</button>
-              </form>
-            </div>
-          </div>
+              </div>
+            </Seccion>
+          </Hoja>
         )}
 
         {isAddingAbono && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={20} /> {editingItem && editingItem.tipo === 'abono' ? 'Editar Abono' : 'Nuevo Abono'}
-                </h3>
-                <button onClick={() => { setIsAddingAbono(false); setEditingItem(null); setAbonoIconSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+          <Hoja
+            onSubmit={handleSaveAbono}
+            onClose={cerrarModalAbono}
+            icono={TrendingUp}
+            titulo={editingItem && editingItem.tipo === 'abono' ? 'Editar abono' : 'Nuevo abono'}
+            tono={`${theme.bgModalLight} ${theme.tabText}`}
+            estiloFondo={animModal('abono', false).fondo}
+            estiloTarjeta={animModal('abono', false).tarjeta}
+            pie={<BotonesPie onCancel={cerrarModalAbono} texto={editingItem && editingItem.tipo === 'abono' ? 'Guardar cambios' : 'Guardar abono'} clasesPrimario={`${theme.btnPrimary} ${theme.shadowBtn}`} />}
+          >
+            <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex items-center gap-3.5`}>
+              <span className="w-14 h-14 rounded-[18px] bg-white/20 grid place-items-center flex-shrink-0"><TrendingUp size={24} /></span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[17px] font-extrabold truncate">{newAbono.descripcion || 'Nuevo abono'}</div>
+                <div className="text-[13px] font-bold opacity-90">Llega el día {newAbono.diaPago || 1}</div>
               </div>
-              <form onSubmit={handleSaveAbono} className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newAbono.descripcion} onChange={e => setNewAbono({ ...newAbono, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Freelance, Venta, Devolución..." />
-                </div>
+              {newAbono.facturacionAuto && <span className="text-xs font-extrabold px-2.5 py-1.5 rounded-full bg-white/20 whitespace-nowrap">Automático</span>}
+            </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200" />
-                  </div>
-                  <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-3 sm:p-4 rounded-xl border border-emerald-100 dark:border-emerald-800">
-                    <label className="relative inline-flex items-center cursor-pointer gap-3">
-                      <input type="checkbox" className="sr-only peer" checked={newAbono.facturacionAuto} onChange={e => setNewAbono({ ...newAbono, facturacionAuto: e.target.checked })} />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-emerald-600"></div>
-                      <span className="text-xs sm:text-xs font-bold text-emerald-800 dark:text-emerald-200">Automático</span>
-                    </label>
-                  </div>
-                </div>
+            <Grupo>
+              <FilaCampo icono={Tag} etiqueta="Descripción" required value={newAbono.descripcion} onChange={e => setNewAbono({ ...newAbono, descripcion: e.target.value })} placeholder="Ej: Freelance" />
+              <Fila icono={Clock} texto="Día de pago">
+                <Pastilla type="number" inputMode="numeric" min="1" max="31" value={newAbono.diaPago} onChange={e => setNewAbono({ ...newAbono, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} aria-label="Día de pago" style={{ width: 72 }} />
+              </Fila>
+              <FilaInterruptor icono={RefreshCw} texto="Automático" detalle="Se marca recibido cada mes" activo={!!newAbono.facturacionAuto} onChange={v => setNewAbono({ ...newAbono, facturacionAuto: v })} colorActivo={fondoDe(theme.btnPrimary)} />
+            </Grupo>
 
+            <Seccion titulo="Icono">
+              <div>
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                   <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
                   <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
@@ -3116,62 +3124,49 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                     <input value={newAbono.iconUrl} onChange={e => setNewAbono({ ...newAbono, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   </div>
                 )}
-
-                <button type="submit" className={`w-full ${theme.btnPrimary} py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Registrar Abono</button>
-              </form>
-            </div>
-          </div>
+              </div>
+            </Seccion>
+          </Hoja>
         )}
 
         {isAddingAccount && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  <PiggyBank className="text-emerald-600" size={20} /> {editingAccount ? 'Editar Cuenta de Ahorro' : 'Nueva Cuenta de Ahorro'}
-                </h3>
-                <button onClick={() => { setIsAddingAccount(false); setEditingAccount(null); setNewAccount({ nombre: '', banco: '' }); setAccountBancoSearch(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+          <Hoja
+            onSubmit={handleSaveAccount}
+            onClose={cerrarModalCuenta}
+            icono={PiggyBank}
+            titulo={editingAccount ? 'Editar cuenta de ahorro' : 'Nueva cuenta de ahorro'}
+            tono="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+            estiloFondo={animModal('cuenta', false).fondo}
+            estiloTarjeta={animModal('cuenta', false).tarjeta}
+            pie={<BotonesPie onCancel={cerrarModalCuenta} texto={editingAccount ? 'Guardar cambios' : 'Crear cuenta'} clasesPrimario="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30" />}
+          >
+            <div className="rounded-3xl p-[18px] bg-emerald-600 text-white flex items-center gap-3.5">
+              <span className="w-14 h-14 rounded-[18px] bg-white grid place-items-center flex-shrink-0 overflow-hidden">
+                {newAccount.banco && getAhorroBankInfo(newAccount.banco)?.logo
+                  ? <img src={getAhorroBankInfo(newAccount.banco).logo} alt="" className="w-10 h-10 object-contain" />
+                  : <PiggyBank size={24} className="text-emerald-600" />}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[17px] font-extrabold truncate">{newAccount.nombre || 'Nueva cuenta'}</div>
+                <div className="text-[13px] font-bold opacity-90 truncate">{newAccount.banco || 'Elige la institución'}</div>
               </div>
-              <form onSubmit={handleSaveAccount} className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Nombre de la Cuenta</label>
-                  <input required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200" placeholder="Ej: Fondo de Emergencia, Vacaciones..." />
-                </div>
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Institución Financiera</label>
-                  <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input
-                      type="text"
-                      value={accountBancoSearch}
-                      onChange={(e) => setAccountBancoSearch(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold outline-none focus:border-emerald-500 transition dark:text-slate-200"
-                      placeholder="Buscar banco..."
-                    />
-                  </div>
-                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-36 overflow-y-auto pr-1 custom-scrollbar">
-                    {(accountBancoSearch
-                      ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(accountBancoSearch.toLowerCase()))
-                      : BANCOS_CHILE
-                    ).map(b => (
-                      <button key={b.id} type="button" onClick={() => { setNewAccount({ ...newAccount, banco: b.nombre }); setAccountBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAccount.banco === b.nombre ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                        <img src={b.logo} alt={b.nombre} className="w-10 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{b.nombre}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {newAccount.banco && (
-                    <div className="mt-2 flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-3 py-2">
-                      <img src={getAhorroBankInfo(newAccount.banco)?.logo || ''} alt={newAccount.banco} className="w-8 h-5 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{newAccount.banco}</span>
-                      <button type="button" onClick={() => { setNewAccount({ ...newAccount, banco: '' }); setAccountBancoSearch(''); }} className="ml-auto text-slate-400 hover:text-rose-500 p-0.5"><X size={14} /></button>
-                    </div>
-                  )}
-                </div>
-                <button type="submit" className="w-full bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:bg-emerald-700 transition mt-3 sm:mt-4">{editingAccount ? 'Guardar Cambios' : 'Crear Cuenta'}</button>
-              </form>
             </div>
-          </div>
+
+            <Grupo>
+              <FilaCampo icono={Tag} etiqueta="Nombre" required value={newAccount.nombre} onChange={e => setNewAccount({ ...newAccount, nombre: e.target.value })} placeholder="Ej: Vacaciones" />
+            </Grupo>
+
+            <Seccion titulo="Institución financiera">
+              <SelectorBanco
+                bancos={accountBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(accountBancoSearch.toLowerCase())) : BANCOS_CHILE}
+                busqueda={accountBancoSearch}
+                onBuscar={setAccountBancoSearch}
+                seleccionado={newAccount.banco}
+                onElegir={b => setNewAccount({ ...newAccount, banco: b.nombre })}
+                bordeActivo="border-emerald-500"
+              />
+            </Seccion>
+          </Hoja>
         )}
 
         {isAddingSub && (
