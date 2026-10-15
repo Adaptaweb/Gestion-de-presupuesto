@@ -15,7 +15,7 @@ import { Skeleton } from 'boneyard-js/react';
 import { MONTH_NAMES, BANCOS_CHILE } from './constants/dashboard.js';
 import { notifyOk, notifyError, notifyInfo, notifyPromise } from './lib/notify.js';
 import { useFilaHorizontal, refFilaHorizontal } from './hooks/useFilaHorizontal.js';
-import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, bancosParaTransacciones } from './components/HojaFormulario.jsx';
+import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, bancosParaTransacciones, LogoBanco } from './components/HojaFormulario.jsx';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -2216,11 +2216,9 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
           pie={<BotonesPie onCancel={() => cerrarEdicion()} texto="Guardar cambios" clasesPrimario={`${theme.btnPrimary} ${theme.shadowBtn || ''}`} />}
         >
           <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex items-center gap-3.5`}>
-            <span className="w-14 h-14 rounded-[18px] bg-white grid place-items-center flex-shrink-0 overflow-hidden">
-              {logoBanco(editBanco)
-                ? <img src={logoBanco(editBanco)} alt="" className="w-10 h-10 object-contain" />
-                : <span className={`text-2xl leading-none ${theme.tabText}`}>{CATEGORY_EMOJI[editCategoria] || (editComercio || '?').trim().charAt(0).toUpperCase()}</span>}
-            </span>
+            {editBanco
+              ? <LogoBanco src={logoBanco(editBanco)} nombre={editBanco} className="w-14 h-14 rounded-[18px]" textoClase="text-lg" />
+              : <span className="w-14 h-14 rounded-[18px] bg-white/20 grid place-items-center flex-shrink-0 text-2xl leading-none">{CATEGORY_EMOJI[editCategoria] || (editComercio || '?').trim().charAt(0).toUpperCase()}</span>}
             <div className="flex-1 min-w-0">
               <div className="text-[17px] font-extrabold truncate">{editComercio || 'Sin comercio'}</div>
               <div className="text-[13px] font-bold opacity-90 truncate">{[editBanco, String(editFecha || '').slice(0, 10)].filter(Boolean).join(' · ') || 'Sin banco'}</div>

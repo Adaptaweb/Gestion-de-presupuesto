@@ -6,7 +6,7 @@ import NavPill from './components/NavPill.jsx';
 import BillingBanner from './components/BillingBanner.jsx';
 import PlanesModal from './components/PlanesModal.jsx';
 import ProfileSheet from './components/ProfileSheet.jsx';
-import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos } from './components/HojaFormulario.jsx';
+import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, LogoBanco } from './components/HojaFormulario.jsx';
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
 import {
@@ -2933,7 +2933,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnFixed)} text-white flex items-center gap-3.5`}>
               <span className="w-14 h-14 rounded-[18px] bg-white/15 grid place-items-center flex-shrink-0 overflow-hidden">
                 {newFixed.bancoLogo
-                  ? <span className="w-10 h-10 rounded-xl bg-white grid place-items-center"><img src={newFixed.bancoLogo} alt="" className="w-8 h-8 object-contain" /></span>
+                  ? <LogoBanco src={newFixed.bancoLogo} nombre={newFixed.banco} className="w-full h-full" textoClase="text-lg" />
                   : <Receipt size={24} />}
               </span>
               <div className="flex-1 min-w-0">
@@ -3134,11 +3134,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             pie={<BotonesPie onCancel={cerrarModalCuenta} texto={editingAccount ? 'Guardar cambios' : 'Crear cuenta'} clasesPrimario="bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/30" />}
           >
             <div className="rounded-3xl p-[18px] bg-emerald-600 text-white flex items-center gap-3.5">
-              <span className="w-14 h-14 rounded-[18px] bg-white grid place-items-center flex-shrink-0 overflow-hidden">
-                {newAccount.banco && getAhorroBankInfo(newAccount.banco)?.logo
-                  ? <img src={getAhorroBankInfo(newAccount.banco).logo} alt="" className="w-10 h-10 object-contain" />
-                  : <PiggyBank size={24} className="text-emerald-600" />}
-              </span>
+              {newAccount.banco
+                ? <LogoBanco src={getAhorroBankInfo(newAccount.banco)?.logo || ''} nombre={newAccount.banco} className="w-14 h-14 rounded-[18px]" textoClase="text-lg" />
+                : <span className="w-14 h-14 rounded-[18px] bg-white/20 grid place-items-center flex-shrink-0"><PiggyBank size={24} /></span>}
               <div className="flex-1 min-w-0">
                 <div className="text-[17px] font-extrabold truncate">{newAccount.nombre || 'Nueva cuenta'}</div>
                 <div className="text-[13px] font-bold opacity-90 truncate">{newAccount.banco || 'Elige la institución'}</div>

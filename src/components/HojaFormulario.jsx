@@ -170,7 +170,10 @@ export const Segmentado = ({ opciones, valor, onChange }) => (
 
 // Color predominante de un logo: se dibuja reducido en un canvas y se cuenta
 // por cubetas de color, ignorando transparencias, blancos, negros y grises
-// (fondo y texto), para quedarse con el color de marca. Se guarda en cache.
+// (fondo y texto), para quedarse con el color de marca. Tambien mide cuanto
+// del cuadro cubre el logo: `lleno` si ya es una figura que ocupa casi todo
+// (Santander, BancoEstado) o solo un simbolo sobre transparente (Mach).
+// Se guarda en cache.
 const coloresLogo = new Map();
 
 const colorPredominante = (src) => new Promise((resolve) => {
@@ -187,9 +190,11 @@ const colorPredominante = (src) => new Promise((resolve) => {
       ctx.drawImage(img, 0, 0, lado, lado);
       const { data } = ctx.getImageData(0, 0, lado, lado);
       const cubetas = new Map();
+      let opacos = 0;
       for (let i = 0; i < data.length; i += 4) {
         const [r, g, b, alfa] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
         if (alfa < 128) continue;
+        opacos += 1;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
         if (max - min < 40 || max < 40) continue; // gris, blanco o negro
         const clave = `${r >> 4},${g >> 4},${b >> 4}`;
@@ -202,8 +207,9 @@ const colorPredominante = (src) => new Promise((resolve) => {
       const hex = mejor
         ? '#' + [mejor.r, mejor.g, mejor.b].map(v => Math.round(v / mejor.n).toString(16).padStart(2, '0')).join('')
         : null;
-      coloresLogo.set(src, hex);
-      resolve(hex);
+      const info = { color: hex, lleno: opacos / (lado * lado) > 0.8 };
+      coloresLogo.set(src, info);
+      resolve(info);
     } catch {
       coloresLogo.set(src, null);
       resolve(null);
@@ -213,17 +219,20 @@ const colorPredominante = (src) => new Promise((resolve) => {
   img.src = src;
 });
 
+// { color, lleno } del logo, o null mientras se calcula o si no hay logo.
 export const useColorLogo = (src) => {
-  const [color, setColor] = useState(() => coloresLogo.get(src) ?? null);
+  const [info, setInfo] = useState(() => coloresLogo.get(src) ?? null);
   useEffect(() => {
     let vivo = true;
-    colorPredominante(src).then(c => { if (vivo) setColor(c); });
+    colorPredominante(src).then(c => { if (vivo) setInfo(c); });
     return () => { vivo = false; };
   }, [src]);
-  return color;
+  return info;
 };
 
-const iniciales = (nombre) => nombre
+const GRIS = '#64748B';
+
+export const iniciales = (nombre = '') => nombre
   .replace(/\(.*\)/g, '')
   .split(/\s+/)
   .filter(p => p && !/^(banco|de|del|chile)$/i.test(p))
@@ -231,12 +240,37 @@ const iniciales = (nombre) => nombre
   .map(p => p[0].toUpperCase())
   .join('') || nombre.slice(0, 2).toUpperCase();
 
+// Cuadro del banco relleno con el color de su logo, sin borde blanco. Un logo
+// que ya es una figura llena ocupa todo el cuadro; un simbolo suelto se pinta
+// en blanco sobre el color (si no, se perderia sobre su propio color). Sin
+// logo, las iniciales.
+export const LogoBanco = ({ src, nombre, className = 'w-8 h-8 rounded-[10px]', textoClase = 'text-[11px]' }) => {
+  const info = useColorLogo(src);
+  const [fallo, setFallo] = useState(false);
+  const sinLogo = !src || fallo;
+  const fondo = info?.color || GRIS;
+  return (
+    <span className={`${className} grid place-items-center flex-shrink-0 overflow-hidden`} style={{ backgroundColor: fondo }}>
+      {sinLogo
+        ? <span className={`${textoClase} font-extrabold text-white`}>{iniciales(nombre)}</span>
+        : (
+          <img
+            src={src}
+            alt=""
+            onError={() => setFallo(true)}
+            className={info?.lleno ? 'w-full h-full object-cover' : 'w-[68%] h-[68%] object-contain'}
+            style={info && !info.lleno ? { filter: 'brightness(0) invert(1)' } : undefined}
+          />
+        )}
+    </span>
+  );
+};
+
 const BotonBanco = ({ banco, activo, onElegir }) => {
-  const color = useColorLogo(banco.logo);
-  const [sinLogo, setSinLogo] = useState(!banco.logo);
+  const info = useColorLogo(banco.logo);
   // Elegido: borde y un tinte suave del color de su logo; sin color legible,
   // el gris de la app.
-  const tono = color || '#64748B';
+  const tono = info?.color || GRIS;
   return (
     <button
       type="button"
@@ -245,11 +279,7 @@ const BotonBanco = ({ banco, activo, onElegir }) => {
       className={`flex items-center gap-2.5 min-h-[52px] px-3 rounded-2xl border-2 text-left transition duration-200 active:scale-[0.98] ${activo ? '' : 'border-white/80 dark:border-white/5 bg-white/60 dark:bg-white/[0.04]'}`}
       style={activo ? { borderColor: tono, backgroundColor: `${tono}1F`, boxShadow: `0 6px 16px ${tono}33` } : undefined}
     >
-      <span className="w-8 h-8 rounded-[10px] bg-white grid place-items-center flex-shrink-0 overflow-hidden" style={sinLogo ? { backgroundColor: tono, color: '#fff' } : undefined}>
-        {sinLogo
-          ? <span className="text-[11px] font-extrabold">{iniciales(banco.nombre)}</span>
-          : <img src={banco.logo} alt="" className="w-7 h-7 object-contain" onError={() => setSinLogo(true)} />}
-      </span>
+      <LogoBanco src={banco.logo} nombre={banco.nombre} />
       <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100 truncate">{banco.nombre}</span>
     </button>
   );
