@@ -103,29 +103,31 @@ const MonthNav = ({ value, months, years, onChange }) => {
 
   return (
     <div className="relative">
-      <div className="flex items-center justify-between gap-2 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl px-2 py-2">
+      <div className="flex items-center h-11 rounded-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-sm">
         <button
           type="button"
           onClick={() => idx > 0 && onChange(months[idx - 1])}
           disabled={idx <= 0}
           aria-label="Mes anterior"
-          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+          className="w-11 h-11 flex-shrink-0 grid place-items-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:pointer-events-none transition"
         >
           <ChevronLeft size={18} />
         </button>
         <button
           type="button"
           onClick={() => (isOpen ? setIsOpen(false) : openPicker())}
-          className="flex-1 text-center font-black text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter rounded-xl px-2 py-1.5 transition"
+          aria-expanded={isOpen}
+          className="flex-1 min-w-0 h-11 flex items-center justify-center gap-1.5 text-[15px] font-extrabold text-slate-800 dark:text-slate-100 truncate"
         >
           {value || '—'}
+          <ChevronDown size={15} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         <button
           type="button"
           onClick={() => idx >= 0 && idx < months.length - 1 && onChange(months[idx + 1])}
           disabled={idx < 0 || idx >= months.length - 1}
           aria-label="Mes siguiente"
-          className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-dark-lighter disabled:opacity-30 disabled:pointer-events-none transition"
+          className="w-11 h-11 flex-shrink-0 grid place-items-center rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:pointer-events-none transition"
         >
           <ChevronRight size={18} />
         </button>
@@ -133,7 +135,7 @@ const MonthNav = ({ value, months, years, onChange }) => {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-2xl shadow-2xl p-3 min-w-[220px]">
+          <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter rounded-3xl shadow-2xl p-3 min-w-[240px] animate-scale-in">
             <div className="flex items-center justify-between mb-2 px-1">
               <button
                 type="button"
@@ -181,6 +183,20 @@ const MonthNav = ({ value, months, years, onChange }) => {
     </div>
   );
 };
+
+// Barra superior de cada pestaña: logo (en movil, donde ya no hay cabecera
+// global), el mes en pildora y una accion a la derecha. Transacciones usa la
+// misma composicion con su propio selector de mes.
+const BarraMes = ({ value, months, years, onChange, children }) => (
+  <div className="flex items-center gap-2.5">
+    <img src="/KKiso.svg" alt="Kuentas Klaras" className="w-9 h-9 flex-shrink-0 md:hidden" />
+    <div className="flex-1 min-w-0 md:flex-none md:w-80">
+      <MonthNav value={value} months={months} years={years} onChange={onChange} />
+    </div>
+    <span className="hidden md:block flex-1" />
+    {children}
+  </div>
+);
 
 const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushSubscribed, isPushLoading, onToggleNotifications, isInstallable, onInstall, onDashboardReady }) => {
   const [activeTab, setActiveTab] = useState('transacciones');
@@ -1559,6 +1575,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     setPresupuestoDraft(base ? String(base) : '');
     setShowPresupuestoModal(true);
   };
+  // En movil no hay cabecera global: el presupuesto se abre desde la barra de
+  // cada pestaña (en desktop sigue el chip de la cabecera).
+  const botonPresupuestoMovil = (
+    <button
+      type="button"
+      onClick={abrirPresupuesto}
+      aria-label={presupuestoMes > 0 ? `Presupuesto de ${dashboardMonth}: ${formatCurrency(presupuestoMes)}` : `Definir presupuesto de ${dashboardMonth}`}
+      className="md:hidden relative w-11 h-11 flex-shrink-0 grid place-items-center rounded-full bg-white dark:bg-dark-normal border border-slate-200 dark:border-dark-lighter shadow-sm transition active:scale-95"
+    >
+      <Wallet size={19} className={theme.tabText} />
+      {!(presupuestoMes > 0) && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-dark-normal" />}
+    </button>
+  );
   const guardarPresupuesto = (e) => {
     if (e) e.preventDefault();
     const monto = parseInt(presupuestoDraft, 10) || 0;
@@ -1583,8 +1612,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         {/* Una sola fila en todos los tamanos: en movil el logo ocupaba su
             propia linea y empujaba los controles a una segunda fila. El logo
             mide 5:1, asi que en pantallas estrechas baja a h-8 para dejar sitio. */}
-        {/* En movil, Transacciones trae su propia barra (logo, mes y pendientes). */}
-        <header className={`${activeTab === 'transacciones' ? 'hidden md:flex' : 'flex'} flex-row justify-between items-center mb-4 md:mb-6 gap-2 sm:gap-3 md:gap-6`}>
+        {/* En movil cada pestaña trae su propia barra (logo, mes y una accion). */}
+        <header className={`hidden md:flex flex-row justify-between items-center mb-4 md:mb-6 gap-2 sm:gap-3 md:gap-6`}>
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <img src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'} alt="Kuentas Klaras" className="h-8 sm:h-9 md:h-10 w-auto" />
           </div>
@@ -1751,14 +1780,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         {!showCategoriasConfig && <>
         {activeTab === 'dashboard' && !!dashboardMonth && (
           <div key="dashboard-tab" className={`space-y-4 sm:space-y-6 md:space-y-8 ${tabAnim} px-4 sm:px-6 w-full max-w-5xl mx-auto`}>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
-                <LayoutDashboard className={theme.tabText} size={20} /> <span className="hidden sm:inline">Resumen Mensual</span><span className="sm:hidden">Resumen</span>
-              </h2>
-              <div className="w-full sm:w-72">
-                <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
-              </div>
-            </div>
+            <BarraMes value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth}>
+              {botonPresupuestoMovil}
+            </BarraMes>
 
             {(() => {
               const mes = dashboardMonth;
@@ -2115,7 +2139,26 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
         {activeTab === 'general' && (
           <div key="general-tab" className={`${tabAnim} px-4 sm:px-6 w-full max-w-5xl mx-auto`}>
-            <div className="hidden sm:flex flex-wrap justify-end gap-2 mb-3">
+            <div className="mb-4 sm:mb-5">
+              <BarraMes value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth}>
+                {botonPresupuestoMovil}
+                <div className="hidden lg:flex flex-nowrap justify-end gap-2">
+              <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-3.5 h-11 rounded-full text-[13px] whitespace-nowrap font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <CreditCard size={16} /> Nueva Cuota
+              </button>
+              <button onClick={openAddFixed} className={`flex items-center justify-center gap-2 ${theme.btnFixed} text-white px-3.5 h-11 rounded-full text-[13px] whitespace-nowrap font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <Receipt size={16} /> Gasto Fijo
+              </button>
+              <button onClick={openAddAbono} className={`flex items-center justify-center gap-2 ${theme.btnPrimary} px-3.5 h-11 rounded-full text-[13px] whitespace-nowrap font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <TrendingUp size={16} /> Abono
+              </button>
+              <button onClick={openAddSub} className={`flex items-center justify-center gap-2 ${theme.btnSub} text-white px-3.5 h-11 rounded-full text-[13px] whitespace-nowrap font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                <RefreshCw size={16} /> Suscripciones
+              </button>
+                </div>
+              </BarraMes>
+            </div>
+            <div className="hidden sm:flex lg:hidden flex-wrap justify-end gap-2 mb-4">
               <button onClick={openAddDebt} className={`flex items-center justify-center gap-2 ${theme.btnDebt} text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
                 <CreditCard size={16} /> Nueva Cuota <Plus size={16} />
               </button>
@@ -2130,9 +2173,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               </button>
             </div>
 
-            <div className="mb-4 sm:mb-5">
-              <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
-            </div>
 
             {/* Card principal de la pantalla. Reemplaza a la de sueldo: el
                 presupuesto del mes se edita ahora desde el chip del header, y
@@ -2479,13 +2519,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           </div>
         )} {activeTab === 'ahorros' && (
           <div key="ahorros-tab" className={`space-y-8 ${tabAnim} px-4 sm:px-6 w-full max-w-5xl mx-auto`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 sm:gap-3">
-                  <PiggyBank className={theme.tabText} size={20} /> <span className="truncate">Cuentas de Ahorro</span>
-                </h2>
-              </div>
-              <div className="flex gap-2 w-full md:w-auto">
+            <BarraMes value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth}>
+              {botonPresupuestoMovil}
+              <div className="hidden md:flex gap-2">
                 <button
                   onClick={getSavingsPlan}
                   disabled={isAiLoading}
@@ -2498,9 +2534,21 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <Plus size={16} /> <span className="hidden sm:inline">Nueva Cuenta</span><span className="sm:hidden">Cuenta</span>
                 </button>
               </div>
-            </div>
+            </BarraMes>
 
-            <MonthNav value={dashboardMonth} months={sortedMonths} years={availableYears} onChange={setDashboardMonth} />
+            <div className="flex gap-2 md:hidden -mt-4">
+                <button
+                  onClick={getSavingsPlan}
+                  disabled={isAiLoading}
+                  className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.bgLight} ${theme.bgLightDark} ${theme.badgeText} dark:${theme.badgeTextDark} ${theme.borderAccent} ${theme.badgeBgDark} hover:opacity-80 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black transition disabled:opacity-50`}
+                >
+                  {isAiLoading ? <Loader2 size={16} className="animate-spin" /> : <Lightbulb size={16} />}
+                  <span className="hidden sm:inline">Estrategia IA</span><span className="sm:hidden">IA</span> ✨
+                </button>
+                <button onClick={() => setIsAddingAccount(true)} className={`flex items-center justify-center gap-2 flex-1 md:flex-initial ${theme.btnPrimary} text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-lg ${theme.shadowBtn} transition`}>
+                  <Plus size={16} /> <span className="hidden sm:inline">Nueva Cuenta</span><span className="sm:hidden">Cuenta</span>
+                </button>
+              </div>
 
             <div className={`${theme.btnPrimary} rounded-3xl shadow-xl p-4 sm:p-5 text-white`}>
               <div className="flex items-center justify-between gap-3">
