@@ -60,6 +60,9 @@ const BANK_GRADIENT = {
 };
 const BANK_GRADIENT_FALLBACK = ['#1E293B', '#334155', '#475569'];
 
+// Duracion de la salida del modal de pendientes; se desmonta al terminar.
+const REVIEW_EXIT_MS = 240;
+
 const ReviewCard = ({
   tx, reviewIdx, pendingCount, reviewVisible, reviewDirection,
   reviewCat, setReviewCat, reviewTipoGasto, setReviewTipoGasto,
@@ -1416,7 +1419,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
               setPendingTxs([]);
               fetchTransactions();
               fetchSummary();
-            }, 200);
+            }, REVIEW_EXIT_MS);
           }
         } else {
           fetchTransactions();
@@ -1440,11 +1443,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
     setReviewTipoGasto(first.tipo_gasto || null);
     setReviewTipoTransaccion(null);
     setReviewDirection('forward');
-    setReviewVisible(false);
     setShowReview(true);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => setReviewVisible(true));
-    });
+    setReviewVisible(true);
   };
 
   const handleCloseReview = () => {
@@ -1455,7 +1455,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
       fetchTransactions();
       fetchSummary();
       fetchPendientesCount();
-    }, 250);
+    }, REVIEW_EXIT_MS);
   };
 
   const handleConfirmReview = async () => {
@@ -1532,7 +1532,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         fetchTransactions();
         fetchSummary();
         fetchPendientesCount();
-      }, 200);
+      }, REVIEW_EXIT_MS);
     } else {
       const nextIdx = reviewIdx + 1;
       setReviewDirection('forward');
@@ -1551,7 +1551,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         setShowReview(false);
         setPendingTxs([]);
         fetchPendientesCount();
-      }, 200);
+      }, REVIEW_EXIT_MS);
     } else {
       const nextIdx = reviewIdx + 1;
       setReviewDirection('forward');
@@ -2199,7 +2199,16 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
       {/* Review Panel - Full Screen */}
       {showReview && currentReviewTx && (
-        <div className={`fixed inset-0 bg-white/60 dark:bg-zinc-900/80 z-50 flex items-center justify-center p-3 sm:p-4 transition duration-300 ${reviewVisible ? 'opacity-100 backdrop-blur-md' : 'opacity-0 invisible'}`}>
+        <div
+          className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4"
+          style={{ animation: reviewVisible ? 'kkModalScrimIn 300ms ease-out' : `kkModalScrimOut ${REVIEW_EXIT_MS}ms ease-in forwards` }}
+        >
+          {/* Envoltorio sin key: la animacion de entrada/salida corre solo al
+              abrir y cerrar, no al pasar de una transaccion a otra. */}
+          <div
+            className="w-full"
+            style={{ animation: reviewVisible ? 'kkModalIn 460ms cubic-bezier(0.22, 1, 0.36, 1)' : `kkModalOut ${REVIEW_EXIT_MS}ms cubic-bezier(0.4, 0, 1, 1) forwards` }}
+          >
           <ReviewCard
             key={`panel-${reviewIdx}-${reviewDirection}`}
             tx={currentReviewTx}
@@ -2233,6 +2242,7 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
             onCreateCategoria={onCreateCategoria}
             categorias={categorias}
           />
+          </div>
         </div>
       )}
 
