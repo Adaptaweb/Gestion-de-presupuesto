@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Search, Check } from 'lucide-react';
 
 // Piezas de los formularios de cuota y suscripcion, con el mismo lenguaje que
@@ -168,8 +168,96 @@ export const Segmentado = ({ opciones, valor, onChange }) => (
   </div>
 );
 
-// Bancos con su logo real, buscador y seleccion marcada con el color del tema.
-export const SelectorBanco = ({ bancos, busqueda, onBuscar, seleccionado, onElegir, bordeActivo }) => (
+// Color predominante de un logo: se dibuja reducido en un canvas y se cuenta
+// por cubetas de color, ignorando transparencias, blancos, negros y grises
+// (fondo y texto), para quedarse con el color de marca. Se guarda en cache.
+const coloresLogo = new Map();
+
+const colorPredominante = (src) => new Promise((resolve) => {
+  if (!src) { resolve(null); return; }
+  if (coloresLogo.has(src)) { resolve(coloresLogo.get(src)); return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    try {
+      const lado = 40;
+      const canvas = document.createElement('canvas');
+      canvas.width = lado; canvas.height = lado;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, lado, lado);
+      const { data } = ctx.getImageData(0, 0, lado, lado);
+      const cubetas = new Map();
+      for (let i = 0; i < data.length; i += 4) {
+        const [r, g, b, alfa] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
+        if (alfa < 128) continue;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        if (max - min < 40 || max < 40) continue; // gris, blanco o negro
+        const clave = `${r >> 4},${g >> 4},${b >> 4}`;
+        const c = cubetas.get(clave) || { n: 0, r: 0, g: 0, b: 0 };
+        c.n += 1; c.r += r; c.g += g; c.b += b;
+        cubetas.set(clave, c);
+      }
+      let mejor = null;
+      cubetas.forEach(c => { if (!mejor || c.n > mejor.n) mejor = c; });
+      const hex = mejor
+        ? '#' + [mejor.r, mejor.g, mejor.b].map(v => Math.round(v / mejor.n).toString(16).padStart(2, '0')).join('')
+        : null;
+      coloresLogo.set(src, hex);
+      resolve(hex);
+    } catch {
+      coloresLogo.set(src, null);
+      resolve(null);
+    }
+  };
+  img.onerror = () => { coloresLogo.set(src, null); resolve(null); };
+  img.src = src;
+});
+
+export const useColorLogo = (src) => {
+  const [color, setColor] = useState(() => coloresLogo.get(src) ?? null);
+  useEffect(() => {
+    let vivo = true;
+    colorPredominante(src).then(c => { if (vivo) setColor(c); });
+    return () => { vivo = false; };
+  }, [src]);
+  return color;
+};
+
+const iniciales = (nombre) => nombre
+  .replace(/\(.*\)/g, '')
+  .split(/\s+/)
+  .filter(p => p && !/^(banco|de|del|chile)$/i.test(p))
+  .slice(0, 2)
+  .map(p => p[0].toUpperCase())
+  .join('') || nombre.slice(0, 2).toUpperCase();
+
+const BotonBanco = ({ banco, activo, onElegir }) => {
+  const color = useColorLogo(banco.logo);
+  const [sinLogo, setSinLogo] = useState(!banco.logo);
+  // Elegido: borde y un tinte suave del color de su logo; sin color legible,
+  // el gris de la app.
+  const tono = color || '#64748B';
+  return (
+    <button
+      type="button"
+      onClick={() => onElegir(banco)}
+      aria-pressed={activo}
+      className={`flex items-center gap-2.5 min-h-[52px] px-3 rounded-2xl border-2 text-left transition duration-200 active:scale-[0.98] ${activo ? '' : 'border-white/80 dark:border-white/5 bg-white/60 dark:bg-white/[0.04]'}`}
+      style={activo ? { borderColor: tono, backgroundColor: `${tono}1F`, boxShadow: `0 6px 16px ${tono}33` } : undefined}
+    >
+      <span className="w-8 h-8 rounded-[10px] bg-white grid place-items-center flex-shrink-0 overflow-hidden" style={sinLogo ? { backgroundColor: tono, color: '#fff' } : undefined}>
+        {sinLogo
+          ? <span className="text-[11px] font-extrabold">{iniciales(banco.nombre)}</span>
+          : <img src={banco.logo} alt="" className="w-7 h-7 object-contain" onError={() => setSinLogo(true)} />}
+      </span>
+      <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100 truncate">{banco.nombre}</span>
+    </button>
+  );
+};
+
+// Bancos con su logo real y buscador. `b.valor` (si existe) es lo que se
+// guarda y compara; `b.nombre` lo que se muestra.
+export const SelectorBanco = ({ bancos, busqueda, onBuscar, seleccionado, onElegir }) => (
   <>
     <div className="relative">
       <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -181,27 +269,26 @@ export const SelectorBanco = ({ bancos, busqueda, onBuscar, seleccionado, onEleg
         className="w-full h-11 rounded-2xl bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10 pl-10 pr-3 text-sm font-bold text-slate-800 dark:text-slate-100 outline-none placeholder:text-slate-400"
       />
     </div>
-    <div className="grid grid-cols-2 gap-2 max-h-[232px] overflow-y-auto pr-0.5 custom-scrollbar">
-      {bancos.map(b => {
-        const activo = seleccionado === b.nombre;
-        return (
-          <button
-            type="button"
-            key={b.id}
-            onClick={() => onElegir(b)}
-            aria-pressed={activo}
-            className={`flex items-center gap-2.5 min-h-[52px] px-3 rounded-2xl border-2 text-left transition active:scale-[0.98] ${activo ? `${bordeActivo} bg-white dark:bg-white/10` : 'border-white/80 dark:border-white/5 bg-white/60 dark:bg-white/[0.04]'}`}
-          >
-            <span className="w-8 h-8 rounded-[10px] bg-white grid place-items-center flex-shrink-0 overflow-hidden">
-              <img src={b.logo} alt="" className="w-7 h-7 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-            </span>
-            <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100 truncate">{b.nombre}</span>
-          </button>
-        );
-      })}
+    <div className="grid grid-cols-2 gap-2 max-h-[232px] overflow-y-auto p-0.5 custom-scrollbar">
+      {bancos.map(b => (
+        <BotonBanco key={b.id} banco={b} activo={seleccionado === (b.valor ?? b.nombre)} onElegir={onElegir} />
+      ))}
       {bancos.length === 0 && (
         <div className="col-span-2 text-center py-4 text-xs font-bold text-slate-400">No se encontraron bancos</div>
       )}
     </div>
   </>
 );
+
+// Filtra la lista de bancos por el texto buscado.
+export const filtrarBancos = (bancos, texto) => {
+  const q = (texto || '').trim().toLowerCase();
+  return q ? bancos.filter(b => b.nombre.toLowerCase().includes(q) || (b.valor || '').toLowerCase().includes(q)) : bancos;
+};
+
+// Bancos para transacciones: misma lista que el resto, guardando el nombre
+// que usa el lector de correos, mas "Otros".
+export const bancosParaTransacciones = (lista) => [
+  ...lista.map(b => ({ ...b, valor: b.nombreTx || b.nombre })),
+  { id: 'otros', nombre: 'Otros', valor: 'Otros', logo: '' },
+];

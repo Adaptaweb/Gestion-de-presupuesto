@@ -6,7 +6,7 @@ import NavPill from './components/NavPill.jsx';
 import BillingBanner from './components/BillingBanner.jsx';
 import PlanesModal from './components/PlanesModal.jsx';
 import ProfileSheet from './components/ProfileSheet.jsx';
-import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe } from './components/HojaFormulario.jsx';
+import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos } from './components/HojaFormulario.jsx';
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
 import {
@@ -557,11 +557,6 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     return PRESET_ICONS.filter(i => i.label.toLowerCase().includes(q) || i.keywords.toLowerCase().includes(q));
   }, [abonoIconSearch]);
 
-  const filteredBancos = useMemo(() => {
-    if (!bancoSearch.trim()) return BANCOS_CHILE;
-    const q = bancoSearch.toLowerCase().trim();
-    return BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(q));
-  }, [bancoSearch]);
 
   useEffect(() => {
     const today = new Date();
@@ -2850,12 +2845,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
             <Seccion titulo="Banco y tarjeta">
               <SelectorBanco
-                bancos={filteredBancos}
+                bancos={filtrarBancos(BANCOS_CHILE, bancoSearch)}
                 busqueda={bancoSearch}
                 onBuscar={setBancoSearch}
                 seleccionado={newDebt.banco}
                 onElegir={b => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })}
-                bordeActivo={theme.borderAccent}
               />
               {newDebt.banco && (
                 <Segmentado opciones={[{ valor: 'visa', texto: 'Visa' }, { valor: 'mastercard', texto: 'Mastercard' }]} valor={newDebt.tipoTarjeta} onChange={v => setNewDebt({ ...newDebt, tipoTarjeta: v })} />
@@ -2959,12 +2953,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
             <Seccion titulo="Banco y tarjeta">
               <SelectorBanco
-                bancos={fixedBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(fixedBancoSearch.toLowerCase())) : BANCOS_CHILE}
+                bancos={filtrarBancos(BANCOS_CHILE, fixedBancoSearch)}
                 busqueda={fixedBancoSearch}
                 onBuscar={setFixedBancoSearch}
                 seleccionado={newFixed.banco}
                 onElegir={b => setNewFixed({ ...newFixed, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })}
-                bordeActivo={theme.borderAccent}
               />
               {newFixed.banco && (
                 <Segmentado opciones={[{ valor: 'visa', texto: 'Visa' }, { valor: 'mastercard', texto: 'Mastercard' }]} valor={newFixed.tipoTarjeta} onChange={v => setNewFixed({ ...newFixed, tipoTarjeta: v })} />
@@ -3158,12 +3151,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
             <Seccion titulo="Institución financiera">
               <SelectorBanco
-                bancos={accountBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(accountBancoSearch.toLowerCase())) : BANCOS_CHILE}
+                bancos={filtrarBancos(BANCOS_CHILE, accountBancoSearch)}
                 busqueda={accountBancoSearch}
                 onBuscar={setAccountBancoSearch}
                 seleccionado={newAccount.banco}
                 onElegir={b => setNewAccount({ ...newAccount, banco: b.nombre })}
-                bordeActivo="border-emerald-500"
               />
             </Seccion>
           </Hoja>
@@ -3221,12 +3213,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
             <Seccion titulo="Se cobra en">
               <SelectorBanco
-                bancos={subBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(subBancoSearch.toLowerCase())) : BANCOS_CHILE}
+                bancos={filtrarBancos(BANCOS_CHILE, subBancoSearch)}
                 busqueda={subBancoSearch}
                 onBuscar={setSubBancoSearch}
                 seleccionado={newSub.banco}
                 onElegir={b => setNewSub({ ...newSub, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })}
-                bordeActivo={theme.borderAccent}
               />
               {newSub.banco && (
                 <Segmentado opciones={[{ valor: 'visa', texto: 'Visa' }, { valor: 'mastercard', texto: 'Mastercard' }]} valor={newSub.tipoTarjeta} onChange={v => setNewSub({ ...newSub, tipoTarjeta: v })} />

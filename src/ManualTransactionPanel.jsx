@@ -4,18 +4,16 @@ import {
 } from 'lucide-react';
 import {
   CATEGORY_LIST, CATEGORY_EMOJI, CATEGORY_HEX, CATEGORY_RING_COLOR,
-  BANK_ICONS, hexToRgba,
+  hexToRgba,
 } from './constants.js';
 import { notifyOk, notifyError } from './lib/notify.js';
 import { useFilaHorizontal } from './hooks/useFilaHorizontal.js';
-import { Hoja, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe } from './components/HojaFormulario.jsx';
+import { Hoja, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, bancosParaTransacciones } from './components/HojaFormulario.jsx';
+import { BANCOS_CHILE } from './constants/dashboard.js';
 
 const SALIDA_MS = 320;
-// Bancos con su logo real; "Otros" va sin logo.
-const BANCOS = [
-  ...Object.entries(BANK_ICONS).map(([nombre, logo]) => ({ id: nombre, nombre, logo })),
-  { id: 'Otros', nombre: 'Otros', logo: '' },
-];
+// Misma lista de bancos que el resto de la app.
+const BANCOS = bancosParaTransacciones(BANCOS_CHILE);
 
 const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDarkMode }) => {
   const [tipo, setTipo] = useState('gasto');
@@ -270,12 +268,11 @@ const ManualTransactionPanel = ({ show, onClose, onCreated, theme, token, isDark
 
       <Seccion titulo="Banco o medio de pago">
         <SelectorBanco
-          bancos={BANCOS.filter(b => !bancoBusqueda || b.nombre.toLowerCase().includes(bancoBusqueda.toLowerCase()))}
+          bancos={filtrarBancos(BANCOS, bancoBusqueda)}
           busqueda={bancoBusqueda}
           onBuscar={setBancoBusqueda}
           seleccionado={banco}
-          onElegir={b => setBanco(banco === b.nombre ? '' : b.nombre)}
-          bordeActivo={theme.borderAccent}
+          onElegir={b => setBanco(banco === b.valor ? '' : b.valor)}
         />
       </Seccion>
     </Hoja>

@@ -12,10 +12,10 @@ import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from 'boneyard-js/react';
-import { MONTH_NAMES } from './constants/dashboard.js';
+import { MONTH_NAMES, BANCOS_CHILE } from './constants/dashboard.js';
 import { notifyOk, notifyError, notifyInfo, notifyPromise } from './lib/notify.js';
 import { useFilaHorizontal, refFilaHorizontal } from './hooks/useFilaHorizontal.js';
-import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe } from './components/HojaFormulario.jsx';
+import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, bancosParaTransacciones } from './components/HojaFormulario.jsx';
 
 import {
   CATEGORY_LIST as CATEGORY_LIST_DEFAULT,
@@ -61,11 +61,9 @@ const BANK_GRADIENT = {
 };
 const BANK_GRADIENT_FALLBACK = ['#1E293B', '#334155', '#475569'];
 
-// Bancos del formulario de edicion con su logo real; "Otros" va sin logo.
-const BANCOS_EDICION = [
-  ...Object.entries(BANK_ICONS).map(([nombre, logo]) => ({ id: nombre, nombre, logo })),
-  { id: 'Otros', nombre: 'Otros', logo: '' },
-];
+// Bancos del formulario de edicion: la misma lista que el resto de la app.
+const BANCOS_EDICION = bancosParaTransacciones(BANCOS_CHILE);
+const logoBanco = (valor) => BANCOS_EDICION.find(b => b.valor === valor)?.logo || BANK_ICONS[valor] || '';
 
 // Duracion de la salida del modal de pendientes; se desmonta al terminar.
 const REVIEW_EXIT_MS = 380;
@@ -2219,8 +2217,8 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
         >
           <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex items-center gap-3.5`}>
             <span className="w-14 h-14 rounded-[18px] bg-white grid place-items-center flex-shrink-0 overflow-hidden">
-              {BANK_ICONS[editBanco]
-                ? <img src={BANK_ICONS[editBanco]} alt="" className="w-10 h-10 object-contain" />
+              {logoBanco(editBanco)
+                ? <img src={logoBanco(editBanco)} alt="" className="w-10 h-10 object-contain" />
                 : <span className={`text-2xl leading-none ${theme.tabText}`}>{CATEGORY_EMOJI[editCategoria] || (editComercio || '?').trim().charAt(0).toUpperCase()}</span>}
             </span>
             <div className="flex-1 min-w-0">
@@ -2288,12 +2286,11 @@ const Transacciones = ({ user, token, theme, isDarkMode, categorias, gastosCats,
 
           <Seccion titulo="Banco o medio de pago">
             <SelectorBanco
-              bancos={BANCOS_EDICION.filter(b => !editBancoBusqueda || b.nombre.toLowerCase().includes(editBancoBusqueda.toLowerCase()))}
+              bancos={filtrarBancos(BANCOS_EDICION, editBancoBusqueda)}
               busqueda={editBancoBusqueda}
               onBuscar={setEditBancoBusqueda}
               seleccionado={editBanco}
-              onElegir={b => setEditBanco(editBanco === b.nombre ? '' : b.nombre)}
-              bordeActivo={theme.borderAccent}
+              onElegir={b => setEditBanco(editBanco === b.valor ? '' : b.valor)}
             />
           </Seccion>
         </Hoja>

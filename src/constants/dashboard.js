@@ -398,27 +398,32 @@ export const PRESET_ICONS = [
    { id: 'salad', icon: Salad, label: 'Verduras', keywords: 'verduras saludable ensalada' }
 ];
 
+// Lista unica de bancos para todos los formularios. `nombreTx` es el nombre con
+// que el lector de correos guarda el banco en las transacciones (BANK_ICONS,
+// BANK_COLORS); los formularios de transacciones guardan ese valor para no
+// romper los colores ni los totales por banco. Sin logo (`logo: ''`) se
+// muestran las iniciales.
 export const BANCOS_CHILE = [
-  { id: 'banco-de-chile', nombre: 'Banco de Chile', logo: '/bancos/banco-de-chile.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-santander', nombre: 'Banco Santander', logo: '/bancos/banco-santander.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-estado', nombre: 'BancoEstado', logo: '/bancos/banco-estado.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-de-credito', nombre: 'Banco de Crédito e Inversiones (BCI)', logo: '/bancos/banco-de-credito.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-scotiabank', nombre: 'Scotiabank Chile', logo: '/bancos/banco-scotiabank.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-itau', nombre: 'Itaú Corpbanca', logo: '/bancos/banco-itau.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-falabella', nombre: 'Banco Falabella', logo: '/bancos/banco-falabella.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-de-chile', nombreTx: 'Banco de Chile', nombre: 'Banco de Chile', logo: '/bancos/banco-de-chile.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-santander', nombreTx: 'Santander', nombre: 'Banco Santander', logo: '/bancos/banco-santander.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-estado', nombreTx: 'Banco Estado', nombre: 'BancoEstado', logo: '/bancos/banco-estado.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-de-credito', nombreTx: 'BCI', nombre: 'Banco de Crédito e Inversiones (BCI)', logo: '/bancos/banco-de-credito.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-scotiabank', nombreTx: 'Scotiabank', nombre: 'Scotiabank Chile', logo: '/bancos/banco-scotiabank.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-itau', nombreTx: 'Itaú', nombre: 'Itaú Corpbanca', logo: '/bancos/banco-itau.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-falabella', nombreTx: 'Banco Falabella', nombre: 'Banco Falabella', logo: '/bancos/banco-falabella.png', tipos: ['visa', 'mastercard'] },
   { id: 'banco-ripley', nombre: 'Banco Ripley', logo: '/bancos/banco-ripley.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-paris', nombre: 'Banco Paris', logo: '/bancos/banco-paris.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-cencosud', nombre: 'Banco Cencosud', logo: '/bancos/banco-cencosud.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-paris', nombreTx: 'Banco Paris', nombre: 'Banco Paris', logo: '/bancos/banco-paris.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-cencosud', nombre: 'Banco Cencosud', logo: '', tipos: ['visa', 'mastercard'] },
   { id: 'banco-security', nombre: 'Banco Security', logo: '/bancos/banco-security.png', tipos: ['visa', 'mastercard'] },
-  { id: 'banco-rabobank', nombre: 'Rabobank Chile', logo: '/bancos/banco-rabobank.png', tipos: ['visa', 'mastercard'] },
+  { id: 'banco-rabobank', nombre: 'Rabobank Chile', logo: '/bancos/banco-rabobank.svg', tipos: ['visa', 'mastercard'] },
   { id: 'banco-internacional', nombre: 'Banco Internacional', logo: '/bancos/banco-internacional.png', tipos: ['visa', 'mastercard'] },
   { id: 'banco-bice', nombre: 'Banco BICE', logo: '/bancos/banco-bice.png', tipos: ['visa', 'mastercard'] },
   { id: 'banco-hsbc', nombre: 'HSBC Bank Chile', logo: '/bancos/banco-hsbc.png', tipos: ['visa', 'mastercard'] },
   { id: 'coopeuch', nombre: 'Coopeuch', logo: '/bancos/coopeuch.png', tipos: ['visa', 'mastercard'] },
   { id: 'banco-consorcio', nombre: 'Banco Consorcio', logo: '/bancos/banco-consorcio.png', tipos: ['visa', 'mastercard'] },
-  { id: 'tenpo', nombre: 'Tenpo', logo: '/bancos/tenpo.png', tipos: ['visa', 'mastercard'] },
-  { id: 'mach', nombre: 'Mach', logo: '/bancos/mach.png', tipos: ['visa', 'mastercard'] },
-  { id: 'lider', nombre: 'Banco Líder', logo: '/bancos/lider.png', tipos: ['visa', 'mastercard'] },
+  { id: 'tenpo', nombre: 'Tenpo', logo: '', tipos: ['visa', 'mastercard'] },
+  { id: 'mach', nombreTx: 'Mach', nombre: 'Mach', logo: '/bancos/mach.png', tipos: ['visa', 'mastercard'] },
+  { id: 'lider', nombre: 'Banco Líder', logo: '', tipos: ['visa', 'mastercard'] },
   { id: 'mercadopago', nombre: 'Mercado Pago', logo: '/bancos/mercadopago.png', tipos: ['visa', 'mastercard'] }
 ];
 
