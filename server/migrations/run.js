@@ -21,6 +21,15 @@ import dotenv from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Los despliegues de vista previa de Vercel (ramas y PRs) no migran: el
+// entorno Preview no tiene DATABASE_URL, asi que el build fallaba, y si la
+// tuviera apuntaria a la base de produccion, que solo debe migrar al
+// desplegar main.
+if (process.env.VERCEL_ENV === 'preview') {
+  console.log('[migrate] Vista previa de Vercel: se omiten las migraciones.');
+  process.exit(0);
+}
+
 if (!process.env.DATABASE_URL) {
   dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 }
