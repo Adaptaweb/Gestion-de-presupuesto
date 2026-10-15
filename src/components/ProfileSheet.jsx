@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ChevronRight, CreditCard, Bell, Tags, RotateCcw, Moon, Sun, RefreshCw, LogOut,
-  Users, Mail, RotateCw, Filter, Settings2, BrainCircuit, Loader2, Check, FileText, Shield,
+  Users, Mail, RotateCw, Filter, Settings2, BrainCircuit, Loader2, Check, FileText, Shield, X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { THEME_COLORS, THEME_COLOR_HEX, COLOR_NAMES } from './user-dropdown.jsx';
@@ -99,7 +99,9 @@ const ProfileSheet = ({
         onClick={() => cerrar()}
       />
       <div
-        className="kk-sheet absolute left-0 right-0 bottom-0 max-h-[92dvh] overflow-y-auto kk-glass kk-glass-sheet rounded-t-[2rem] px-4 pt-2.5 flex flex-col gap-3.5"
+        // [&>*]:flex-shrink-0: sin esto, al crecer el menu los grupos se
+        // encogian dentro de la altura maxima en vez de dejar hacer scroll.
+        className="kk-sheet absolute left-0 right-0 bottom-0 max-h-[92dvh] overflow-y-auto overscroll-contain kk-glass kk-glass-sheet rounded-t-[2rem] px-4 pt-2.5 flex flex-col gap-3.5 [&>*]:flex-shrink-0"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)',
           animation: saliendo ? 'kkSheetOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards' : 'kkSheetIn 420ms cubic-bezier(0.22, 1, 0.36, 1)',
@@ -107,13 +109,22 @@ const ProfileSheet = ({
       >
         <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-white/15 mx-auto flex-shrink-0" />
 
-        <div className="flex items-center gap-3.5 px-1">
+        {/* Cabecera fija: al bajar por el menu, cerrar sigue a mano. */}
+        <div className="sticky -top-2.5 z-10 -mx-4 px-5 py-2 flex items-center gap-3.5 bg-slate-50/85 dark:bg-[#1e1e1e]/85 backdrop-blur-xl">
           <span className={`w-[52px] h-[52px] rounded-full border-2 grid place-items-center text-[22px] font-extrabold flex-shrink-0 ${theme.borderAccent} ${theme.tabText} bg-white dark:bg-dark-lighter`}>{inicial}</span>
           <div className="min-w-0 flex-1">
             <div className="text-[17px] font-extrabold text-slate-900 dark:text-white leading-tight truncate">{user.name}</div>
             {user.email && <div className="text-[13px] font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">{user.email}</div>}
           </div>
           {chip && <span className={`text-xs font-extrabold px-3 py-1.5 rounded-full whitespace-nowrap ${TONOS[chip.tono]}`}>{chip.texto}</span>}
+          <button
+            type="button"
+            onClick={() => cerrar()}
+            aria-label="Cerrar"
+            className="w-11 h-11 rounded-full grid place-items-center flex-shrink-0 bg-white/70 dark:bg-white/[0.06] border border-white/80 dark:border-white/10 text-slate-500 dark:text-slate-300 transition active:scale-95"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
         </div>
 
         {esAdmin && (

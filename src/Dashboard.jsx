@@ -1577,6 +1577,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   };
   // En movil no hay cabecera global: el presupuesto se abre desde la barra de
   // cada pestaña (en desktop sigue el chip de la cabecera).
+  const fabOculto = activeTab === 'dashboard';
   const botonPresupuestoMovil = (
     <button
       type="button"
@@ -1764,15 +1765,36 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <span aria-hidden="true" className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white dark:border-dark-normal pointer-events-none" />
                 ) : null}
               </div>
-              <button
-                onClick={() => { if (activeTab === 'general') setIsFabDialOpen(prev => !prev); else openManualEntry(); }}
-                aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : 'Ingreso manual'}
-                aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
-                style={{ '--kk-tint': THEME_COLOR_HEX[themeColor] }}
-                className="kk-glass-tint flex-shrink-0 w-14 h-14 rounded-full text-white grid place-items-center transition active:scale-90"
+              {/* El + cambia segun la pestaña: speed-dial en Cuotas, nueva cuenta
+                  en Ahorros, ingreso manual en Transacciones. En Resumen no hay
+                  nada que agregar: se encoge y la barra ocupa la fila. */}
+              <div
+                className="flex-shrink-0"
+                style={{
+                  width: fabOculto ? 0 : 56,
+                  marginLeft: fabOculto ? -8 : 0,
+                  opacity: fabOculto ? 0 : 1,
+                  transform: fabOculto ? 'scale(0.4)' : 'none',
+                  transition: 'width 460ms cubic-bezier(0.22, 1, 0.36, 1), margin 460ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease, transform 460ms cubic-bezier(0.22, 1, 0.36, 1)',
+                  pointerEvents: fabOculto ? 'none' : undefined,
+                }}
+                aria-hidden={fabOculto || undefined}
               >
-                <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
-              </button>
+                <button
+                  onClick={() => {
+                    if (activeTab === 'general') setIsFabDialOpen(prev => !prev);
+                    else if (activeTab === 'ahorros') { setEditingAccount(null); setNewAccount(CUENTA_VACIA); setIsAddingAccount(true); }
+                    else openManualEntry();
+                  }}
+                  tabIndex={fabOculto ? -1 : undefined}
+                  aria-label={activeTab === 'general' ? 'Agregar en Suscripciones y Cuotas' : activeTab === 'ahorros' ? 'Nueva cuenta de ahorro' : 'Ingreso manual'}
+                  aria-expanded={activeTab === 'general' ? isFabDialOpen : undefined}
+                  style={{ '--kk-tint': THEME_COLOR_HEX[themeColor] }}
+                  className="kk-glass-tint w-14 h-14 rounded-full text-white grid place-items-center transition active:scale-90"
+                >
+                  <Plus size={26} strokeWidth={2.75} className={`transition-transform duration-200 ${activeTab === 'general' && isFabDialOpen ? 'rotate-45' : ''}`} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -3442,7 +3464,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         {viewingItem && (
           <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4">
             <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <div className="sticky top-0 z-10 -mx-4 sm:-mx-8 px-4 sm:px-8 py-1 bg-white dark:bg-dark-normal flex justify-between items-center mb-4 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
                   {viewingItem.tipo === 'cuota' ? <CreditCard className={theme.tabText} size={20} /> : viewingItem.tipo === 'suscripcion' ? <RefreshCw className={theme.tabText} size={20} /> : viewingItem.tipo === 'abono' ? <TrendingUp className="text-emerald-600 dark:text-emerald-400" size={20} /> : <Receipt className="text-slate-800 dark:text-slate-200" size={20} />}
                   Detalles

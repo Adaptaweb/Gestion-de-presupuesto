@@ -163,7 +163,15 @@ const App = () => {
             />
             {showTutorial && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                <div className="bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90dvh] max-h-[900px] shadow-2xl overflow-hidden">
+                <div className="relative bg-[#f7f9fb] rounded-2xl w-full max-w-5xl mx-4 h-[90dvh] max-h-[900px] shadow-2xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowTutorial(false)}
+                    aria-label="Cerrar tutorial"
+                    className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full grid place-items-center bg-white/90 border border-slate-200 text-slate-500 shadow-sm transition active:scale-95"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                  </button>
                   <TutorialFlow user={user} onClose={() => setShowTutorial(false)} hasMailboxConfigured={tutorialHasMailbox} />
                 </div>
               </div>
