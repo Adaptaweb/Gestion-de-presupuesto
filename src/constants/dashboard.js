@@ -551,8 +551,34 @@ export const CHILE_CATEGORY_LABELS = {
   tarjetas: 'Tarjetas',
 };
 
+// Las cuentas guardan el nombre del banco como texto, a veces escrito distinto
+// al catalogo ("MercadoPago", "Mercado pago", "Banco Santander Chile"). Se
+// compara sin tildes, mayusculas, espacios ni el prefijo "banco".
+const normalizarBanco = (s) => String(s || '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]/g, '');
+const sinPrefijo = (s) => s.replace(/^banco(de)?/, '');
+
 export const getAhorroBankInfo = (bankName) => {
-  if (!bankName) return null;
-  const n = bankName.toLowerCase().trim();
-  return BANCOS_CHILE.find(b => b.nombre.toLowerCase() === n) || null;
+  const n = normalizarBanco(bankName);
+  if (!n) return null;
+  const claves = (b) => [b.nombre, b.nombreTx, b.id].filter(Boolean).map(normalizarBanco);
+  const exacto = BANCOS_CHILE.find(b => claves(b).includes(n));
+  if (exacto) return exacto;
+  const corto = sinPrefijo(n);
+  if (corto.length < 4) return null;
+  // Coincidencia parcial: gana la clave mas larga, para que "Banco Santander
+  // Chile" sea Santander y no Banco de Chile.
+  let mejor = null;
+  let largo = 0;
+  for (const b of BANCOS_CHILE) {
+    for (const k of claves(b)) {
+      const kc = sinPrefijo(k);
+      if (kc.length >= 4 && kc.length > largo && (corto.includes(kc) || kc.includes(corto))) {
+        mejor = b;
+        largo = kc.length;
+      }
+    }
+  }
+  return mejor;
 };

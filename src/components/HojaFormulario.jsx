@@ -191,11 +191,13 @@ const colorPredominante = (src) => new Promise((resolve) => {
       const { data } = ctx.getImageData(0, 0, lado, lado);
       const cubetas = new Map();
       let opacos = 0;
+      let blancos = 0;
       for (let i = 0; i < data.length; i += 4) {
         const [r, g, b, alfa] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
         if (alfa < 128) continue;
         opacos += 1;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        if (min > 215 && max - min < 30) blancos += 1;
         if (max - min < 40 || max < 40) continue; // gris, blanco o negro
         const clave = `${r >> 4},${g >> 4},${b >> 4}`;
         const c = cubetas.get(clave) || { n: 0, r: 0, g: 0, b: 0 };
@@ -207,7 +209,9 @@ const colorPredominante = (src) => new Promise((resolve) => {
       const hex = mejor
         ? '#' + [mejor.r, mejor.g, mejor.b].map(v => Math.round(v / mejor.n).toString(16).padStart(2, '0')).join('')
         : null;
-      const info = { color: hex, lleno: opacos / (lado * lado) > 0.8 };
+      // detalle: el simbolo lleva dibujo en blanco por dentro (la mano de
+      // Mercado Pago); pintarlo todo de blanco lo convertiria en una mancha.
+      const info = { color: hex, lleno: opacos / (lado * lado) > 0.8, detalle: opacos > 0 && blancos / opacos > 0.08 };
       coloresLogo.set(src, info);
       resolve(info);
     } catch {
@@ -242,7 +246,8 @@ export const iniciales = (nombre = '') => nombre
 
 // Cuadro del banco relleno con el color de su logo, sin borde blanco. Un logo
 // que ya es una figura llena ocupa todo el cuadro; un simbolo suelto se pinta
-// en blanco sobre el color (si no, se perderia sobre su propio color). Sin
+// en blanco sobre el color (si no, se perderia sobre su propio color), salvo
+// que tenga dibujo blanco por dentro: ese se muestra tal cual. Sin
 // logo, las iniciales.
 export const LogoBanco = ({ src, nombre, className = 'w-8 h-8 rounded-[10px]', textoClase = 'text-[11px]' }) => {
   const info = useColorLogo(src);
@@ -258,8 +263,8 @@ export const LogoBanco = ({ src, nombre, className = 'w-8 h-8 rounded-[10px]', t
             src={src}
             alt=""
             onError={() => setFallo(true)}
-            className={info?.lleno ? 'w-full h-full object-cover' : 'w-[68%] h-[68%] object-contain'}
-            style={info && !info.lleno ? { filter: 'brightness(0) invert(1)' } : undefined}
+            className={info?.lleno ? 'w-full h-full object-cover' : info?.detalle ? 'w-[86%] h-[86%] object-contain' : 'w-[68%] h-[68%] object-contain'}
+            style={info && !info.lleno && !info.detalle ? { filter: 'brightness(0) invert(1)' } : undefined}
           />
         )}
     </span>

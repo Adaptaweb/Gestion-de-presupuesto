@@ -1418,6 +1418,35 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     return null;
   };
 
+  // Icono de la tarjeta superior de los formularios: el logo propio del item
+  // (url o logo chileno) sobre fondo blanco, su icono predefinido o el respaldo.
+  const logoDeItem = (item) => {
+    if (item.iconType === 'url' && item.iconUrl) return item.iconUrl;
+    if (item.iconType === 'chile_preset') {
+      const [cat, id] = (item.iconValue || ':').split(':');
+      return CHILE_PRESET_ICONS[cat]?.find(i => i.id === id)?.path || null;
+    }
+    return null;
+  };
+  const heroIcono = (item, presets, respaldo, clase = 'w-14 h-14 rounded-[18px]') => {
+    const src = logoDeItem(item);
+    if (src) {
+      return (
+        <span className={`${clase} bg-white grid place-items-center flex-shrink-0 overflow-hidden p-2 shadow-sm`}>
+          <img src={src} alt="" className="w-full h-full object-contain" />
+        </span>
+      );
+    }
+    const Preset = item.iconType === 'preset' && item.iconValue && item.iconValue !== 'layout'
+      ? presets.find(i => i.id === item.iconValue)?.icon
+      : null;
+    return (
+      <span className={`${clase} bg-white/20 grid place-items-center flex-shrink-0 overflow-hidden text-2xl font-extrabold`}>
+        {Preset ? <Preset size={24} /> : respaldo}
+      </span>
+    );
+  };
+
   const renderFixedIcon = (item) => {
     if (item.iconType === 'url' && item.iconUrl) {
       return <img src={item.iconUrl} className="w-full h-full object-contain" alt="Icon" />;
@@ -2451,7 +2480,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           </div>
                         </div>
                         <button onClick={() => {
-                          setNewAccount({ nombre: cuenta.nombre, banco: cuenta.banco, automatico: !!cuenta.automatico, montoAutomatico: cuenta.montoAutomatico || '' });
+                          setNewAccount({ nombre: cuenta.nombre, banco: getAhorroBankInfo(cuenta.banco)?.nombre || cuenta.banco, automatico: !!cuenta.automatico, montoAutomatico: cuenta.montoAutomatico || '' });
                           setAccountBancoSearch('');
                           setEditingAccount(cuenta);
                           setIsAddingAccount(true);
@@ -2759,7 +2788,8 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
           >
             <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex flex-col gap-3.5`}>
               <div className="flex justify-between items-start gap-3">
-                <div className="min-w-0">
+                {(logoDeItem(newDebt) || (newDebt.iconType === 'preset' && newDebt.iconValue && newDebt.iconValue !== 'layout')) && heroIcono(newDebt, PRESET_ICONS, null, 'w-12 h-12 rounded-2xl')}
+                <div className="min-w-0 flex-1">
                   <div className="text-xs font-extrabold uppercase tracking-wider opacity-90">Valor de cada cuota</div>
                   <div className="text-4xl font-extrabold leading-tight mt-1 tabular-nums truncate">{formatCurrency(newDebt.valorCuota || 0)}</div>
                 </div>
@@ -2902,11 +2932,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             pie={<BotonesPie onCancel={cerrarModalFijo} texto={editingItem ? 'Guardar cambios' : 'Guardar gasto'} clasesPrimario={`${theme.btnFixed} ${theme.shadowBtn}`} />}
           >
             <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnFixed)} text-white flex items-center gap-3.5`}>
-              <span className="w-14 h-14 rounded-[18px] bg-white/15 grid place-items-center flex-shrink-0 overflow-hidden">
-                {newFixed.bancoLogo
-                  ? <LogoBanco src={newFixed.bancoLogo} nombre={newFixed.banco} className="w-full h-full" textoClase="text-lg" />
-                  : <Receipt size={24} />}
-              </span>
+              {heroIcono(newFixed, PRESET_ICONS, newFixed.bancoLogo
+                ? <LogoBanco src={newFixed.bancoLogo} nombre={newFixed.banco} className="w-full h-full" textoClase="text-lg" />
+                : <Receipt size={24} />)}
               <div className="flex-1 min-w-0">
                 <div className="text-[17px] font-extrabold truncate">{newFixed.descripcion || 'Nuevo gasto fijo'}</div>
                 <div className="text-[13px] font-bold opacity-80 truncate">Se paga el día {newFixed.diaPago || 1}{newFixed.banco ? ` · ${newFixed.banco}` : ''}</div>
@@ -3012,7 +3040,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             pie={<BotonesPie onCancel={cerrarModalAbono} texto={editingItem && editingItem.tipo === 'abono' ? 'Guardar cambios' : 'Guardar abono'} clasesPrimario={`${theme.btnPrimary} ${theme.shadowBtn}`} />}
           >
             <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex items-center gap-3.5`}>
-              <span className="w-14 h-14 rounded-[18px] bg-white/20 grid place-items-center flex-shrink-0"><TrendingUp size={24} /></span>
+              {heroIcono(newAbono, PRESET_ICONS, <TrendingUp size={24} />)}
               <div className="flex-1 min-w-0">
                 <div className="text-[17px] font-extrabold truncate">{newAbono.descripcion || 'Nuevo abono'}</div>
                 <div className="text-[13px] font-bold opacity-90">Llega el día {newAbono.diaPago || 1}</div>
@@ -3188,9 +3216,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
             pie={<BotonesPie onCancel={cerrarModalSub} texto={editingItem?.tipo === 'suscripcion' ? 'Guardar cambios' : 'Guardar suscripción'} clasesPrimario={`${theme.btnSub} ${theme.shadowBtn}`} />}
           >
             <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnSub)} text-white flex items-center gap-3.5`}>
-              <span className="w-14 h-14 rounded-[18px] bg-white/20 grid place-items-center text-2xl font-extrabold flex-shrink-0">
-                {(newSub.descripcion || '?').trim().charAt(0).toUpperCase()}
-              </span>
+              {heroIcono(newSub, SUBSCRIPTION_ICONS, (newSub.descripcion || '?').trim().charAt(0).toUpperCase())}
               <div className="flex-1 min-w-0">
                 <div className="text-[17px] font-extrabold truncate">{newSub.descripcion || 'Nueva suscripción'}</div>
                 <div className="text-[13px] font-bold opacity-90">Cobro el día {newSub.diaPago || 1}</div>
