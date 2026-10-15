@@ -16,6 +16,7 @@ import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templat
 import { esCorreoNoTransaccional } from './emailFilters.js';
 import { detectBankFromSender } from './bankMapping.js';
 import { rateLimit, secretsMatch } from './rateLimit.js';
+import { descargarIcono } from './iconos.js';
 import { cargarCompromisos, guardarCompromisos, guardarUno, borrarUno, fijarPago, TIPOS } from './compromisos.js';
 import { logDebug } from './logger.js';
 import { registerBilling } from './billing.js';
@@ -213,7 +214,9 @@ app.use(cors({
   origin: (origin, callback) => callback(null, !origin || ALLOWED_ORIGINS.includes(origin)),
   credentials: false,
 }));
-app.use(express.json());
+// Los iconos descargados viajan dentro de los compromisos como data URL, asi que
+// /api/sync necesita mas que los 100 kB por defecto (Vercel corta en 4,5 MB).
+app.use(express.json({ limit: '4mb' }));
 
 const loginLimiter = rateLimit({
   bucket: 'auth-login',
@@ -243,6 +246,21 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Descarga un icono con URL personalizada para guardarlo en la app (ver iconos.js).
+const iconoLimiter = rateLimit({ bucket: 'icono-descarga', max: 30, windowSec: 600, identify: req => req.user?.id });
+app.post('/api/iconos/descargar', authenticateToken, iconoLimiter, async (req, res) => {
+  try {
+    const { tipo, datos } = await descargarIcono(String(req.body?.url || ''));
+    res.set('Content-Type', tipo);
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Content-Type-Options', 'nosniff');
+    res.send(datos);
+  } catch (error) {
+    const mensaje = error?.name === 'TimeoutError' ? 'El sitio tardó demasiado' : (error?.message || 'No se pudo descargar');
+    res.status(422).json({ error: mensaje });
+  }
+});
 
 // Prueba gratuita y cobro: bloquea escrituras de cuentas vencidas y expone /api/billing/*.
 const billing = registerBilling(app, { db, cache, resend, authenticateToken, JWT_SECRET });

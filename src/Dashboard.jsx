@@ -9,6 +9,7 @@ import ProfileSheet from './components/ProfileSheet.jsx';
 import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe, filtrarBancos, LogoBanco } from './components/HojaFormulario.jsx';
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
+import { esUrlRemota, descargarIconoComoDataUrl } from './lib/iconos.js';
 import {
   Activity,
   ArrowDownCircle,
@@ -506,7 +507,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   const [fixedIconSearch, setFixedIconSearch] = useState('');
   const [debtChileCat, setDebtChileCat] = useState('bancos');
   const [fixedChileCat, setFixedChileCat] = useState('agua');
-  const [subChileCat, setSubChileCat] = useState('medios-pago');
+  const [subChileCat, setSubChileCat] = useState('streaming');
   const [suscripciones, setSuscripciones] = useState([]);
   const [isAddingSub, setIsAddingSub] = useState(false);
   const [newSub, setNewSub] = useState({
@@ -996,16 +997,58 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     setAiAdvice(advice);
   };
 
-  const handleSaveDebt = (e) => {
+  // Icono con URL personalizada: al guardar se descarga y queda dentro del item
+  // (ver lib/iconos.js). Devuelve el parche del icono, {} si no hay nada que
+  // descargar, o null si ya hay una descarga en curso. Si la descarga falla se
+  // guarda igual, con el enlace.
+  const descargandoIconoRef = useRef(false);
+  const iconoListo = async (item) => {
+    if (item.iconType !== 'url' || !esUrlRemota(item.iconUrl)) return {};
+    if (descargandoIconoRef.current) return null;
+    descargandoIconoRef.current = true;
+    try {
+      return { iconUrl: await descargarIconoComoDataUrl(item.iconUrl, getHeaders()) };
+    } catch (err) {
+      notifyInfo('No se pudo descargar el icono', `${err.message}. Se guarda con el enlace.`);
+      return {};
+    } finally {
+      descargandoIconoRef.current = false;
+    }
+  };
+
+  // Los iconos guardados antes como enlace se descargan una vez por sesion,
+  // en segundo plano; si alguno falla queda como estaba.
+  const iconosMigradosRef = useRef(false);
+  useEffect(() => {
+    if (loadingData || iconosMigradosRef.current) return;
+    iconosMigradosRef.current = true;
+    const grupos = [[deudas, setDeudas], [gastosFijos, setGastosFijos], [suscripciones, setSuscripciones], [abonos, setAbonos]];
+    (async () => {
+      for (const [lista, setLista] of grupos) {
+        for (const item of lista) {
+          if (item.iconType !== 'url' || !esUrlRemota(item.iconUrl)) continue;
+          try {
+            const iconUrl = await descargarIconoComoDataUrl(item.iconUrl, getHeaders());
+            setLista(prev => prev.map(x => (x.id === item.id && x.iconUrl === item.iconUrl ? { ...x, iconUrl } : x)));
+          } catch { /* sigue con el enlace */ }
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al terminar de cargar
+  }, [loadingData]);
+
+  const handleSaveDebt = async (e) => {
     e.preventDefault();
     if (modalSaliendo) return;
+    const icono = await iconoListo(newDebt);
+    if (!icono) return;
     console.log('[DEBUG] Guardando deuda:', newDebt);
     const endMonth = calculateEndDate(newDebt.mesInicio, newDebt.cuotasTotales, newDebt.isContribuciones);
     ensureMonthsRange(newDebt.mesInicio, endMonth);
     if (editingItem) {
-      setDeudas(deudas.map(d => d.id === editingItem.id ? { ...newDebt, id: d.id, pagos: d.pagos } : d));
+      setDeudas(deudas.map(d => d.id === editingItem.id ? { ...newDebt, ...icono, id: d.id, pagos: d.pagos } : d));
     } else {
-      setDeudas([...deudas, { ...newDebt, id: `debt-${Date.now()}`, pagos: {} }]);
+      setDeudas([...deudas, { ...newDebt, ...icono, id: `debt-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Cuota actualizada' : 'Cuota creada', newDebt.descripcion);
     if (cuotaDesdeTx && !editingItem) marcarTxOrigen(cuotaDesdeTx.id, 'en_cuotas');
@@ -1019,14 +1062,16 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     });
   };
 
-  const handleSaveFixed = (e) => {
+  const handleSaveFixed = async (e) => {
     e.preventDefault();
     if (modalSaliendo) return;
+    const icono = await iconoListo(newFixed);
+    if (!icono) return;
     console.log('[DEBUG] Guardando gasto fijo:', newFixed);
     if (editingItem) {
-      setGastosFijos(gastosFijos.map(g => g.id === editingItem.id ? { ...newFixed, id: g.id, pagos: g.pagos } : g));
+      setGastosFijos(gastosFijos.map(g => g.id === editingItem.id ? { ...newFixed, ...icono, id: g.id, pagos: g.pagos } : g));
     } else {
-      setGastosFijos([...gastosFijos, { ...newFixed, id: `fixed-${Date.now()}`, pagos: {} }]);
+      setGastosFijos([...gastosFijos, { ...newFixed, ...icono, id: `fixed-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Gasto fijo actualizado' : 'Gasto fijo creado', newFixed.descripcion);
     salirDeModal('fijo', true, () => {
@@ -1038,13 +1083,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     });
   };
 
-  const handleSaveAbono = (e) => {
+  const handleSaveAbono = async (e) => {
     e.preventDefault();
     if (modalSaliendo) return;
+    const icono = await iconoListo(newAbono);
+    if (!icono) return;
     if (editingItem) {
-      setAbonos(abonos.map(a => a.id === editingItem.id ? { ...newAbono, id: a.id, pagos: a.pagos } : a));
+      setAbonos(abonos.map(a => a.id === editingItem.id ? { ...newAbono, ...icono, id: a.id, pagos: a.pagos } : a));
     } else {
-      setAbonos([...abonos, { ...newAbono, id: `abono-${Date.now()}`, pagos: {} }]);
+      setAbonos([...abonos, { ...newAbono, ...icono, id: `abono-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Abono actualizado' : 'Abono creado', newAbono.descripcion);
     salirDeModal('abono', true, () => {
@@ -1151,13 +1198,15 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
       .catch(err => console.error('[pendientes] no se pudo marcar la transaccion', err));
   };
 
-  const handleSaveSubscription = (e) => {
+  const handleSaveSubscription = async (e) => {
     e.preventDefault();
     if (modalSaliendo) return;
+    const icono = await iconoListo(newSub);
+    if (!icono) return;
     if (editingItem && editingItem.tipo === 'suscripcion') {
-      setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, id: s.id, pagos: s.pagos, ...(s.cancelaciones ? { cancelaciones: s.cancelaciones } : {}), ...(s.canceladaDesde ? { canceladaDesde: s.canceladaDesde } : {}) } : s));
+      setSuscripciones(suscripciones.map(s => s.id === editingItem.id ? { ...newSub, ...icono, id: s.id, pagos: s.pagos, ...(s.cancelaciones ? { cancelaciones: s.cancelaciones } : {}), ...(s.canceladaDesde ? { canceladaDesde: s.canceladaDesde } : {}) } : s));
     } else {
-      setSuscripciones([...suscripciones, { ...newSub, id: `sub-${Date.now()}`, pagos: {} }]);
+      setSuscripciones([...suscripciones, { ...newSub, ...icono, id: `sub-${Date.now()}`, pagos: {} }]);
     }
     marcarGuardado(editingItem ? 'Suscripción actualizada' : 'Suscripción creada', newSub.descripcion);
     if (subDesdeTx && !editingItem) marcarTxOrigen(subDesdeTx.id, 'en_suscripcion');
@@ -2862,7 +2911,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2">
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Por defecto</button>
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => { setNewDebt({ ...newDebt, iconType: 'chile_preset', iconValue: 'bancos:banco_de_chile' }); setDebtChileCat('bancos'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Logos</button>
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                   </div>
 
@@ -2894,7 +2943,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   {newDebt.iconType === 'chile_preset' && (
                     <div>
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {['bancos', 'tarjetas'].map(cat => (
+                        {['bancos', 'tarjetas', 'apps', 'ia', 'streaming'].map(cat => (
                           <button key={cat} type="button" onClick={() => setDebtChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${debtChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                         ))}
                       </div>
@@ -2903,7 +2952,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           const val = `${debtChileCat}:${i.id}`;
                           return (
                             <button key={i.id} type="button" onClick={() => setNewDebt({ ...newDebt, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                              <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                              <img src={i.path} alt={i.label} className="w-8 h-5 object-contain dark:bg-white dark:rounded-md dark:p-0.5" />
                               <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
                           );
@@ -2967,7 +3016,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div>
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                   <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => { setNewFixed({ ...newFixed, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setFixedChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Logos</button>
                   <button type="button" onClick={() => setNewFixed({ ...newFixed, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newFixed.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                 </div>
 
@@ -2999,7 +3048,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 {newFixed.iconType === 'chile_preset' && (
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
-                      {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
+                      {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos', 'apps', 'ia', 'streaming'].map(cat => (
                         <button key={cat} type="button" onClick={() => setFixedChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${fixedChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                       ))}
                     </div>
@@ -3008,7 +3057,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         const val = `${fixedChileCat}:${i.id}`;
                         return (
                           <button key={i.id} type="button" onClick={() => setNewFixed({ ...newFixed, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newFixed.iconValue === val ? `${theme.borderAccent} ${theme.btnPrimary} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                            <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                            <img src={i.path} alt={i.label} className="w-8 h-5 object-contain dark:bg-white dark:rounded-md dark:p-0.5" />
                             <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         );
@@ -3060,7 +3109,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
               <div>
                 <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                   <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                  <button type="button" onClick={() => { setNewAbono({ ...newAbono, iconType: 'chile_preset', iconValue: 'agua:aguas_andinas' }); setAbonoChileCat('agua'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'chile_preset' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Logos</button>
                   <button type="button" onClick={() => setNewAbono({ ...newAbono, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newAbono.iconType === 'url' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                 </div>
 
@@ -3092,7 +3141,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                 {newAbono.iconType === 'chile_preset' && (
                   <div>
                     <div className="flex flex-wrap gap-1 mb-2">
-                      {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos'].map(cat => (
+                      {['agua', 'gas', 'telefonia', 'isapres', 'afp', 'tickets', 'bancos', 'apps', 'ia', 'streaming'].map(cat => (
                         <button key={cat} type="button" onClick={() => setAbonoChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${abonoChileCat === cat ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                       ))}
                     </div>
@@ -3101,7 +3150,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                         const val = `${abonoChileCat}:${i.id}`;
                         return (
                           <button key={i.id} type="button" onClick={() => setNewAbono({ ...newAbono, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newAbono.iconValue === val ? 'border-emerald-500 bg-emerald-600 text-white' : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                            <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                            <img src={i.path} alt={i.label} className="w-8 h-5 object-contain dark:bg-white dark:rounded-md dark:p-0.5" />
                             <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center">{i.label}</span>
                           </button>
                         );
@@ -3268,7 +3317,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
 
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                     <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
-                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
+                    <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'streaming:netflix' }); setSubChileCat('streaming'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Logos</button>
                     <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'url' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'url' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>URL</button>
                   </div>
 
@@ -3300,7 +3349,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   {newSub.iconType === 'chile_preset' && (
                     <div>
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {['medios-pago', 'telefonia', 'tickets'].map(cat => (
+                        {['streaming', 'ia', 'apps', 'medios-pago', 'telefonia', 'tickets'].map(cat => (
                           <button key={cat} type="button" onClick={() => setSubChileCat(cat)} className={`px-2.5 py-1 rounded-lg text-xs sm:text-xs font-black border-2 transition ${subChileCat === cat ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>{CHILE_CATEGORY_LABELS[cat]}</button>
                         ))}
                       </div>
@@ -3309,7 +3358,7 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                           const val = `${subChileCat}:${i.id}`;
                           return (
                             <button key={i.id} type="button" onClick={() => setNewSub({ ...newSub, iconValue: val })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-0.5 border-2 transition ${newSub.iconValue === val && newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.btnSub} text-white` : 'border-slate-100 dark:border-dark-lighter text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                              <img src={i.path} alt={i.label} className="w-8 h-5 object-contain" />
+                              <img src={i.path} alt={i.label} className="w-8 h-5 object-contain dark:bg-white dark:rounded-md dark:p-0.5" />
                               <span className="text-[11px] sm:text-[11px] font-bold leading-none truncate w-full text-center">{i.label}</span>
                             </button>
                           );
