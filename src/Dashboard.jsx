@@ -565,7 +565,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
   }, [abonoIconSearch]);
 
 
+  // Facturacion automatica: al terminar de cargar los datos marca como pagado
+  // el cobro del mes en curso que ya llego a su dia. Antes corria al montar el
+  // componente, con las listas aun vacias, y nunca facturaba nada.
   useEffect(() => {
+    if (loadingData) return;
     const today = new Date();
     const diaActual = today.getDate();
     const mesActual = `${MONTH_NAMES[today.getMonth()]} ${today.getFullYear()}`;
@@ -583,9 +587,11 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     let gastosCambiados = false;
     const gastosActualizados = gastosFijos.map(gasto => {
       if (!gasto.facturacionAuto) return gasto;
-      if (gasto.diaPago <= diaActual && !gasto.pagos?.[mesActual]) {
+      // Sin monto fijo: solo se marca pagado si el mes ya tiene su monto.
+      const pago = gasto.pagos?.[mesActual];
+      if (gasto.diaPago <= diaActual && pago?.monto > 0 && pago.estado !== 'PAGADA') {
         gastosCambiados = true;
-        return { ...gasto, pagos: { ...gasto.pagos, [mesActual]: { estado: 'PAGADA' } } };
+        return { ...gasto, pagos: { ...gasto.pagos, [mesActual]: { ...pago, estado: 'PAGADA' } } };
       }
       return gasto;
     });
@@ -593,17 +599,31 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
     let abonosCambiados = false;
     const abonosActualizados = abonos.map(abono => {
       if (!abono.facturacionAuto) return abono;
-      if (abono.diaPago <= diaActual && !abono.pagos?.[mesActual]) {
+      // Sin monto fijo: solo se marca pagado si el mes ya tiene su monto.
+      const pago = abono.pagos?.[mesActual];
+      if (abono.diaPago <= diaActual && pago?.monto > 0 && pago.estado !== 'PAGADA') {
         abonosCambiados = true;
-        return { ...abono, pagos: { ...abono.pagos, [mesActual]: { estado: 'PAGADA' } } };
+        return { ...abono, pagos: { ...abono.pagos, [mesActual]: { ...pago, estado: 'PAGADA' } } };
       }
       return abono;
+    });
+
+    // Una suscripcion cancelada (o fuera de su vigencia) no se cobra.
+    let subsCambiadas = false;
+    const subsActualizadas = suscripciones.map(sub => {
+      if (!sub.facturacionAuto || !subActivaEnMes(sub, mesActual)) return sub;
+      if ((sub.diaPago || 1) <= diaActual && !sub.pagos?.[mesActual]) {
+        subsCambiadas = true;
+        return { ...sub, pagos: { ...sub.pagos, [mesActual]: { monto: sub.valor || 0, estado: 'PAGADA' } } };
+      }
+      return sub;
     });
 
     if (deudasCambiadas) setDeudas(deudasActualizadas);
     if (gastosCambiados) setGastosFijos(gastosActualizados);
     if (abonosCambiados) setAbonos(abonosActualizados);
-  }, []);
+    if (subsCambiadas) setSuscripciones(subsActualizadas);
+  }, [loadingData]);
 
   const isInitialSync = useRef(true);
   const syncTimeoutRef = useRef(null);

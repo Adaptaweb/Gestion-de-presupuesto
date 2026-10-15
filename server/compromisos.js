@@ -22,12 +22,23 @@ const COLUMNAS = [
   'id', 'user_id', 'tipo', 'descripcion', 'diaPago', 'facturacionAuto',
   'iconType', 'iconValue', 'iconUrl', 'cuotasTotales', 'valorCuota',
   'isContribuciones', 'banco', 'bancoLogo', 'tipoTarjeta', 'valor',
-  'billingCycle', 'durationYears', 'mesInicio',
+  'billingCycle', 'durationYears', 'mesInicio', 'cancelaciones',
 ];
 
-// Postgres admite 65535 parametros por sentencia. Con 19 columnas caben de
+// Postgres admite 65535 parametros por sentencia. Con 20 columnas caben de
 // sobra 500 filas por lote.
 const LOTE = 500;
+
+// Periodos de cancelacion de una suscripcion, como JSON para la columna JSONB.
+// Acepta tambien el formato anterior (canceladaDesde) para no perder bajas.
+function cancelacionesDe(item) {
+  let periodos = Array.isArray(item.cancelaciones) ? item.cancelaciones : [];
+  if (!periodos.length && item.canceladaDesde) periodos = [{ desde: item.canceladaDesde, hasta: null }];
+  periodos = periodos
+    .filter(p => p && typeof p.desde === 'string')
+    .map(p => ({ desde: p.desde, hasta: typeof p.hasta === 'string' ? p.hasta : null }));
+  return periodos.length ? JSON.stringify(periodos) : null;
+}
 
 function fila(item, userId, tipo) {
   return [
@@ -50,6 +61,7 @@ function fila(item, userId, tipo) {
     item.billingCycle ?? null,
     item.durationYears ?? null,
     item.mesInicio ?? null,
+    cancelacionesDe(item),
   ];
 }
 
@@ -169,8 +181,13 @@ export async function cargarCompromisos(db, userId) {
   for (const item of items) {
     const destino = TIPO_POR_CLAVE[item.tipo];
     if (!destino) continue;
-    const { tipo, user_id, deleted_at, created_at, updated_at, ...campos } = item;
-    salida[destino].push({ ...campos, pagos: pagosPorItem.get(item.id) || {} });
+    const { tipo, user_id, deleted_at, created_at, updated_at, cancelaciones, ...campos } = item;
+    const periodos = typeof cancelaciones === 'string' ? JSON.parse(cancelaciones) : cancelaciones;
+    salida[destino].push({
+      ...campos,
+      ...(Array.isArray(periodos) && periodos.length ? { cancelaciones: periodos } : {}),
+      pagos: pagosPorItem.get(item.id) || {},
+    });
   }
 
   return salida;

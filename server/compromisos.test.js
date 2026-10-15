@@ -101,3 +101,21 @@ test('un tipo ausente no genera ninguna consulta', async () => {
   await guardarCompromisos(tx, 'u1', {});
   assert.equal(tx.consultas.length, 0);
 });
+
+test('las cancelaciones de una suscripcion se guardan como JSON', async () => {
+  const tx = txEspia();
+  await guardarCompromisos(tx, 'u1', {
+    suscripciones: [
+      { id: 'sub-1', descripcion: 'Xbox', valor: 12990, cancelaciones: [{ desde: 'Octubre 2026', hasta: null }], pagos: {} },
+      { id: 'sub-2', descripcion: 'Prime', valor: 6990, canceladaDesde: 'Septiembre 2026', pagos: {} },
+      { id: 'sub-3', descripcion: 'Spotify', valor: 6490, pagos: {} },
+    ],
+  });
+  const insert = tx.consultas.find(c => c.sql.startsWith('INSERT INTO compromisos'));
+  assert.ok(insert.sql.includes('"cancelaciones"'));
+  const porFila = insert.params.length / 3;
+  const cancelacionDe = (i) => insert.params[porFila * (i + 1) - 1];
+  assert.deepEqual(JSON.parse(cancelacionDe(0)), [{ desde: 'Octubre 2026', hasta: null }]);
+  assert.deepEqual(JSON.parse(cancelacionDe(1)), [{ desde: 'Septiembre 2026', hasta: null }]);
+  assert.equal(cancelacionDe(2), null);
+});
