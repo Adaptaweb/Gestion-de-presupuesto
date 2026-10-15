@@ -6,6 +6,7 @@ import NavPill from './components/NavPill.jsx';
 import BillingBanner from './components/BillingBanner.jsx';
 import PlanesModal from './components/PlanesModal.jsx';
 import ProfileSheet from './components/ProfileSheet.jsx';
+import { Hoja, BotonesPie, Grupo, Seccion, Fila, FilaCampo, FilaInterruptor, Stepper, Pastilla, Segmentado, SelectorBanco, fondoDe } from './components/HojaFormulario.jsx';
 import { fetchBilling } from './lib/billing.js';
 import { notifyOk, notifyInfo } from './lib/notify.js';
 import {
@@ -15,6 +16,13 @@ import {
   Building2,
   Ban,
   CalendarDays,
+  CircleDollarSign,
+  Clock,
+  Hash,
+  Hourglass,
+  ShieldCheck,
+  Tag,
+  Tv,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -1218,6 +1226,19 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         ? { animation: `${modalSaliendo.guardado ? 'kkModalGuardado' : 'kkModalCierre'} ${SALIDA_MODAL_MS}ms cubic-bezier(0.4, 0, 0.9, 0.6) forwards` }
         : desdePendiente ? { animation: 'kkFlipIn 620ms cubic-bezier(0.3, 0.6, 0.35, 1.18) both' } : undefined,
     };
+  };
+  const cerrarModalSub = () => {
+    if (modalSaliendo) return;
+    salirDeModal('suscripcion', false, () => {
+      setIsAddingSub(false); setEditingItem(null); setSubDesdeTx(null);
+      setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' });
+      setSubBancoSearch(''); setSubscriptionIconSearch('');
+    });
+  };
+  // Al llegar desde pendientes el valor de la cuota sigue al numero de cuotas.
+  const cambiarCuotas = (n) => {
+    const cuotas = Math.min(120, Math.max(1, n || 1));
+    setNewDebt(prev => ({ ...prev, cuotasTotales: cuotas, ...(cuotaDesdeTx ? { valorCuota: Math.round(cuotaDesdeTx.monto / cuotas) } : {}) }));
   };
   const cerrarModalDeuda = () => {
     if (modalSaliendo) return;
@@ -2738,110 +2759,90 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {isAddingDebt && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4" style={animModal('deuda', !!cuotaDesdeTx).fondo}>
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto" style={animModal('deuda', !!cuotaDesdeTx).tarjeta}>
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  <CreditCard className={theme.tabText} size={20} /> {editingItem ? 'Editar Cuota' : 'Nueva Cuota'}
-                </h3>
-                <button onClick={cerrarModalDeuda} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+          <Hoja
+            onSubmit={handleSaveDebt}
+            onClose={cerrarModalDeuda}
+            icono={CreditCard}
+            titulo={editingItem ? 'Editar cuota' : 'Nueva cuota'}
+            subtitulo={cuotaDesdeTx ? `Desde pendientes · ${String(cuotaDesdeTx.fecha || '').slice(0, 10)}` : null}
+            tono={`${theme.bgModalLight} ${theme.tabText}`}
+            estiloFondo={animModal('deuda', !!cuotaDesdeTx).fondo}
+            estiloTarjeta={animModal('deuda', !!cuotaDesdeTx).tarjeta}
+            pie={<BotonesPie onCancel={cerrarModalDeuda} texto={editingItem ? 'Guardar cambios' : 'Guardar cuota'} clasesPrimario={`${theme.btnPrimary} ${theme.shadowBtn}`} />}
+          >
+            <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnPrimary)} text-white flex flex-col gap-3.5`}>
+              <div className="flex justify-between items-start gap-3">
+                <div className="min-w-0">
+                  <div className="text-xs font-extrabold uppercase tracking-wider opacity-90">Valor de cada cuota</div>
+                  <div className="text-4xl font-extrabold leading-tight mt-1 tabular-nums truncate">{formatCurrency(newDebt.valorCuota || 0)}</div>
+                </div>
+                <span className="text-xs font-extrabold px-2.5 py-1.5 rounded-full bg-white/20 whitespace-nowrap">{newDebt.cuotasTotales || 0} cuotas</span>
               </div>
-              <form onSubmit={handleSaveDebt} className="space-y-3 sm:space-y-4">
-                {cuotaDesdeTx && (
-                  <div className={`flex items-center justify-between rounded-xl border px-3 sm:px-4 py-2.5 ${theme.bgModalLight} ${theme.borderAccent}`}>
-                    <div>
-                      <p className={`text-xs font-black uppercase ${theme.tabText}`}>Total de la compra</p>
-                      <p className="text-[11px] font-medium text-slate-400">Desde pendientes · {String(cuotaDesdeTx.fecha || '').slice(0, 10)}</p>
-                    </div>
-                    <p className={`text-xl font-black ${theme.tabText}`}>{`$${cuotaDesdeTx.monto.toLocaleString('es-CL')}`}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Descripción</label>
-                  <input required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} placeholder="Ej: Notebook, Vacaciones..." />
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Cuotas Totales</label>
-                    <input type="number" required value={newDebt.cuotasTotales} readOnly={newDebt.isContribuciones} onChange={e => {
-                      const n = parseInt(e.target.value);
-                      setNewDebt({ ...newDebt, cuotasTotales: n, ...(cuotaDesdeTx && n > 0 ? { valorCuota: Math.round(cuotaDesdeTx.monto / n) } : {}) });
-                    }} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition ${newDebt.isContribuciones ? 'text-slate-500 cursor-not-allowed' : ''} dark:text-slate-200`} />
-                  </div>
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor Cuota</label>
-                    <input type="number" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de Inicio</label>
-                  <input
-                    type="month"
-                    required
-                    value={monthStrToMonthInput(newDebt.mesInicio)}
-                    onChange={handleMesInicioChange}
-                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
+              <div className="flex justify-between text-[13px] font-bold pt-3 border-t border-white/25">
+                <span>{cuotaDesdeTx ? 'Total de la compra' : 'Total a pagar'}</span>
+                <span className="tabular-nums">{formatCurrency(cuotaDesdeTx ? cuotaDesdeTx.monto : (newDebt.valorCuota || 0) * (newDebt.cuotasTotales || 0))}</span>
+              </div>
+            </div>
+
+            <Grupo>
+              <FilaCampo icono={Tag} etiqueta="Descripción" required value={newDebt.descripcion} readOnly={newDebt.isContribuciones} onChange={e => setNewDebt({ ...newDebt, descripcion: e.target.value })} placeholder="Ej: Notebook" />
+              <div>
+                <Fila icono={Hash} texto="Cuotas">
+                  <Stepper
+                    valor={newDebt.cuotasTotales || 0}
+                    deshabilitado={newDebt.isContribuciones}
+                    onMenos={() => cambiarCuotas((newDebt.cuotasTotales || 1) - 1)}
+                    onMas={() => cambiarCuotas((newDebt.cuotasTotales || 0) + 1)}
+                    etiquetaMenos="Una cuota menos"
+                    etiquetaMas="Una cuota más"
                   />
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3 bg-amber-50 dark:bg-amber-900/20 p-3 sm:p-4 rounded-xl border border-amber-100 dark:border-amber-800">
-                  <input type="checkbox" id="contrib" checked={newDebt.isContribuciones} onChange={handleContribucionesChange} className="w-4 h-4 sm:w-5 sm:h-5 rounded-md accent-amber-600" />
-                  <label htmlFor="contrib" className="text-xs sm:text-xs font-bold text-amber-800 dark:text-amber-200">Es Contribución Legal (Solo 4 cuotas fijas al año)</label>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Día de Pago</label>
-                    <input type="number" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" />
-                  </div>
-                  <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-                    <label className="relative inline-flex items-center cursor-pointer gap-3">
-                      <input type="checkbox" className="sr-only peer" checked={newDebt.facturacionAuto} onChange={e => setNewDebt({ ...newDebt, facturacionAuto: e.target.checked })} />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
-                      <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
-                  <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input
-                      type="text"
-                      value={bancoSearch}
-                      onChange={(e) => setBancoSearch(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200"
-                      placeholder="Buscar banco..."
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
-                    {filteredBancos.map(b => (
-                      <button type="button" key={b.id} onClick={() => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newDebt.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                        <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
+                </Fila>
+                {!newDebt.isContribuciones && (
+                  <div className="flex gap-2 pl-[62px] pr-3.5 pb-3.5 -mt-1">
+                    {[3, 6, 12, 24].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => cambiarCuotas(n)}
+                        aria-pressed={newDebt.cuotasTotales === n}
+                        className={`flex-1 h-[34px] rounded-full text-[13px] font-extrabold border transition active:scale-95 ${newDebt.cuotasTotales === n ? `${fondoDe(theme.btnPrimary)} border-transparent text-white` : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300'}`}
+                      >
+                        {n}
                       </button>
                     ))}
                   </div>
-                  {newDebt.banco && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <img src={newDebt.bancoLogo} alt={newDebt.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{newDebt.banco}</span>
-                    </div>
-                  )}
-                </div>
-
-                {newDebt.banco && (
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
-                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                      <button type="button" onClick={() => setNewDebt({ ...newDebt, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newDebt.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
-                    </div>
-                  </div>
                 )}
+              </div>
+              <FilaCampo icono={CircleDollarSign} etiqueta="Valor cuota" type="number" inputMode="numeric" required value={newDebt.valorCuota} onChange={e => setNewDebt({ ...newDebt, valorCuota: parseInt(e.target.value) })} />
+            </Grupo>
 
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono (opcional)</label>
+            <Grupo>
+              <Fila icono={CalendarDays} texto="Primera cuota">
+                <Pastilla type="month" required value={monthStrToMonthInput(newDebt.mesInicio)} onChange={handleMesInicioChange} aria-label="Mes de la primera cuota" style={{ width: 176 }} />
+              </Fila>
+              <Fila icono={Clock} texto="Día de pago">
+                <Pastilla type="number" inputMode="numeric" min="1" max="31" value={newDebt.diaPago} onChange={e => setNewDebt({ ...newDebt, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} aria-label="Día de pago" style={{ width: 72 }} />
+              </Fila>
+              <FilaInterruptor icono={RefreshCw} texto="Facturación automática" detalle="Se marca pagada cada mes" activo={!!newDebt.facturacionAuto} onChange={v => setNewDebt({ ...newDebt, facturacionAuto: v })} colorActivo={fondoDe(theme.btnPrimary)} />
+              <FilaInterruptor icono={ShieldCheck} texto="Contribución legal" detalle="Solo 4 cuotas fijas al año" activo={!!newDebt.isContribuciones} onChange={v => handleContribucionesChange({ target: { checked: v } })} colorActivo={fondoDe(theme.btnPrimary)} />
+            </Grupo>
+
+            <Seccion titulo="Banco y tarjeta">
+              <SelectorBanco
+                bancos={filteredBancos}
+                busqueda={bancoSearch}
+                onBuscar={setBancoSearch}
+                seleccionado={newDebt.banco}
+                onElegir={b => setNewDebt({ ...newDebt, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })}
+                bordeActivo={theme.borderAccent}
+              />
+              {newDebt.banco && (
+                <Segmentado opciones={[{ valor: 'visa', texto: 'Visa' }, { valor: 'mastercard', texto: 'Mastercard' }]} valor={newDebt.tipoTarjeta} onChange={v => setNewDebt({ ...newDebt, tipoTarjeta: v })} />
+              )}
+            </Seccion>
+
+            <Seccion titulo="Icono (opcional)">
+
                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2">
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'default' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'default' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Por defecto</button>
                     <button type="button" onClick={() => setNewDebt({ ...newDebt, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newDebt.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
@@ -2898,11 +2899,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   {newDebt.iconType === 'url' && (
                     <input value={newDebt.iconUrl} onChange={e => setNewDebt({ ...newDebt, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="https://ejemplo.com/logo.png" />
                   )}
-                </div>
-                <button type="submit" className={`w-full ${theme.btnPrimary} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Guardar Registro</button>
-              </form>
-            </div>
-          </div>
+                
+            </Seccion>
+          </Hoja>
         )}
 
         {isAddingFixed && (
@@ -3176,103 +3175,71 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
         )}
 
         {isAddingSub && (
-          <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-3 sm:p-4" style={animModal('suscripcion', !!subDesdeTx).fondo}>
-            <div className="bg-white dark:bg-dark-normal rounded-2xl sm:rounded-[2rem] w-full max-w-md p-4 sm:p-8 pb-16 md:pb-8 shadow-2xl animate-scale-in max-h-[90dvh] overflow-y-auto" style={animModal('suscripcion', !!subDesdeTx).tarjeta}>
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl font-black flex items-center gap-2">
-                  <RefreshCw className={theme.tabText} size={20} /> {editingItem?.tipo === 'suscripcion' ? 'Editar Suscripcion' : 'Nueva Suscripcion'}
-                </h3>
-                <button onClick={() => { if (modalSaliendo) return; salirDeModal('suscripcion', false, () => { setIsAddingSub(false); setEditingItem(null); setSubDesdeTx(null); setNewSub({ descripcion: '', valor: 0, billingCycle: 'mensual', diaPago: 1, mesInicio: months[0], durationYears: 1, facturacionAuto: false, banco: '', bancoLogo: '', tipoTarjeta: '', iconType: 'preset', iconValue: 'layout', iconUrl: '' }); setSubBancoSearch(''); setSubscriptionIconSearch(''); }); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"><X size={20} /></button>
+          <Hoja
+            onSubmit={handleSaveSubscription}
+            onClose={cerrarModalSub}
+            icono={RefreshCw}
+            titulo={editingItem?.tipo === 'suscripcion' ? 'Editar suscripción' : 'Nueva suscripción'}
+            subtitulo={subDesdeTx ? `Desde pendientes · ${String(subDesdeTx.fecha || '').slice(0, 10)} · ${formatCurrency(subDesdeTx.monto)}` : null}
+            tono={`${theme.bgModalLight} ${theme.tabText}`}
+            estiloFondo={animModal('suscripcion', !!subDesdeTx).fondo}
+            estiloTarjeta={animModal('suscripcion', !!subDesdeTx).tarjeta}
+            pie={<BotonesPie onCancel={cerrarModalSub} texto={editingItem?.tipo === 'suscripcion' ? 'Guardar cambios' : 'Guardar suscripción'} clasesPrimario={`${theme.btnSub} ${theme.shadowBtn}`} />}
+          >
+            <div className={`rounded-3xl p-[18px] ${fondoDe(theme.btnSub)} text-white flex items-center gap-3.5`}>
+              <span className="w-14 h-14 rounded-[18px] bg-white/20 grid place-items-center text-2xl font-extrabold flex-shrink-0">
+                {(newSub.descripcion || '?').trim().charAt(0).toUpperCase()}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[17px] font-extrabold truncate">{newSub.descripcion || 'Nueva suscripción'}</div>
+                <div className="text-[13px] font-bold opacity-90">Cobro el día {newSub.diaPago || 1}</div>
               </div>
-              <form onSubmit={handleSaveSubscription} className="space-y-3 sm:space-y-4">
-                {subDesdeTx && (
-                  <div className={`flex items-center justify-between rounded-xl border px-3 sm:px-4 py-2.5 ${theme.bgModalLight} ${theme.borderAccent}`}>
-                    <div>
-                      <p className={`text-xs font-black uppercase ${theme.tabText}`}>Compra original</p>
-                      <p className="text-[11px] font-medium text-slate-400">Desde pendientes · {String(subDesdeTx.fecha || '').slice(0, 10)}</p>
-                    </div>
-                    <p className={`text-xl font-black ${theme.tabText}`}>{`${subDesdeTx.monto.toLocaleString('es-CL')}`}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Servicio</label>
-                  <input required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Ej: Netflix, Spotify, YouTube..." />
-                </div>
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Valor</label>
-                  <input type="number" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} placeholder="Monto a pagar" />
-                </div>
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Plan de facturacion</label>
-                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'mensual' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'mensual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mensual</button>
-                    <button type="button" onClick={() => setNewSub({ ...newSub, billingCycle: 'anual' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.billingCycle === 'anual' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Anual</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Duracion (años)</label>
-                    <select value={newSub.durationYears} onChange={e => setNewSub({ ...newSub, durationYears: parseInt(e.target.value) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}>
-                      {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n} {n === 1 ? 'año' : 'años'}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Dia de pago</label>
-                    <input type="number" min="1" max="31" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Mes de inicio</label>
-                  <input
-                    type="month"
-                    required
-                    value={monthStrToMonthInput(newSub.mesInicio)}
-                    onChange={e => setNewSub({ ...newSub, mesInicio: monthInputToMonthStr(e.target.value) })}
-                    className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200`}
-                  />
-                </div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-[26px] font-extrabold leading-tight tabular-nums">{formatCurrency(newSub.valor || 0)}</div>
+                <div className="text-xs font-extrabold opacity-90">{newSub.billingCycle === 'anual' ? 'al año' : 'al mes'}</div>
+              </div>
+            </div>
 
-                <div className="flex items-center bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-                  <label className="relative inline-flex items-center cursor-pointer gap-3">
-                    <input type="checkbox" className="sr-only peer" checked={newSub.facturacionAuto} onChange={e => setNewSub({ ...newSub, facturacionAuto: e.target.checked })} />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-dark-lightest peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition dark:border-dark-lightest peer-checked:bg-blue-600"></div>
-                    <span className="text-xs sm:text-xs font-bold text-blue-800 dark:text-blue-200">Facturación Automática</span>
-                  </label>
-                </div>
+            <Segmentado opciones={[{ valor: 'mensual', texto: 'Mensual' }, { valor: 'anual', texto: 'Anual' }]} valor={newSub.billingCycle} onChange={v => setNewSub({ ...newSub, billingCycle: v })} />
 
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Banco / Institución</label>
-                  <div className="relative mb-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                    <input type="text" value={subBancoSearch} onChange={(e) => setSubBancoSearch(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold outline-none focus:border-blue-500 transition dark:text-slate-200" placeholder="Buscar banco..." />
-                  </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-2">
-                    {(subBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(subBancoSearch.toLowerCase())) : BANCOS_CHILE).map(b => (
-                      <button type="button" key={b.id} onClick={() => { setNewSub({ ...newSub, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' }); setSubBancoSearch(''); }} className={`p-1.5 sm:p-2 rounded-xl flex flex-col items-center justify-center gap-1 border-2 transition ${newSub.banco === b.nombre ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-100 dark:border-dark-lighter hover:bg-slate-50 dark:hover:bg-dark-lighter'}`}>
-                        <img src={b.logo} alt={b.nombre} className="w-8 h-8 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <span className="text-[11px] sm:text-xs font-bold leading-none truncate w-full text-center text-slate-600 dark:text-slate-400">{b.nombre}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {newSub.banco && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <img src={newSub.bancoLogo} alt={newSub.banco} className="w-6 h-6 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{newSub.banco}</span>
-                    </div>
-                  )}
-                  {newSub.banco && (
-                    <div>
-                      <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Tipo de Tarjeta</label>
-                      <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'visa' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'visa' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Visa</button>
-                        <button type="button" onClick={() => setNewSub({ ...newSub, tipoTarjeta: 'mastercard' })} className={`py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs font-black border-2 transition ${newSub.tipoTarjeta === 'mastercard' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Mastercard</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <Grupo>
+              <FilaCampo icono={Tv} etiqueta="Servicio" required value={newSub.descripcion} onChange={e => setNewSub({ ...newSub, descripcion: e.target.value })} placeholder="Ej: Netflix" />
+              <FilaCampo icono={CircleDollarSign} etiqueta="Valor" type="number" inputMode="numeric" required value={newSub.valor} onChange={e => setNewSub({ ...newSub, valor: parseInt(e.target.value) || 0 })} placeholder="Monto" />
+              <Fila icono={CalendarDays} texto="Desde">
+                <Pastilla type="month" required value={monthStrToMonthInput(newSub.mesInicio)} onChange={e => setNewSub({ ...newSub, mesInicio: monthInputToMonthStr(e.target.value) })} aria-label="Mes de inicio" style={{ width: 176 }} />
+              </Fila>
+              <Fila icono={Clock} texto="Día de cobro">
+                <Pastilla type="number" inputMode="numeric" min="1" max="31" required value={newSub.diaPago} onChange={e => setNewSub({ ...newSub, diaPago: Math.min(31, Math.max(1, parseInt(e.target.value) || 1)) })} aria-label="Día de cobro" style={{ width: 72 }} />
+              </Fila>
+              <Fila icono={Hourglass} texto="Duración">
+                <Stepper
+                  valor={newSub.durationYears || 1}
+                  texto={`${newSub.durationYears || 1} ${(newSub.durationYears || 1) === 1 ? 'año' : 'años'}`}
+                  onMenos={() => setNewSub({ ...newSub, durationYears: Math.max(1, (newSub.durationYears || 1) - 1) })}
+                  onMas={() => setNewSub({ ...newSub, durationYears: Math.min(6, (newSub.durationYears || 1) + 1) })}
+                  etiquetaMenos="Un año menos"
+                  etiquetaMas="Un año más"
+                />
+              </Fila>
+              <FilaInterruptor icono={RefreshCw} texto="Facturación automática" detalle="Se marca pagada en cada cobro" activo={!!newSub.facturacionAuto} onChange={v => setNewSub({ ...newSub, facturacionAuto: v })} colorActivo={fondoDe(theme.btnSub)} />
+            </Grupo>
 
-                <div>
-                  <label className="text-xs sm:text-xs font-black uppercase text-slate-400 mb-1.5 block">Icono</label>
+            <Seccion titulo="Se cobra en">
+              <SelectorBanco
+                bancos={subBancoSearch ? BANCOS_CHILE.filter(b => b.nombre.toLowerCase().includes(subBancoSearch.toLowerCase())) : BANCOS_CHILE}
+                busqueda={subBancoSearch}
+                onBuscar={setSubBancoSearch}
+                seleccionado={newSub.banco}
+                onElegir={b => setNewSub({ ...newSub, banco: b.nombre, bancoLogo: b.logo, tipoTarjeta: b.tipos.includes('visa') ? 'visa' : 'mastercard' })}
+                bordeActivo={theme.borderAccent}
+              />
+              {newSub.banco && (
+                <Segmentado opciones={[{ valor: 'visa', texto: 'Visa' }, { valor: 'mastercard', texto: 'Mastercard' }]} valor={newSub.tipoTarjeta} onChange={v => setNewSub({ ...newSub, tipoTarjeta: v })} />
+              )}
+            </Seccion>
+
+            <Seccion titulo="Icono">
+
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2">
                     <button type="button" onClick={() => setNewSub({ ...newSub, iconType: 'preset' })} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Iconos</button>
                     <button type="button" onClick={() => { setNewSub({ ...newSub, iconType: 'chile_preset', iconValue: 'medios-pago:webpay' }); setSubChileCat('medios-pago'); }} className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-xs font-black border-2 transition ${newSub.iconType === 'chile_preset' ? `${theme.borderAccent} ${theme.bgModalLight} ${theme.tabText}` : 'border-slate-100 dark:border-dark-lighter text-slate-400'}`}>Chile</button>
@@ -3328,12 +3295,9 @@ const Dashboard = ({ user, token, onLogout, onOpenAdmin, onOpenTutorial, isPushS
                   {newSub.iconType === 'url' && (
                     <input value={newSub.iconUrl} onChange={e => setNewSub({ ...newSub, iconUrl: e.target.value })} className={`w-full bg-slate-50 dark:bg-dark-lighter border-2 border-slate-100 dark:border-dark-lightest rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-bold outline-none ${theme.focusBorder} transition dark:text-slate-200 mt-2`} placeholder="https://ejemplo.com/logo.png" />
                   )}
-                </div>
-
-                <button type="submit" className={`w-full ${theme.btnSub} text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black shadow-lg ${theme.shadowBtn} hover:opacity-90 transition mt-3 sm:mt-4`}>Guardar Suscripcion</button>
-              </form>
-            </div>
-          </div>
+                
+            </Seccion>
+          </Hoja>
         )}
 
         {viewingItem && (
