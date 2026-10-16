@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, ListChecks, PiggyBank, LayoutDashboard, Check, Sun, Moon } from 'lucide-react';
+import { Mail, ListChecks, PiggyBank, LayoutDashboard, Check, Sun, Moon, ShieldCheck, Landmark, Forward, Smartphone, ChevronRight } from 'lucide-react';
 import IPhone from './IPhone';
 import { VideoTema, useFaseDemo } from './VideoTema';
 
@@ -60,6 +60,13 @@ const PANTALLAS = [
   },
 ];
 
+// Como llegan los movimientos: sin claves del banco, solo reenvio de correo.
+const FLUJO = [
+  { icono: Landmark, texto: 'Tu banco te avisa cada compra por correo' },
+  { icono: Forward, texto: 'Tu Gmail reenvía solo esos avisos' },
+  { icono: Smartphone, texto: 'Aparecen en la app, ya ordenados' },
+];
+
 const PantallasSection = () => {
   const [activa, setActiva] = useState(PANTALLAS[0].id);
   const fase = useFaseDemo();
@@ -86,6 +93,34 @@ const PantallasSection = () => {
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
             Así se ve la app de verdad, pantalla por pantalla, en modo claro y oscuro.
           </p>
+        </motion.div>
+
+        {/* Lo que mas preocupa: no se piden claves del banco */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="max-w-4xl mx-auto mb-12 rounded-[28px] bg-white/85 dark:bg-white/[0.05] border border-kk-primary/25 shadow-xl shadow-kk-primary/10 dark:shadow-black/30 backdrop-blur p-5 sm:p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <span className="w-12 h-12 rounded-2xl bg-[#12805D] text-white grid place-items-center flex-shrink-0 shadow-lg shadow-kk-primary/30"><ShieldCheck size={24} /></span>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight">Nunca te pedimos las claves de tu banco</p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No nos conectamos a tu banco. Solo reenvías desde tu correo los avisos que el banco ya te manda.</p>
+            </div>
+          </div>
+          <ol className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-1">
+            {FLUJO.map((paso, i) => (
+              <React.Fragment key={paso.texto}>
+                <li className="flex-1 flex items-center gap-3 rounded-2xl bg-kk-light/70 dark:bg-kk-primary/10 px-3.5 py-3">
+                  <span className="w-9 h-9 rounded-xl bg-white dark:bg-white/10 text-kk-dark dark:text-kk-secondary grid place-items-center flex-shrink-0"><paso.icono size={18} /></span>
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug">{paso.texto}</span>
+                </li>
+                {i < FLUJO.length - 1 && <ChevronRight aria-hidden="true" size={18} className="hidden sm:block text-kk-primary flex-shrink-0" />}
+              </React.Fragment>
+            ))}
+          </ol>
         </motion.div>
 
         {/* Pestañas como el menu de la app */}
