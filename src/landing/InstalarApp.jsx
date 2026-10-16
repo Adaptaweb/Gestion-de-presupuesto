@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Share, PlusSquare, MoreVertical, MonitorDown, Download, Check, Smartphone } from 'lucide-react';
+import { Share, PlusSquare, MoreVertical, MonitorDown, Download, Check, Smartphone, Gift } from 'lucide-react';
+import { TRIAL_DAYS } from '../constants/pricing.js';
 import { useInstallPrompt } from '../hooks/useInstallPrompt.js';
 
 // Paso a paso para instalar Kuentas Klaras como app (PWA). Arranca en la
@@ -78,8 +79,16 @@ const InstalarApp = () => {
         </span>
         <div className="min-w-0">
           <h2 className="text-lg font-black text-slate-900 dark:text-white leading-tight">Instálala como app</h2>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Gratis, sin tienda de apps. Pantalla completa, acceso desde tu inicio y avisos al instante.</p>
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Sin tienda de apps. Pantalla completa, acceso desde tu inicio y avisos al instante.</p>
         </div>
+      </div>
+
+      <div className="flex items-center gap-3 rounded-2xl bg-[#12805D] text-white px-4 py-3 mb-4 shadow-lg shadow-kk-primary/25">
+        <Gift size={22} className="flex-shrink-0" />
+        <p className="text-sm leading-snug">
+          <span className="block text-base font-black">{TRIAL_DAYS} días gratis antes de pagar</span>
+          <span className="font-semibold text-white/85">Sin tarjeta. Parten cuando conectas tu correo.</span>
+        </p>
       </div>
 
       {isInstalled ? (
