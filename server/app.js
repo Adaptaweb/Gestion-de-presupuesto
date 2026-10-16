@@ -20,6 +20,7 @@ import { descargarIcono } from './iconos.js';
 import { cargarCompromisos, guardarCompromisos, guardarUno, borrarUno, fijarPago, TIPOS } from './compromisos.js';
 import { logDebug } from './logger.js';
 import { registerBilling } from './billing.js';
+import { trialEndDate } from '../src/constants/pricing.js';
 
 setEmbeddingsDb(db);
 
@@ -965,7 +966,7 @@ app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
       const previo = await db.get('SELECT trial_started_at FROM users WHERE id = ?', req.user.id);
       eraNueva = !previo?.trial_started_at;
     } catch { /* sin columna: no hay prueba que anunciar */ }
-    // La prueba de 60 dias parte al terminar la configuracion del correo y
+    // La prueba gratis parte al terminar la configuracion del correo y
     // solo se fija una vez: repetir el tutorial no la reinicia.
     let trial_started_at = null;
     try {
@@ -977,7 +978,7 @@ app.post('/api/tutorial/complete', authenticateToken, async (req, res) => {
     cache.del(`acc:${req.user.id}`);
     if (eraNueva && trial_started_at) {
       const u = await db.get('SELECT id, email, nombre, name FROM users WHERE id = ?', req.user.id);
-      const venceEl = new Date(new Date(trial_started_at).getTime() + 60 * 24 * 60 * 60 * 1000);
+      const venceEl = trialEndDate(trial_started_at);
       await billing.avisar(u, `trial_inicio:${new Date(trial_started_at).getTime()}`, 'trial_inicio', { venceEl }).catch(() => {});
     }
     res.json({ success: true, trial_started_at });

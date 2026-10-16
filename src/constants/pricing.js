@@ -1,6 +1,13 @@
 // Una sola fuente para precios y prueba gratuita: la usan la landing y el
 // tutorial. Precios en CLP, IVA incluido.
-export const TRIAL_DAYS = 60;
+export const TRIAL_DAYS = 40;
+// Las pruebas que partieron antes de bajar a 40 dias conservan los 60 prometidos.
+export const TRIAL_DAYS_ANTERIOR = 60;
+export const TRIAL_CAMBIO_EN = Date.parse('2026-10-17T00:00:00-03:00');
+export const diasDePrueba = (inicio) => {
+  const t = new Date(inicio).getTime();
+  return Number.isFinite(t) && t < TRIAL_CAMBIO_EN ? TRIAL_DAYS_ANTERIOR : TRIAL_DAYS;
+};
 export const TRIAL_REMINDER_DAYS = 7;
 export const READ_ONLY_DAYS = 30;
 
@@ -26,7 +33,7 @@ export const trialEndDate = (startedAt) => {
   const d = startedAt ? new Date(startedAt) : new Date();
   const base = isNaN(d.getTime()) ? new Date() : d;
   const end = new Date(base.getTime());
-  end.setDate(end.getDate() + TRIAL_DAYS);
+  end.setDate(end.getDate() + diasDePrueba(base));
   return end;
 };
 

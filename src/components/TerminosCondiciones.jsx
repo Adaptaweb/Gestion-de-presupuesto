@@ -105,7 +105,7 @@ const TerminosCondiciones = () => {
 
             <h3 className="font-black text-kk-dark dark:text-white mt-6 mb-2">2.5 Período de Prueba y Suscripción</h3>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Los usuarios acceden a un período de prueba gratuito de 60 días, con todas las funciones incluidas y sin necesidad de ingresar una tarjeta.</li>
+              <li>Los usuarios acceden a un período de prueba gratuito de 40 días, con todas las funciones incluidas y sin necesidad de ingresar una tarjeta. Las pruebas iniciadas antes del 17 de octubre de 2026 conservan sus 60 días.</li>
               <li>El período de prueba comienza cuando terminas de configurar el reenvío de tu correo, no al crear la cuenta.</li>
               <li>Antes de que termine la prueba te avisaremos por correo y dentro de la aplicación. No se realiza ningún cobro sin que tú elijas un plan y completes el pago.</li>
               <li>Si al terminar la prueba no eliges un plan, tu cuenta pasa a modo de solo lectura (ver 3.6).</li>

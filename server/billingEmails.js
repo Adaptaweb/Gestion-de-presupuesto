@@ -1,6 +1,8 @@
 // Correos de la prueba y del cobro. Una plantilla comun con el estilo de los
 // correos de bienvenida y verificacion; cada aviso solo aporta su texto.
 
+import { TRIAL_DAYS } from '../src/constants/pricing.js';
+
 const APP_URL = () => (process.env.APP_URL || 'https://gastos.adaptaweb.cl').replace(/\/$/, '');
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -39,11 +41,11 @@ const SOPORTE = 'Si tienes dudas, responde este correo o escríbenos a soporte@k
 // Cada plantilla devuelve { subject, html }. `d` trae los datos del aviso.
 export const PLANTILLAS = {
   trial_inicio: (d) => ({
-    subject: 'Tu prueba gratis de 60 días ya empezó',
+    subject: `Tu prueba gratis de ${TRIAL_DAYS} días ya empezó`,
     html: layout({
       titulo: `Hola ${esc(d.nombre)}, tu prueba empezó`,
       parrafos: [
-        `Dejaste listo el reenvío de tu correo, así que desde hoy tienes <strong>60 días gratis</strong> con todo incluido, hasta el <strong>${fecha(d.venceEl)}</strong>.`,
+        `Dejaste listo el reenvío de tu correo, así que desde hoy tienes <strong>${TRIAL_DAYS} días gratis</strong> con todo incluido, hasta el <strong>${fecha(d.venceEl)}</strong>.`,
         'No pedimos tarjeta. Te avisaremos antes de que termine para que decidas con calma.',
       ],
       cta: { texto: 'Abrir Kuentas Klaras', url: APP_URL() },

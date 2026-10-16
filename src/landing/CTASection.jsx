@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Shield, Zap } from 'lucide-react';
+import { TRIAL_DAYS } from '../constants/pricing.js';
 
 const CTASection = ({ onRegister }) => {
   return (
@@ -41,7 +42,7 @@ const CTASection = ({ onRegister }) => {
             onClick={onRegister}
             className="group inline-flex items-center gap-2 bg-white text-kk-primary px-10 py-5 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition duration-300"
           >
-            Probar 60 días gratis
+            Probar {TRIAL_DAYS} días gratis
             <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </motion.div>
@@ -53,7 +54,7 @@ const CTASection = ({ onRegister }) => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-white/60 text-sm font-medium"
         >
-          60 días gratis. Sin tarjeta de crédito. Sin compromiso.
+          {TRIAL_DAYS} días gratis. Sin tarjeta de crédito. Sin compromiso.
         </motion.p>
 
         <motion.div

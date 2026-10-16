@@ -1,7 +1,7 @@
 // Prueba gratuita y cobro con Mercado Pago (suscripciones / preapproval).
 //
 // Reglas:
-//  - La prueba (60 dias) parte al terminar la configuracion del correo.
+//  - La prueba (40 dias; 60 si partio antes del cambio) parte al terminar la configuracion del correo.
 //  - El estado de acceso se calcula aqui, desde trial_started_at y la tabla
 //    suscripciones_pago. El navegador nunca decide si alguien pagó: solo el
 //    webhook, y aun asi se vuelve a consultar el recurso a Mercado Pago.
@@ -13,7 +13,7 @@
 
 import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
-import { TRIAL_DAYS, READ_ONLY_DAYS, TRIAL_REMINDER_DAYS, PLANS } from '../src/constants/pricing.js';
+import { diasDePrueba, READ_ONLY_DAYS, TRIAL_REMINDER_DAYS, PLANS } from '../src/constants/pricing.js';
 import { enviarCorreo } from './billingEmails.js';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -49,7 +49,7 @@ export function calcularAcceso(user, sub, ahora = new Date()) {
     // Aun no termina de configurar el correo: la prueba no ha partido.
     return { ...base, estado: 'sin_iniciar', puedeEscribir: true };
   }
-  const finPrueba = inicio + TRIAL_DAYS * DAY;
+  const finPrueba = inicio + diasDePrueba(inicio) * DAY;
   if (now < finPrueba) {
     return {
       ...base, estado: 'prueba', puedeEscribir: true,

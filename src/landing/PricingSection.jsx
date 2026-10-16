@@ -12,10 +12,18 @@ const STEPS = [
 ];
 
 const FAQ = [
-  ['¿Necesito tarjeta para probar?', 'No. No pedimos ningún dato de pago durante los 60 días.'],
-  ['¿Qué pasa cuando terminan los 60 días?', `Te avisamos ${TRIAL_REMINDER_DAYS} días antes. Si no eliges plan, tu cuenta queda en solo lectura por ${READ_ONLY_DAYS} días y no pierdes nada.`],
-  ['¿Cuándo parten los 60 días?', 'Cuando terminas de configurar el reenvío del correo, no al crear la cuenta.'],
+  ['¿Necesito tarjeta para probar?', `No. No pedimos ningún dato de pago durante los ${TRIAL_DAYS} días.`],
+  [`¿Qué pasa cuando terminan los ${TRIAL_DAYS} días?`, `Te avisamos ${TRIAL_REMINDER_DAYS} días antes. Si no eliges plan, tu cuenta queda en solo lectura por ${READ_ONLY_DAYS} días y no pierdes nada.`],
+  [`¿Cuándo parten los ${TRIAL_DAYS} días?`, 'Cuando terminas de configurar el reenvío del correo, no al crear la cuenta.'],
 ];
+
+// Los primeros dias gratis van antes del precio: es lo primero que se paga.
+const GratisPrimero = ({ oscuro }) => (
+  <div className={`flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 ${oscuro ? 'bg-kk-primary/20 text-kk-secondary' : 'bg-kk-light dark:bg-kk-primary/15 text-[#0b6b4c] dark:text-kk-secondary'}`}>
+    <Gift size={18} className="flex-shrink-0" />
+    <span className="text-sm font-extrabold leading-tight">Primeros {TRIAL_DAYS} días gratis<span className={`block text-xs font-semibold ${oscuro ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'}`}>Después pagas:</span></span>
+  </div>
+);
 
 const PlanButton = ({ onRegister, featured, disabled }) => (
   <button
@@ -44,11 +52,11 @@ const PricingSection = ({ onRegister }) => {
           transition={{ duration: 0.6, ease: EASE }}
           className="flex flex-col items-center text-center gap-4 max-w-2xl mx-auto"
         >
-          <span className="inline-flex items-center gap-2 bg-kk-light/60 dark:bg-kk-dark/25 text-[#0b6b4c] dark:text-kk-secondary text-xs sm:text-[13px] font-bold px-4 py-2 rounded-full">
-            <Gift size={14} /> {TRIAL_DAYS} días gratis · sin tarjeta
+          <span className="inline-flex items-center gap-2 bg-[#12805D] text-white text-sm sm:text-base font-black px-5 py-2.5 rounded-full shadow-lg shadow-kk-primary/30">
+            <Gift size={18} /> {TRIAL_DAYS} días gratis · sin tarjeta
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tight">
-            Precios simples. Dos meses para probar todo.
+            Precios simples. <span className="text-kk-primary">{TRIAL_DAYS} días gratis</span> para probar todo.
           </h2>
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
             Tu prueba parte cuando conectas tu correo, o sea cuando la app ya trae tus gastos. Una app completa, tres formas de pagar.
@@ -78,6 +86,7 @@ const PricingSection = ({ onRegister }) => {
               <span className="text-lg font-bold">{anual.name}</span>
               <span className="text-sm text-slate-400 line-through">{formatCLP(anual.strike)}</span>
             </div>
+            <GratisPrimero oscuro />
             <div className="flex items-baseline gap-2">
               <span className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight">{formatCLP(anual.price)}</span>
               <span className="text-[15px] text-slate-300 whitespace-nowrap">/ {anual.period}</span>
@@ -95,6 +104,7 @@ const PricingSection = ({ onRegister }) => {
             className="order-2 lg:order-1 flex flex-col gap-4 rounded-[32px] p-7 sm:p-8 bg-white dark:bg-dark-normal border-[1.5px] border-slate-200 dark:border-dark-lightest"
           >
             <span className="text-lg font-bold text-slate-900 dark:text-white">{mensual.name}</span>
+            <GratisPrimero />
             <div className="flex items-baseline gap-2">
               <span className="text-4xl sm:text-5xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">{formatCLP(mensual.price)}</span>
               <span className="text-[15px] text-slate-500 dark:text-slate-400">/ {mensual.period}</span>
