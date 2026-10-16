@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Share, PlusSquare, MoreVertical, MonitorDown, Download, Check, Smartphone } from 'lucide-react';
 import { useInstallPrompt } from '../hooks/useInstallPrompt.js';
@@ -46,9 +46,32 @@ const InstalarApp = () => {
   const [plataforma, setPlataforma] = useState(detectarPlataforma);
   const { isInstallable, isInstalled, install } = useInstallPrompt();
   const pasos = PASOS[plataforma];
+  const [resaltar, setResaltar] = useState(0);
+
+  // Los enlaces a #instalar (etiqueta del hero, menu): si el navegador permite
+  // instalar directo, abren su dialogo; si no, llevan aqui y resaltan los pasos.
+  useEffect(() => {
+    const alClic = (e) => {
+      if (!e.target.closest?.('a[href="#instalar"]')) return;
+      if (isInstallable) {
+        e.preventDefault();
+        install();
+        return;
+      }
+      setResaltar(n => n + 1);
+    };
+    document.addEventListener('click', alClic);
+    return () => document.removeEventListener('click', alClic);
+  }, [isInstallable, install]);
+
+  useEffect(() => {
+    if (!resaltar) return undefined;
+    const t = setTimeout(() => setResaltar(0), 1800);
+    return () => clearTimeout(t);
+  }, [resaltar]);
 
   return (
-    <div id="instalar" className="scroll-mt-24 rounded-[28px] bg-white/80 dark:bg-white/[0.05] border border-white dark:border-white/10 backdrop-blur-xl shadow-xl shadow-kk-primary/10 dark:shadow-black/30 p-4 sm:p-5">
+    <div id="instalar" className={`scroll-mt-24 transition-shadow duration-500 ${resaltar ? 'ring-4 ring-kk-primary/60 shadow-kk-primary/40' : ''} rounded-[28px] bg-white/80 dark:bg-white/[0.05] border border-white dark:border-white/10 backdrop-blur-xl shadow-xl shadow-kk-primary/10 dark:shadow-black/30 p-4 sm:p-5`}>
       <div className="flex items-start gap-3 mb-4">
         <span className="w-11 h-11 rounded-2xl bg-kk-primary text-white grid place-items-center flex-shrink-0 shadow-lg shadow-kk-primary/30">
           <Download size={20} />

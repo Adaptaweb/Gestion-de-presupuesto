@@ -7,7 +7,7 @@ import { VideoTema } from './VideoTema';
 
 const TITULO = ['Tus', 'finanzas', 'claras,', 'bajo', 'control.'];
 
-const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
+const HeroSection = ({ isDarkMode, sentinelRef, scrolled }) => {
   const quieto = useReducedMotion();
   // Inclinacion 3D del telefono siguiendo el puntero (solo con mouse).
   const px = useMotionValue(0);
@@ -100,7 +100,8 @@ const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
               className="flex flex-wrap justify-center lg:justify-start gap-3"
             >
               <button
-                onClick={onRegister}
+                type="button"
+                onClick={() => document.getElementById('precios')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 className="group relative inline-flex items-center gap-2 bg-kk-primary text-white px-7 py-4 rounded-2xl font-black text-lg shadow-lg shadow-kk-primary/30 hover:bg-kk-dark hover:shadow-xl hover:shadow-kk-primary/40 transition duration-300 overflow-hidden"
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" aria-hidden="true" />
