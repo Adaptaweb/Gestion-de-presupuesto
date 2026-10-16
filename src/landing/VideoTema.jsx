@@ -99,6 +99,16 @@ function cambiar(video, base, fase, tipo) {
   reproducir(video);
 }
 
+// Safari (iPhone, iPad, Mac) anima un mp4 puesto en un <img> como si fuera un GIF,
+// incluso con Ahorro de bateria o sin "Reproducir videos automaticamente", que es
+// justo cuando bloquea el <video>. Los demas navegadores no lo soportan.
+const safariImgVideo = () => {
+  const ua = navigator.userAgent;
+  return /AppleWebKit/.test(ua) && !/Chrome\/|Chromium|Android|Edg\/|Firefox\//.test(ua);
+};
+// Si el sistema bloqueo un video, bloqueara todos: los siguientes parten como imagen.
+let sistemaBloquea = false;
+
 /** Video de una pantalla de la app que sigue la fase compartida y solo corre cuando se ve. */
 export const VideoTema = ({ base, etiqueta, className = '' }) => {
   const fase = useFaseDemo();
@@ -107,29 +117,36 @@ export const VideoTema = ({ base, etiqueta, className = '' }) => {
   const [inicial] = useState(() => ({ base, fase }));
   const [visible, setVisible] = useState(false);
   const [bloqueado, setBloqueado] = useState(false);
+  const [comoImagen, setComoImagen] = useState(() => sistemaBloquea && safariImgVideo());
+
+  const alBloquear = () => {
+    sistemaBloquea = true;
+    if (safariImgVideo()) setComoImagen(true);
+    else setBloqueado(true);
+  };
 
   useEffect(() => {
     const v = ref.current;
-    v?.setAttribute('muted', '');
+    if (v?.tagName === 'VIDEO') v.setAttribute('muted', '');
     if (!v || typeof IntersectionObserver === 'undefined') { setVisible(true); return undefined; }
     const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.2 });
     io.observe(v);
     return () => io.disconnect();
-  }, []);
+  }, [comoImagen]);
 
   useEffect(() => {
     const v = ref.current;
-    if (!v) return;
-    if (visible) reproducir(v, () => setBloqueado(true));
+    if (!v || v.tagName !== 'VIDEO') return;
+    if (visible) reproducir(v, alBloquear);
     else v.pause();
   }, [visible]);
 
-  // Si iOS lo bloqueo, el primer toque en cualquier parte de la pagina lo arranca.
+  // Fuera de Safari, si el navegador lo bloqueo, el primer toque en la pagina lo arranca.
   useEffect(() => {
     if (!bloqueado || !visible) return undefined;
     const intentar = () => {
       const v = ref.current;
-      if (v) reproducir(v).then(() => { if (!v.paused) setBloqueado(false); });
+      if (v?.tagName === 'VIDEO') reproducir(v).then(() => { if (!v.paused) setBloqueado(false); });
     };
     document.addEventListener('touchend', intentar, { once: true, passive: true });
     document.addEventListener('click', intentar, { once: true });
@@ -141,15 +158,29 @@ export const VideoTema = ({ base, etiqueta, className = '' }) => {
 
   useEffect(() => {
     const v = ref.current;
-    if (!v || v.dataset.base === base) return;
+    if (!v || v.tagName !== 'VIDEO' || v.dataset.base === base) return;
     cambiar(v, base, v.dataset.fase || fase, 'fundido');
   }, [base]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const v = ref.current;
-    if (!v || v.dataset.fase === fase) return;
+    if (!v || v.tagName !== 'VIDEO' || v.dataset.fase === fase) return;
     cambiar(v, v.dataset.base || base, fase, 'barrido');
   }, [fase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (comoImagen) {
+    // Fuera de pantalla queda la portada para no gastar bateria animando lo que no se ve.
+    return (
+      <img
+        ref={ref}
+        key={`${base}-${fase}`}
+        src={url(base, fase, visible ? 'mp4' : 'webp')}
+        alt={etiqueta}
+        className={`block w-full object-cover ${className}`}
+        style={{ aspectRatio: '1080 / 2338', backgroundImage: `url(${url(base, fase, 'webp')})`, backgroundSize: 'cover' }}
+      />
+    );
+  }
 
   return (
     <>
