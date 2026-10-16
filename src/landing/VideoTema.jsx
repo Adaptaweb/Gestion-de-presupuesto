@@ -23,6 +23,18 @@ export const ProveedorTemaDemo = ({ children }) => {
 
 export const useFaseDemo = () => useContext(ContextoFase);
 
+// iOS solo deja reproducir sin toque si el video esta silenciado como atributo, y
+// React pone `muted` solo como propiedad: se marca a mano antes de cada play().
+function reproducir(video, alBloquear) {
+  video.muted = true;
+  video.defaultMuted = true;
+  video.setAttribute('muted', '');
+  return video.play().catch(e => {
+    // En Ahorro de bateria iOS no reproduce nada solo: queda esperando un toque.
+    if (e?.name === 'NotAllowedError') alBloquear?.();
+  });
+}
+
 const url = (base, fase, ext = 'mp4') => `${base}-${fase}.${ext}`;
 const movimientoReducido = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -84,7 +96,7 @@ function cambiar(video, base, fase, tipo) {
     }
   }, { once: true });
   if (cubierta) window.setTimeout(() => cubierta.remove(), 3000);
-  video.play().catch(() => {});
+  reproducir(video);
 }
 
 /** Video de una pantalla de la app que sigue la fase compartida y solo corre cuando se ve. */
@@ -94,9 +106,11 @@ export const VideoTema = ({ base, etiqueta, className = '' }) => {
   // Solo el primer valor: despues el src lo cambia cambiar() sin pasar por React.
   const [inicial] = useState(() => ({ base, fase }));
   const [visible, setVisible] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
 
   useEffect(() => {
     const v = ref.current;
+    v?.setAttribute('muted', '');
     if (!v || typeof IntersectionObserver === 'undefined') { setVisible(true); return undefined; }
     const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.2 });
     io.observe(v);
@@ -106,9 +120,24 @@ export const VideoTema = ({ base, etiqueta, className = '' }) => {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (visible) v.play().catch(() => {});
+    if (visible) reproducir(v, () => setBloqueado(true));
     else v.pause();
   }, [visible]);
+
+  // Si iOS lo bloqueo, el primer toque en cualquier parte de la pagina lo arranca.
+  useEffect(() => {
+    if (!bloqueado || !visible) return undefined;
+    const intentar = () => {
+      const v = ref.current;
+      if (v) reproducir(v).then(() => { if (!v.paused) setBloqueado(false); });
+    };
+    document.addEventListener('touchend', intentar, { once: true, passive: true });
+    document.addEventListener('click', intentar, { once: true });
+    return () => {
+      document.removeEventListener('touchend', intentar);
+      document.removeEventListener('click', intentar);
+    };
+  }, [bloqueado, visible]);
 
   useEffect(() => {
     const v = ref.current;
@@ -123,6 +152,7 @@ export const VideoTema = ({ base, etiqueta, className = '' }) => {
   }, [fase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
+    <>
     <video
       ref={ref}
       data-base={inicial.base}
@@ -137,5 +167,18 @@ export const VideoTema = ({ base, etiqueta, className = '' }) => {
       className={`block w-full object-cover ${className}`}
       style={{ aspectRatio: '1080 / 2338' }}
     />
+    {bloqueado && (
+      <button
+        type="button"
+        aria-label="Reproducir video"
+        onClick={() => { const v = ref.current; if (v) reproducir(v).then(() => { if (!v.paused) setBloqueado(false); }); }}
+        className="absolute inset-0 z-[4] grid place-items-center"
+      >
+        <span className="w-14 h-14 rounded-full bg-black/45 backdrop-blur text-white grid place-items-center shadow-lg">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z" /></svg>
+        </span>
+      </button>
+    )}
+    </>
   );
 };
