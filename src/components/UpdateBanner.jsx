@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useLocation } from 'react-router-dom';
 import { RefreshCw, Loader2, X } from 'lucide-react';
 
 const CHECK_EVERY_MS = 5 * 60 * 1000;
 const RELOAD_FALLBACK_MS = 6000;
+// Paginas publicas sin formularios: ahi la version nueva se aplica sola.
+const PUBLICAS = ['/', '/terminos', '/privacidad'];
 
 // Desregistra el service worker, borra todos los caches y recarga: es lo que
 // garantiza ver la version nueva aunque el cambio de service worker falle.
@@ -43,6 +46,11 @@ export default function UpdateBanner() {
   const [versionVieja, setVersionVieja] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const { pathname } = useLocation();
+  // El aviso solo se muestra con la sesion iniciada; en login y registro se espera.
+  const enApp = pathname.startsWith('/app') || pathname.startsWith('/admin');
+  const publica = PUBLICAS.includes(pathname);
+  const hayVersion = needRefresh || versionVieja;
 
   // Respaldo independiente del service worker: /version.json trae el id del
   // ultimo build; si difiere del que esta corriendo, hay version nueva.
@@ -71,7 +79,30 @@ export default function UpdateBanner() {
     return () => clearTimeout(id);
   }, [updating]);
 
-  if (!needRefresh && !versionVieja) return null;
+  const aplicando = useRef(false);
+  const aplicar = useCallback(() => {
+    if (aplicando.current) return;
+    aplicando.current = true;
+    if (needRefresh) {
+      updateServiceWorker(true);
+      setTimeout(limpiarYRecargar, RELOAD_FALLBACK_MS);
+    } else limpiarYRecargar();
+  }, [needRefresh, updateServiceWorker]);
+
+  // En la landing se actualiza sola: de inmediato si recien llega (arriba de todo)
+  // o, si ya esta leyendo, cuando sale de la pestaña, para no recargarle encima.
+  useEffect(() => {
+    if (!hayVersion || !publica) return undefined;
+    if (window.scrollY < 200 || document.hidden) {
+      aplicar();
+      return undefined;
+    }
+    const alOcultar = () => { if (document.visibilityState === 'hidden') aplicar(); };
+    document.addEventListener('visibilitychange', alOcultar);
+    return () => document.removeEventListener('visibilitychange', alOcultar);
+  }, [hayVersion, publica, aplicar]);
+
+  if (!hayVersion || !enApp) return null;
 
   const actualizar = () => {
     if (updating) return;

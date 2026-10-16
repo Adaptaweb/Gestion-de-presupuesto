@@ -58,13 +58,13 @@ const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
 
       <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:py-28">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-14 lg:gap-10 items-center">
-          <div className="max-w-xl">
+          <div className="max-w-xl mx-auto lg:mx-0 w-full text-center lg:text-left">
             {!scrolled && (
               <motion.img
                 layoutId="main-logo"
                 src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'}
                 alt="Kuentas Klaras"
-                className="h-11 sm:h-12 w-auto mb-6"
+                className="h-11 sm:h-12 w-auto mb-6 mx-auto lg:mx-0"
               />
             )}
             <div ref={sentinelRef} />
@@ -108,7 +108,7 @@ const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-7"
+              className="mb-7 text-left"
             >
               <InstalarApp />
             </motion.div>
@@ -117,7 +117,7 @@ const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.75 }}
-              className="flex flex-wrap gap-3"
+              className="flex flex-wrap justify-center lg:justify-start gap-3"
             >
               <button
                 onClick={onRegister}
