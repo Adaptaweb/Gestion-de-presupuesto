@@ -18,6 +18,14 @@ const ENLACES = [
 import LandingFooter from '../components/LandingFooter';
 import { applyDarkMode, getInitialDarkMode } from '../lib/theme.js';
 
+// Cada seccion tiene su tono de fondo: una capa fija detras de todo cambia de
+// color con una transicion lenta al pasar de una a otra.
+const SECCIONES = ['funciones', 'como-funciona', 'precios', 'preguntas', 'pie'];
+const TONOS = {
+  claro: { funciones: '#F4FBF8', 'como-funciona': '#E3F4EB', precios: '#EDF2FA', preguntas: '#F8F5EE', pie: '#F2F7F4' },
+  oscuro: { funciones: '#0F1613', 'como-funciona': '#0A1913', precios: '#0E131B', preguntas: '#15130F', pie: '#0F0F0F' },
+};
+
 const Landing = ({ onLogin, onRegister }) => {
   const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
 
@@ -45,12 +53,24 @@ const Landing = ({ onLogin, onRegister }) => {
     return () => window.removeEventListener('keydown', onKey);
   }, [menuAbierto]);
 
+  const [seccion, setSeccion] = useState('funciones');
+  useEffect(() => {
+    // La seccion que cruza la mitad de la pantalla decide el color.
+    const io = new IntersectionObserver((entradas) => {
+      entradas.forEach(e => { if (e.isIntersecting) setSeccion(e.target.id); });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    SECCIONES.forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+    return () => io.disconnect();
+  }, []);
+  const tono = TONOS[isDarkMode ? 'oscuro' : 'claro'][seccion] || TONOS.claro.funciones;
+
   const sentinelRef = useRef(null);
   const isSentinelInView = useInView(sentinelRef, { margin: '-64px 0px 0px 0px' });
   const scrolled = !isSentinelInView;
 
   return (
-    <div className={`min-h-[100dvh] bg-kk-background dark:bg-dark-darker font-poppins transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`relative isolate min-h-[100dvh] bg-kk-background dark:bg-dark-darker font-poppins transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+      <div aria-hidden="true" className="fixed inset-0 -z-10 pointer-events-none transition-[background-color] duration-1000 ease-in-out" style={{ backgroundColor: tono }} />
       <LayoutGroup>
       {/* Sobre el hero oscuro la barra usa los colores del tema oscuro. */}
       <header style={{ top: 'env(safe-area-inset-top, 0px)' }} className={`fixed left-0 right-0 z-50 backdrop-blur-lg border-b ${scrolled ? '' : 'dark'} ${
@@ -179,7 +199,9 @@ const Landing = ({ onLogin, onRegister }) => {
       </main>
       </ProveedorTemaDemo>
 
-      <LandingFooter isDarkMode={isDarkMode} />
+      <div id="pie">
+        <LandingFooter isDarkMode={isDarkMode} transparente />
+      </div>
       </LayoutGroup>
     </div>
   );

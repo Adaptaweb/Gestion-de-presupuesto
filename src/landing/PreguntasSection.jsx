@@ -55,7 +55,7 @@ const PreguntasSection = () => {
   const [abierta, setAbierta] = useState(0);
 
   return (
-    <section id="preguntas" className="scroll-mt-16 py-20 lg:py-28 bg-kk-background dark:bg-dark-darker">
+    <section id="preguntas" className="scroll-mt-16 relative py-20 lg:py-28">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}

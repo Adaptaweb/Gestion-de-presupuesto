@@ -51,7 +51,7 @@ const cardVariants = {
 
 const FeaturesSection = () => {
   return (
-    <section id="funciones" className="scroll-mt-16 relative py-24 lg:py-32 bg-white dark:bg-dark-normal overflow-hidden">
+    <section id="funciones" className="scroll-mt-16 relative py-24 lg:py-32 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-80 h-80 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-kk-secondary/5 dark:bg-kk-secondary/5 rounded-full blur-3xl" />

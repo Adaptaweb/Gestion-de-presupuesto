@@ -8,8 +8,8 @@ const NAV_LINKS = [
   { text: 'Política de Privacidad', url: '/privacidad' },
 ];
 
-const LandingFooter = ({ isDarkMode }) => {
-  const footerBg = isDarkMode
+const LandingFooter = ({ isDarkMode, transparente = false }) => {
+  const footerBg = transparente ? '' : isDarkMode
     ? "bg-gradient-to-b from-dark-darker to-dark-darker"
     : "bg-gradient-to-b from-kk-light/30 to-kk-background";
 

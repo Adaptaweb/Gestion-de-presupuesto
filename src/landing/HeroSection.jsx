@@ -96,10 +96,18 @@ const HeroSection = ({ sentinelRef, scrolled }) => {
     <section
       onPointerMove={mover}
       onPointerLeave={soltar}
-      className="relative min-h-[100dvh] flex flex-col overflow-hidden bg-[#07110E]"
+      className="relative min-h-[100dvh] flex flex-col overflow-hidden"
     >
       {/* El hero siempre es oscuro: asi el halo del video luce en ambos temas. */}
-      <div className="dark relative flex-1 flex items-center">
+      {/* El hero (con su halo) se desvanece hacia el tono de la seccion siguiente:
+          la mascara evita la franja que dejaba un degradé aparte. */}
+      <div
+        className="dark relative flex-1 flex items-center bg-[#07110E]"
+        style={{
+          maskImage: 'linear-gradient(to bottom, black calc(100% - 12rem), transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black calc(100% - 12rem), transparent)',
+        }}
+      >
         {/* Fondo: el halo del video cubre todo el hero, con un velo oscuro encima
             para que los textos se lean aunque el video este en modo claro. */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
@@ -111,7 +119,7 @@ const HeroSection = ({ sentinelRef, scrolled }) => {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(7,17,14,0.75)_100%)]" />
         </div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-24 lg:py-28">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-44 lg:pt-28 lg:pb-48">
           <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-14 lg:gap-12 items-center">
             {/* Telefono (en movil va despues de la instalacion) */}
             <motion.div
@@ -204,8 +212,6 @@ const HeroSection = ({ sentinelRef, scrolled }) => {
         </div>
       </div>
 
-      {/* Paso suave del hero oscuro a la seccion siguiente */}
-      <div aria-hidden="true" className="h-40 -mt-px bg-[linear-gradient(to_bottom,#07110E,#0E2A22_30%,#2C7A60_62%,#ffffff)] dark:bg-[linear-gradient(to_bottom,#07110E,#12201b_45%,#1A1A1A)]" />
     </section>
   );
 };

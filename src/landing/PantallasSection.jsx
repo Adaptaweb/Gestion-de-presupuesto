@@ -73,7 +73,7 @@ const PantallasSection = () => {
   const p = PANTALLAS.find(x => x.id === activa);
 
   return (
-    <section id="como-funciona" className="scroll-mt-16 relative py-24 lg:py-32 bg-kk-background dark:bg-dark-darker overflow-hidden">
+    <section id="como-funciona" className="scroll-mt-16 relative py-24 lg:py-32 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-1/4 -left-24 w-96 h-96 bg-kk-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-[28rem] h-[28rem] bg-kk-secondary/10 rounded-full blur-3xl" />
