@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView, LayoutGroup, AnimatePresence } from 'motion/react';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
-import HowItWorksSection from './HowItWorksSection';
 import PricingSection from './PricingSection';
 import CTASection from './CTASection';
 import PantallasSection from './PantallasSection';
@@ -11,7 +10,6 @@ import { Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
 
 const ENLACES = [
   { href: '#funciones', texto: 'Funciones' },
-  { href: '#pantallas', texto: 'Pantallas' },
   { href: '#como-funciona', texto: 'Cómo funciona' },
   { href: '#instalar', texto: 'Instalar app' },
   { href: '#precios', texto: 'Precios' },
@@ -174,7 +172,6 @@ const Landing = ({ onLogin, onRegister }) => {
         <HeroSection onRegister={onRegister} isDarkMode={isDarkMode} sentinelRef={sentinelRef} scrolled={scrolled} />
         <FeaturesSection />
         <PantallasSection />
-        <HowItWorksSection isDarkMode={isDarkMode} />
         <PricingSection onRegister={onRegister} />
         <CTASection onRegister={onRegister} />
       </main>
