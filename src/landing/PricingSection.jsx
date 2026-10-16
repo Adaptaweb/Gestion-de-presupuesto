@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Gift, Check, Users } from 'lucide-react';
-import { TRIAL_DAYS, TRIAL_REMINDER_DAYS, READ_ONLY_DAYS, PLANS, INCLUDED, formatCLP } from '../constants/pricing.js';
+import { TRIAL_DAYS, PLANS, INCLUDED, formatCLP } from '../constants/pricing.js';
 
 const EASE = [0.22, 1, 0.36, 1];
 
@@ -9,12 +9,6 @@ const STEPS = [
   { n: 1, text: 'Creas tu cuenta', active: false },
   { n: 2, text: `Configuras el correo y parten tus ${TRIAL_DAYS} días`, active: true },
   { n: 3, text: 'Decides si sigues', active: false },
-];
-
-const FAQ = [
-  ['¿Necesito tarjeta para probar?', `No. No pedimos ningún dato de pago durante los ${TRIAL_DAYS} días.`],
-  [`¿Qué pasa cuando terminan los ${TRIAL_DAYS} días?`, `Te avisamos ${TRIAL_REMINDER_DAYS} días antes. Si no eliges plan, tu cuenta queda en solo lectura por ${READ_ONLY_DAYS} días y no pierdes nada.`],
-  [`¿Cuándo parten los ${TRIAL_DAYS} días?`, 'Cuando terminas de configurar el reenvío del correo, no al crear la cuenta.'],
 ];
 
 // Los primeros dias gratis van antes del precio: es lo primero que se paga.
@@ -151,15 +145,6 @@ const PricingSection = ({ onRegister }) => {
             <span className="w-12 h-12 rounded-full bg-[#12805D] text-white grid place-items-center flex-shrink-0"><Users size={22} /></span>
             <p className="text-[15px] leading-relaxed text-[#0b4a35] dark:text-slate-200"><b>Invita y gana.</b> Por cada amigo que se suscribe, te regalamos 1 mes.</p>
           </div>
-        </div>
-
-        <div className="mt-8 max-w-3xl mx-auto border-t border-slate-200 dark:border-dark-lightest">
-          {FAQ.map(([q, a]) => (
-            <div key={q} className="py-4 border-b border-slate-200 dark:border-dark-lightest">
-              <div className="text-sm font-bold text-slate-900 dark:text-white">{q}</div>
-              <div className="text-[13px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{a}</div>
-            </div>
-          ))}
         </div>
       </div>
     </section>

@@ -3,7 +3,7 @@ import { motion, useInView, LayoutGroup, AnimatePresence } from 'motion/react';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
 import PricingSection from './PricingSection';
-import CTASection from './CTASection';
+import PreguntasSection from './PreguntasSection';
 import PantallasSection from './PantallasSection';
 import { ProveedorTemaDemo } from './VideoTema';
 import { Sun, Moon, Menu, X, ArrowRight } from 'lucide-react';
@@ -13,6 +13,7 @@ const ENLACES = [
   { href: '#como-funciona', texto: 'Cómo funciona' },
   { href: '#instalar', texto: 'Instalar app' },
   { href: '#precios', texto: 'Precios' },
+  { href: '#preguntas', texto: 'Preguntas' },
 ];
 import LandingFooter from '../components/LandingFooter';
 import { applyDarkMode, getInitialDarkMode } from '../lib/theme.js';
@@ -173,7 +174,7 @@ const Landing = ({ onLogin, onRegister }) => {
         <FeaturesSection />
         <PantallasSection />
         <PricingSection onRegister={onRegister} />
-        <CTASection onRegister={onRegister} />
+        <PreguntasSection />
       </main>
       </ProveedorTemaDemo>
 
