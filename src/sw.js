@@ -1,13 +1,22 @@
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching';
+import { precacheAndRoute, cleanupOutdatedCaches, matchPrecache } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { NetworkFirst } from 'workbox-strategies';
 import { clientsClaim } from 'workbox-core';
 
+// Va antes del precache, que si no responde "/" con su index guardado.
+// Las paginas se piden primero a la red: al recargar se ve siempre el ultimo
+// deploy (antes el index precacheado mostraba la version vieja hasta aceptar
+// la actualizacion). Sin red, o si tarda, se sirve el index precacheado.
+const paginas = new NetworkFirst({
+  cacheName: 'kk-paginas',
+  networkTimeoutSeconds: 4,
+  plugins: [{ handlerDidError: () => matchPrecache('index.html') }],
+});
+registerRoute(new NavigationRoute(paginas, { denylist: [/^\/api\//] }));
 precacheAndRoute(self.__WB_MANIFEST);
 // Al activarse una version nueva, borra los precaches de las anteriores: sin
 // esto se acumulaban y quedaban archivos viejos en el dispositivo.
 cleanupOutdatedCaches();
-// Rutas de la SPA (/dashboard...) sirven el index precacheado, tambien sin red.
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/api\//] }));
 clientsClaim();
 
 self.addEventListener('message', (event) => {

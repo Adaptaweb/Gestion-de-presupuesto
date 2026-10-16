@@ -89,11 +89,12 @@ export default function UpdateBanner() {
     } else limpiarYRecargar();
   }, [needRefresh, updateServiceWorker]);
 
-  // En la landing se actualiza sola: de inmediato si recien llega (arriba de todo)
-  // o, si ya esta leyendo, cuando sale de la pestaña, para no recargarle encima.
+  // En la landing se actualiza sola: de inmediato si recien cargo la pagina (al
+  // recargar, Chrome restaura el scroll, asi que no se mira la posicion) o si
+  // esta arriba; si ya lleva rato leyendo, cuando sale de la pestaña.
   useEffect(() => {
     if (!hayVersion || !publica) return undefined;
-    if (window.scrollY < 200 || document.hidden) {
+    if (performance.now() < 20000 || window.scrollY < 200 || document.hidden) {
       aplicar();
       return undefined;
     }
