@@ -9,8 +9,12 @@ const TITULO = ['Instálala', 'en', 'tu', 'celular.', 'Tus', 'gastos', 'llegan',
 const RESALTADAS = new Set(['llegan', 'solos.']);
 
 // Halo de luz: copia el cuadro actual del video del telefono a un canvas diminuto
-// que, agrandado y muy difuminado, ilumina el fondo con los colores de la app.
-// Es un solo video decodificado; el canvas se refresca a ~8 cuadros por segundo.
+// que cubre todo el fondo del hero; agrandado y muy difuminado, lo ilumina con
+// los colores de la app. Es un solo video decodificado; el canvas se refresca a
+// ~8 cuadros por segundo y solo mientras el hero se ve.
+const ANCHO_HALO = 64;
+const ALTO_HALO = 40;
+
 const HaloVideo = ({ fuenteRef, quieto }) => {
   const canvasRef = useRef(null);
 
@@ -21,12 +25,24 @@ const HaloVideo = ({ fuenteRef, quieto }) => {
     let visible = true;
     let ultimo = 0;
     let id = 0;
+    // Mientras el video no carga (en movil queda bajo la instalacion), la portada
+    // pinta el halo para que el fondo no parta apagado.
+    const portada = new Image();
+    portada.src = '/landing/videos/transacciones-claro.webp';
     const pintar = () => {
-      const media = [...(fuenteRef.current?.querySelectorAll('video, img') || [])].find(el => el.offsetParent);
+      let media = [...(fuenteRef.current?.querySelectorAll('video, img') || [])].find(el => el.offsetParent);
+      if (media?.tagName === 'VIDEO' && media.readyState < 2) media = null;
+      if (!media && portada.complete) media = portada;
       if (!media) return;
-      const listo = media.tagName === 'VIDEO' ? media.readyState >= 2 : media.complete && media.naturalWidth;
-      if (!listo) return;
-      try { ctx.drawImage(media, 0, 0, canvas.width, canvas.height); } catch { /* cuadro no disponible */ }
+      const w = media.videoWidth || media.naturalWidth;
+      const h = media.videoHeight || media.naturalHeight;
+      const listo = media.tagName === 'VIDEO' || media.complete;
+      if (!listo || !w || !h) return;
+      // Recorte "cover": la franja central del video llena el fondo apaisado.
+      const altoFuente = Math.min(h, w * ALTO_HALO / ANCHO_HALO);
+      try {
+        ctx.drawImage(media, 0, (h - altoFuente) / 2, w, altoFuente, 0, 0, ANCHO_HALO, ALTO_HALO);
+      } catch { /* cuadro no disponible */ }
     };
     const ciclo = (t) => {
       id = requestAnimationFrame(ciclo);
@@ -47,17 +63,14 @@ const HaloVideo = ({ fuenteRef, quieto }) => {
   return (
     <motion.canvas
       ref={canvasRef}
-      width={36}
-      height={78}
+      width={ANCHO_HALO}
+      height={ALTO_HALO}
       aria-hidden="true"
-      className="absolute left-1/2 top-1/2 w-[22rem] h-[36rem] sm:w-[28rem] sm:h-[44rem] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-      style={{
-        filter: 'blur(56px) saturate(2.2) brightness(0.85)',
-        maskImage: 'radial-gradient(closest-side, black 55%, transparent 100%)',
-        WebkitMaskImage: 'radial-gradient(closest-side, black 55%, transparent 100%)',
-      }}
+      // Mas grande que el hero: el desenfoque aclara los bordes del canvas.
+      className="absolute -inset-[15%] w-[130%] h-[130%] pointer-events-none"
+      style={{ filter: 'blur(80px) saturate(2.6) brightness(0.8)' }}
       initial={{ opacity: 0 }}
-      animate={quieto ? { opacity: 0.6 } : { opacity: [0.5, 0.75, 0.5], scale: [1, 1.08, 1] }}
+      animate={quieto ? { opacity: 0.8 } : { opacity: [0.7, 0.95, 0.7], scale: [1, 1.06, 1] }}
       transition={quieto ? { duration: 1 } : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
     />
   );
@@ -87,21 +100,26 @@ const HeroSection = ({ sentinelRef, scrolled }) => {
     >
       {/* El hero siempre es oscuro: asi el halo del video luce en ambos temas. */}
       <div className="dark relative flex-1 flex items-center">
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-40 -left-40 w-[36rem] h-[36rem] rounded-full bg-kk-primary/15 blur-[120px]" />
-          <div className="absolute bottom-0 right-0 w-[30rem] h-[30rem] rounded-full bg-emerald-900/40 blur-[120px]" />
+        {/* Fondo: el halo del video cubre todo el hero, con un velo oscuro encima
+            para que los textos se lean aunque el video este en modo claro. */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <HaloVideo fuenteRef={telefonoRef} quieto={quieto} />
+          {/* Tinte verde de la marca: cuando el video esta en modo claro el halo
+              seria gris; asi el fondo siempre se siente Kuentas Klaras. */}
+          <div className="absolute inset-0 bg-[#06231b]/60" />
+          <div className="absolute inset-0 bg-kk-primary/30 mix-blend-color" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(7,17,14,0.75)_100%)]" />
         </div>
 
         <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-24 lg:py-28">
           <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-14 lg:gap-12 items-center">
-            {/* Telefono con el halo (en movil va despues de la instalacion) */}
+            {/* Telefono (en movil va despues de la instalacion) */}
             <motion.div
               initial={{ opacity: 0, y: 60, rotate: -4 }}
               animate={{ opacity: 1, y: 0, rotate: 0 }}
               transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="relative order-2 lg:order-1 flex justify-center [perspective:1400px]"
             >
-              <HaloVideo fuenteRef={telefonoRef} quieto={quieto} />
               <motion.div style={{ rotateX: rotX, rotateY: rotY, transformStyle: 'preserve-3d' }} className="relative">
                 <motion.div
                   ref={telefonoRef}
