@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Share, PlusSquare, MoreVertical, MonitorDown, Download, Check, Smartphone, Gift } from 'lucide-react';
 import { TRIAL_DAYS } from '../constants/pricing.js';
 import { useInstallPrompt } from '../hooks/useInstallPrompt.js';
@@ -47,6 +47,7 @@ const InstalarApp = () => {
   const [plataforma, setPlataforma] = useState(detectarPlataforma);
   const { isInstallable, isInstalled, install } = useInstallPrompt();
   const pasos = PASOS[plataforma];
+  const quieto = useReducedMotion();
   const [resaltar, setResaltar] = useState(0);
 
   // Los enlaces a #instalar (etiqueta del hero, menu): si el navegador permite
@@ -72,7 +73,7 @@ const InstalarApp = () => {
   }, [resaltar]);
 
   return (
-    <div id="instalar" className={`scroll-mt-24 transition-shadow duration-500 ${resaltar ? 'ring-4 ring-kk-primary/60 shadow-kk-primary/40' : ''} rounded-[28px] bg-white/80 dark:bg-white/[0.05] border border-white dark:border-white/10 backdrop-blur-xl shadow-xl shadow-kk-primary/10 dark:shadow-black/30 p-4 sm:p-5`}>
+    <div id="instalar" className={`scroll-mt-24 transition-shadow duration-500 ${resaltar ? 'ring-4 ring-kk-primary/60 shadow-kk-primary/40' : ''} rounded-[28px] bg-white/80 dark:bg-[#0c1714]/90 border border-white dark:border-white/10 backdrop-blur-xl shadow-xl shadow-kk-primary/10 dark:shadow-black/30 p-4 sm:p-5`}>
       <div className="flex items-start gap-3 mb-4">
         <span className="w-11 h-11 rounded-2xl bg-kk-primary text-white grid place-items-center flex-shrink-0 shadow-lg shadow-kk-primary/30">
           <Download size={20} />
@@ -83,13 +84,33 @@ const InstalarApp = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 rounded-2xl bg-[#12805D] text-white px-4 py-3 mb-4 shadow-lg shadow-kk-primary/25">
-        <Gift size={22} className="flex-shrink-0" />
-        <p className="text-sm leading-snug">
+      <motion.div
+        animate={quieto ? undefined : { boxShadow: ['0 10px 28px -12px rgba(45,188,139,0.45)', '0 14px 42px -8px rgba(45,188,139,0.85)', '0 10px 28px -12px rgba(45,188,139,0.45)'] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="relative overflow-hidden flex items-center gap-3 rounded-2xl bg-gradient-to-r from-[#0E6B57] via-[#12805D] to-[#0E6B57] text-white px-4 py-3 mb-4 ring-1 ring-white/20 shadow-lg shadow-kk-primary/25"
+      >
+        {/* Destello que cruza la franja de vez en cuando */}
+        {!quieto && (
+          <motion.span
+            aria-hidden="true"
+            className="absolute inset-y-0 -left-24 w-24 -skew-x-12 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+            animate={{ x: ['0%', '900%'] }}
+            transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.6, ease: 'easeInOut' }}
+          />
+        )}
+        <motion.span
+          aria-hidden="true"
+          className="relative flex-shrink-0"
+          animate={quieto ? undefined : { rotate: [0, -12, 10, -6, 0], scale: [1, 1.12, 1] }}
+          transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 3.2 }}
+        >
+          <Gift size={22} />
+        </motion.span>
+        <p className="relative text-sm leading-snug">
           <span className="block text-base font-black">{TRIAL_DAYS} días gratis antes de pagar</span>
           <span className="font-semibold text-white/85">Sin tarjeta. Parten cuando conectas tu correo.</span>
         </p>
-      </div>
+      </motion.div>
 
       {isInstalled ? (
         <div className="flex items-center gap-2 rounded-2xl bg-kk-light dark:bg-kk-primary/15 text-kk-dark dark:text-kk-secondary px-4 py-3 text-sm font-bold">

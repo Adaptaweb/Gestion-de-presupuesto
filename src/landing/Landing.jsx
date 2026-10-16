@@ -52,7 +52,8 @@ const Landing = ({ onLogin, onRegister }) => {
   return (
     <div className={`min-h-[100dvh] bg-kk-background dark:bg-dark-darker font-poppins transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <LayoutGroup>
-      <header style={{ top: 'env(safe-area-inset-top, 0px)' }} className={`fixed left-0 right-0 z-50 backdrop-blur-lg border-b ${
+      {/* Sobre el hero oscuro la barra usa los colores del tema oscuro. */}
+      <header style={{ top: 'env(safe-area-inset-top, 0px)' }} className={`fixed left-0 right-0 z-50 backdrop-blur-lg border-b ${scrolled ? '' : 'dark'} ${
         scrolled
           ? 'bg-white/80 dark:bg-dark-darker/80 border-slate-100 dark:border-dark-lighter'
           : 'bg-white/0 dark:bg-dark-darker/0 border-transparent'
@@ -170,7 +171,7 @@ const Landing = ({ onLogin, onRegister }) => {
 
       <ProveedorTemaDemo>
       <main>
-        <HeroSection isDarkMode={isDarkMode} sentinelRef={sentinelRef} scrolled={scrolled} />
+        <HeroSection sentinelRef={sentinelRef} scrolled={scrolled} />
         <FeaturesSection />
         <PantallasSection />
         <PricingSection onRegister={onRegister} />
