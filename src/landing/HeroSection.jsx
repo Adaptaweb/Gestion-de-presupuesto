@@ -69,26 +69,6 @@ const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
             )}
             <div ref={sentinelRef} />
 
-            <motion.a
-              href="#instalar"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              className="relative inline-flex items-center gap-2 mb-5 pl-1.5 pr-3.5 py-1.5 rounded-full bg-white/70 dark:bg-white/[0.06] border border-kk-primary/20 text-sm font-bold text-kk-dark dark:text-kk-secondary overflow-hidden backdrop-blur"
-            >
-              <span className="w-6 h-6 rounded-full bg-kk-primary text-white grid place-items-center"><Download size={13} /></span>
-              Instálala gratis en tu celular
-              {!quieto && (
-                <motion.span
-                  aria-hidden="true"
-                  className="absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-white/70 dark:via-white/20 to-transparent"
-                  initial={{ x: '-6rem' }}
-                  animate={{ x: '22rem' }}
-                  transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
-                />
-              )}
-            </motion.a>
-
             <h1 className="text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem] font-black tracking-tight text-slate-900 dark:text-white mb-7">
               {TITULO.map((palabra, i) => (
                 <motion.span
@@ -135,8 +115,27 @@ const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
             initial={{ opacity: 0, y: 60, rotate: 4 }}
             animate={{ opacity: 1, y: 0, rotate: 0 }}
             transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex justify-center [perspective:1400px]"
+            className="relative flex flex-col items-center [perspective:1400px]"
           >
+            <motion.a
+              href="#instalar"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+              className="relative z-10 inline-flex items-center gap-2 mb-7 pl-1.5 pr-3.5 py-1.5 rounded-full bg-white/70 dark:bg-white/[0.06] border border-kk-primary/20 text-sm font-bold text-kk-dark dark:text-kk-secondary overflow-hidden backdrop-blur"
+            >
+              <span className="w-6 h-6 rounded-full bg-kk-primary text-white grid place-items-center"><Download size={13} /></span>
+              Instálala gratis en tu celular
+              {!quieto && (
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-white/70 dark:via-white/20 to-transparent"
+                  initial={{ x: '-6rem' }}
+                  animate={{ x: '22rem' }}
+                  transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+                />
+              )}
+            </motion.a>
             <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22rem] h-[22rem] rounded-full bg-kk-primary/30 dark:bg-kk-primary/25 blur-[90px]" />
             <motion.div style={{ rotateX: rotX, rotateY: rotY, transformStyle: 'preserve-3d' }} className="relative">
               <motion.div
