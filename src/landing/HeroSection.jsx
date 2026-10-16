@@ -1,97 +1,207 @@
 import React from 'react';
-import { motion } from 'motion/react';
-import { ArrowRight } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'motion/react';
+import { ArrowRight, Sparkles, Wallet, Bell, Download } from 'lucide-react';
 import InstalarApp from './InstalarApp';
+import IPhone from './IPhone';
+import { VideoTema } from './VideoTema';
+
+const TITULO = ['Tus', 'finanzas', 'claras,', 'bajo', 'control.'];
+
+// Tarjeta de vidrio que flota junto al telefono.
+const Flotante = ({ className, delay, children, quieto }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 24, scale: 0.9 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+    className={`absolute z-20 ${className}`}
+  >
+    <motion.div
+      animate={quieto ? undefined : { y: [0, -8, 0] }}
+      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.6 }}
+      className="kk-glass kk-glass-sheet rounded-2xl px-3.5 py-2.5 shadow-xl shadow-slate-900/10 dark:shadow-black/40"
+    >
+      {children}
+    </motion.div>
+  </motion.div>
+);
 
 const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled }) => {
+  const quieto = useReducedMotion();
+  // Inclinacion 3D del telefono siguiendo el puntero (solo con mouse).
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const rotY = useSpring(useTransform(px, [-0.5, 0.5], [-12, 12]), { stiffness: 120, damping: 18 });
+  const rotX = useSpring(useTransform(py, [-0.5, 0.5], [9, -9]), { stiffness: 120, damping: 18 });
+  const mover = (e) => {
+    if (quieto || e.pointerType !== 'mouse') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    px.set((e.clientX - r.left) / r.width - 0.5);
+    py.set((e.clientY - r.top) / r.height - 0.5);
+  };
+  const soltar = () => { px.set(0); py.set(0); };
+
   return (
-    <section className="relative min-h-[100dvh] flex items-center overflow-hidden bg-gradient-to-b from-kk-background dark:from-dark-darker via-white dark:via-dark-normal to-kk-light/30 dark:to-dark-darker">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-kk-primary/5 dark:bg-kk-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-kk-secondary/10 dark:bg-kk-secondary/5 rounded-full blur-3xl" />
+    <section
+      onPointerMove={mover}
+      onPointerLeave={soltar}
+      className="relative min-h-[100dvh] flex items-center overflow-hidden bg-kk-background dark:bg-dark-darker"
+    >
+      {/* Fondo: auroras en movimiento y una grilla que se desvanece hacia los bordes */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <motion.div
+          className="absolute -top-32 -left-24 w-[34rem] h-[34rem] rounded-full bg-kk-primary/25 dark:bg-kk-primary/20 blur-[110px]"
+          animate={quieto ? undefined : { x: [0, 80, -20, 0], y: [0, 40, 90, 0], scale: [1, 1.15, 0.95, 1] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute top-1/3 -right-32 w-[30rem] h-[30rem] rounded-full bg-kk-secondary/30 dark:bg-kk-secondary/15 blur-[120px]"
+          animate={quieto ? undefined : { x: [0, -70, 10, 0], y: [0, -50, 40, 0], scale: [1, 0.9, 1.1, 1] }}
+          transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute -bottom-40 left-1/3 w-[28rem] h-[28rem] rounded-full bg-sky-300/20 dark:bg-sky-500/10 blur-[120px]"
+          animate={quieto ? undefined : { x: [0, 60, -40, 0], y: [0, -30, 10, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.35] dark:opacity-[0.18]"
+          style={{
+            backgroundImage: 'linear-gradient(to right, rgba(14,107,87,0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(14,107,87,0.12) 1px, transparent 1px)',
+            backgroundSize: '44px 44px',
+            maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 75%)',
+          }}
+        />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 lg:py-28">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-14 lg:gap-10 items-center">
           <div className="max-w-xl">
             {!scrolled && (
               <motion.img
                 layoutId="main-logo"
                 src={isDarkMode ? '/Logo-black.svg' : '/logo.svg'}
                 alt="Kuentas Klaras"
-                className="h-12 w-auto mb-8"
+                className="h-11 sm:h-12 w-auto mb-6"
               />
             )}
             <div ref={sentinelRef} />
 
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+            <motion.a
+              href="#instalar"
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight text-kk-primary dark:text-white mb-8"
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="relative inline-flex items-center gap-2 mb-5 pl-1.5 pr-3.5 py-1.5 rounded-full bg-white/70 dark:bg-white/[0.06] border border-kk-primary/20 text-sm font-bold text-kk-dark dark:text-kk-secondary overflow-hidden backdrop-blur"
             >
-              Tus finanzas{' '}
-              <span className="text-kk-primary">claras</span>
-              , bajo control.
-            </motion.h1>
+              <span className="w-6 h-6 rounded-full bg-kk-primary text-white grid place-items-center"><Download size={13} /></span>
+              Instálala gratis en tu celular
+              {!quieto && (
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-white/70 dark:via-white/20 to-transparent"
+                  initial={{ x: '-6rem' }}
+                  animate={{ x: '22rem' }}
+                  transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+                />
+              )}
+            </motion.a>
 
-            {/* Lo primero tras el titulo: instalarla como app. El texto que
-                explica el producto y sus puntos fuertes pasaron a Funciones. */}
+            <h1 className="text-[2.75rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem] font-black tracking-tight text-slate-900 dark:text-white mb-7">
+              {TITULO.map((palabra, i) => (
+                <motion.span
+                  key={palabra}
+                  className={`inline-block mr-[0.22em] ${palabra === 'claras,' ? 'bg-gradient-to-r from-kk-primary via-emerald-400 to-kk-dark dark:to-kk-secondary bg-clip-text text-transparent' : ''}`}
+                  initial={{ opacity: 0, y: 28, filter: 'blur(10px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.7, delay: 0.15 + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {palabra}
+                </motion.span>
+              ))}
+            </h1>
+
+            {/* Lo primero tras el titulo: instalarla como app. */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mb-8"
+              transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-7"
             >
               <InstalarApp />
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.45 }}
-              className="flex flex-wrap gap-4"
+              transition={{ duration: 0.6, delay: 0.75 }}
+              className="flex flex-wrap gap-3"
             >
               <button
                 onClick={onRegister}
-                className="group inline-flex items-center gap-2 bg-kk-primary text-white px-8 py-4 rounded-2xl font-black text-lg shadow-lg shadow-kk-primary/25 hover:bg-kk-dark hover:shadow-xl hover:shadow-kk-primary/30 transition duration-300"
+                className="group relative inline-flex items-center gap-2 bg-kk-primary text-white px-7 py-4 rounded-2xl font-black text-lg shadow-lg shadow-kk-primary/30 hover:bg-kk-dark hover:shadow-xl hover:shadow-kk-primary/40 transition duration-300 overflow-hidden"
               >
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" aria-hidden="true" />
                 Comenzar Gratis
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button
                 onClick={onLogin}
-                className="inline-flex items-center gap-2 border-2 border-slate-200 dark:border-dark-lighter text-slate-600 dark:text-slate-300 px-8 py-4 rounded-2xl font-black text-lg hover:border-kk-primary hover:text-kk-primary transition duration-300"
+                className="inline-flex items-center gap-2 bg-white/60 dark:bg-white/[0.04] backdrop-blur border-2 border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-300 px-7 py-4 rounded-2xl font-black text-lg hover:border-kk-primary hover:text-kk-primary transition duration-300"
               >
                 Iniciar Sesión
               </button>
             </motion.div>
-
           </div>
 
+          {/* Telefono con la app en video */}
           <motion.div
-            initial={{ opacity: 0, x: 80 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="hidden lg:flex justify-center"
+            initial={{ opacity: 0, y: 60, rotate: 4 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            transition={{ duration: 1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="relative flex justify-center [perspective:1400px]"
           >
-            <div className="relative">
+            <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22rem] h-[22rem] rounded-full bg-kk-primary/30 dark:bg-kk-primary/25 blur-[90px]" />
+            <motion.div style={{ rotateX: rotX, rotateY: rotY, transformStyle: 'preserve-3d' }} className="relative">
               <motion.div
-                animate={{ y: [0, -12, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="relative mx-auto"
+                animate={quieto ? undefined : { y: [0, -14, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <div className="w-[341px] h-[728px] bg-gradient-to-b from-slate-900 to-slate-800 dark:from-dark-normal dark:to-dark-lighter rounded-[3rem] border-4 border-slate-700 dark:border-dark-lightest shadow-2xl overflow-hidden">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 dark:bg-dark-darker rounded-b-2xl z-10" />
-                  <img
-                    src={isDarkMode ? '/landing/hero-dashboard-dark.webp' : '/landing/hero-dashboard-white.webp'}
-                    alt="Dashboard Kuentas Klaras"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-24 h-1 bg-slate-700 dark:bg-dark-lightest rounded-full" />
+                <IPhone ancho={300} className="hidden sm:block">
+                  <VideoTema base="/landing/videos/transacciones" etiqueta="Kuentas Klaras: transacciones del mes" />
+                </IPhone>
+                <IPhone ancho={250} className="sm:hidden">
+                  <VideoTema base="/landing/videos/transacciones" etiqueta="Kuentas Klaras: transacciones del mes" />
+                </IPhone>
               </motion.div>
-            </div>
+
+              <Flotante quieto={quieto} delay={1.1} className="-left-28 sm:-left-44 top-16 sm:top-20 hidden min-[420px]:block">
+                <div className="flex items-center gap-2.5 w-[13.5rem]">
+                  <span className="w-9 h-9 rounded-xl bg-kk-primary text-white grid place-items-center flex-shrink-0"><Bell size={16} /></span>
+                  <span className="min-w-0">
+                    <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">Kuentas Klaras · ahora</span>
+                    <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white truncate">Lider Express −$32.450</span>
+                    <span className="block text-[11px] font-semibold text-kk-dark dark:text-kk-secondary">Clasificado en Mercadería</span>
+                  </span>
+                </div>
+              </Flotante>
+
+              <Flotante quieto={quieto} delay={1.35} className="-right-3 sm:-right-36 top-1/2">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 grid place-items-center"><Wallet size={15} /></span>
+                  <span>
+                    <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">Disponible</span>
+                    <span className="block text-sm font-extrabold tabular-nums text-slate-900 dark:text-white">$1.197.610</span>
+                  </span>
+                </div>
+              </Flotante>
+
+              <Flotante quieto={quieto} delay={1.6} className="-left-3 sm:-left-32 bottom-16 sm:bottom-24">
+                <div className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 dark:text-slate-100">
+                  <Sparkles size={16} className="text-violet-500" /> La IA clasificó 12 gastos
+                </div>
+              </Flotante>
+            </motion.div>
           </motion.div>
         </div>
       </div>

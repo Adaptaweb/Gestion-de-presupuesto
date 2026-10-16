@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'motion/react';
 import { Mail, Brain, Eye } from 'lucide-react';
+import IPhone from './IPhone';
+import { VideoTema } from './VideoTema';
 
 const steps = [
   {
@@ -19,8 +21,7 @@ const steps = [
     title: 'La IA clasifica automáticamente',
     description:
       'Nuestra inteligencia artificial reconoce cada transacción y la clasifica en la categoría correcta. Mientras más la usas, más precisa se vuelve.',
-    image: '/landing/how-it-works-2.webp',
-    imageDark: '/landing/how-it-works-2-dark.webp',
+    video: '/landing/videos/transacciones',
     gradient: 'from-violet-400 to-purple-500',
   },
   {
@@ -29,10 +30,8 @@ const steps = [
     title: 'Tus cuentas claras, siempre',
     description:
       'Dashboards inteligentes para entender tu plata de un vistazo. Gastos, ingresos, deudas y ahorros organizados y bajo control.',
-    image: '/landing/how-it-works-3.webp',
-    imageDark: '/landing/how-it-works-3-dark.webp',
+    video: '/landing/videos/resumen',
     gradient: 'from-amber-400 to-orange-500',
-    isTall: true,
   },
 ];
 
@@ -69,27 +68,20 @@ const StepContent = ({ step, index, isDarkMode }) => {
         </p>
       </div>
 
-      <div className="flex-shrink-0">
-        <div className="relative w-[267px] h-[568px] bg-gradient-to-b from-slate-900 to-slate-800 dark:from-dark-normal dark:to-dark-lighter rounded-[2.5rem] border-4 border-slate-700 dark:border-dark-lightest shadow-2xl overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-900 dark:bg-dark-darker rounded-b-xl z-10" />
-          {step.isTall ? (
-            <motion.img
-              src={isDarkMode ? step.imageDark : step.image}
-              alt={step.title}
-              className="w-full block"
-              initial={{ y: 0 }}
-              whileInView={{ y: [0, 0, '-45%', '-45%', 0] }}
-              viewport={{ once: true }}
-              transition={{ duration: 15, delay: 2, repeat: Infinity, ease: 'linear', times: [0, 2/15, 7.5/15, 9.5/15, 1] }}
-            />
+      <div className="flex-shrink-0 relative">
+        <div aria-hidden="true" className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-gradient-to-br ${step.gradient} opacity-25 blur-[80px]`} />
+        <IPhone ancho={260} sinBarra={!step.video} className="relative">
+          {step.video ? (
+            <VideoTema base={step.video} etiqueta={step.title} />
           ) : (
             <img
               src={isDarkMode ? step.imageDark : step.image}
               alt={step.title}
-              className="w-full h-full object-cover"
+              className="block w-full object-cover object-bottom"
+              style={{ aspectRatio: '1080 / 2338' }}
             />
           )}
-        </div>
+        </IPhone>
       </div>
     </motion.div>
   );
