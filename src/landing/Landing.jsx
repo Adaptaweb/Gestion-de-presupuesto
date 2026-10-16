@@ -171,7 +171,7 @@ const Landing = ({ onLogin, onRegister }) => {
 
       <ProveedorTemaDemo>
       <main>
-        <HeroSection onLogin={onLogin} onRegister={onRegister} isDarkMode={isDarkMode} sentinelRef={sentinelRef} scrolled={scrolled} />
+        <HeroSection onRegister={onRegister} isDarkMode={isDarkMode} sentinelRef={sentinelRef} scrolled={scrolled} />
         <FeaturesSection />
         <PantallasSection />
         <HowItWorksSection isDarkMode={isDarkMode} />

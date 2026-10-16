@@ -1,31 +1,13 @@
 import React from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'motion/react';
-import { ArrowRight, Sparkles, Wallet, Bell, Download } from 'lucide-react';
+import { ArrowRight, Download } from 'lucide-react';
 import InstalarApp from './InstalarApp';
 import IPhone from './IPhone';
 import { VideoTema } from './VideoTema';
 
 const TITULO = ['Tus', 'finanzas', 'claras,', 'bajo', 'control.'];
 
-// Tarjeta de vidrio que flota junto al telefono.
-const Flotante = ({ className, delay, children, quieto }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24, scale: 0.9 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-    className={`absolute z-20 ${className}`}
-  >
-    <motion.div
-      animate={quieto ? undefined : { y: [0, -8, 0] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.6 }}
-      className="kk-glass kk-glass-sheet rounded-2xl px-3.5 py-2.5 shadow-xl shadow-slate-900/10 dark:shadow-black/40"
-    >
-      {children}
-    </motion.div>
-  </motion.div>
-);
-
-const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled }) => {
+const HeroSection = ({ onRegister, isDarkMode, sentinelRef, scrolled }) => {
   const quieto = useReducedMotion();
   // Inclinacion 3D del telefono siguiendo el puntero (solo con mouse).
   const px = useMotionValue(0);
@@ -145,12 +127,6 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
                 Comenzar Gratis
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
-              <button
-                onClick={onLogin}
-                className="inline-flex items-center gap-2 bg-white/60 dark:bg-white/[0.04] backdrop-blur border-2 border-slate-200 dark:border-dark-lighter text-slate-700 dark:text-slate-300 px-7 py-4 rounded-2xl font-black text-lg hover:border-kk-primary hover:text-kk-primary transition duration-300"
-              >
-                Iniciar Sesión
-              </button>
             </motion.div>
           </div>
 
@@ -174,33 +150,6 @@ const HeroSection = ({ onLogin, onRegister, isDarkMode, sentinelRef, scrolled })
                   <VideoTema base="/landing/videos/transacciones" etiqueta="Kuentas Klaras: transacciones del mes" />
                 </IPhone>
               </motion.div>
-
-              <Flotante quieto={quieto} delay={1.1} className="-left-28 sm:-left-44 top-16 sm:top-20 hidden min-[420px]:block">
-                <div className="flex items-center gap-2.5 w-[13.5rem]">
-                  <span className="w-9 h-9 rounded-xl bg-kk-primary text-white grid place-items-center flex-shrink-0"><Bell size={16} /></span>
-                  <span className="min-w-0">
-                    <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">Kuentas Klaras · ahora</span>
-                    <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white truncate">Lider Express −$32.450</span>
-                    <span className="block text-[11px] font-semibold text-kk-dark dark:text-kk-secondary">Clasificado en Mercadería</span>
-                  </span>
-                </div>
-              </Flotante>
-
-              <Flotante quieto={quieto} delay={1.35} className="-right-3 sm:-right-36 top-1/2">
-                <div className="flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 grid place-items-center"><Wallet size={15} /></span>
-                  <span>
-                    <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400">Disponible</span>
-                    <span className="block text-sm font-extrabold tabular-nums text-slate-900 dark:text-white">$1.197.610</span>
-                  </span>
-                </div>
-              </Flotante>
-
-              <Flotante quieto={quieto} delay={1.6} className="-left-3 sm:-left-32 bottom-16 sm:bottom-24">
-                <div className="flex items-center gap-2 text-[13px] font-extrabold text-slate-800 dark:text-slate-100">
-                  <Sparkles size={16} className="text-violet-500" /> La IA clasificó 12 gastos
-                </div>
-              </Flotante>
             </motion.div>
           </motion.div>
         </div>
