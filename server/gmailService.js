@@ -8,6 +8,7 @@ import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templat
 import { detectBankFromSender } from './bankMapping.js';
 import { logDebug } from './logger.js';
 import { esCorreoNoTransaccional } from './emailFilters.js';
+import { completarComercio } from './comercios.js';
 
 async function fetchLatestTransactions(userId) {
   if (!(await hasValidTokens(userId))) {
@@ -120,6 +121,9 @@ async function processEmail(msgId, gmail, userId, results) {
       return;
     }
 
+    // Nombre legible + texto original del banco + categoria aprendida.
+    await completarComercio(parsed, userId);
+
     const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const bancoFinal = parsed.banco || 'Otros';
 
@@ -129,16 +133,17 @@ async function processEmail(msgId, gmail, userId, results) {
     ));
 
     await db.run(
-      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13)
+      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id, comercio_original)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13, $14)
        ON CONFLICT (email_id) DO UPDATE SET
          asunto = EXCLUDED.asunto,
          tipo_tarjeta = EXCLUDED.tipo_tarjeta,
          gmail_msg_id = EXCLUDED.gmail_msg_id,
          fecha_extraccion = NOW(),
          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
+         comercio_original = COALESCE(transacciones_extraidas.comercio_original, EXCLUDED.comercio_original),
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
-      id, userId, bancoFinal, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto', msgId
+      id, userId, bancoFinal, parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subject, emailId, parsed.tipo_transaccion_auto || 'gasto', msgId, parsed.comercio_original || null
     );
 
     try {
@@ -344,18 +349,20 @@ async function reprocessPendingTransactions(userId) {
 
       const parsed = await parseHTML(body, headers, userId);
       if (!parsed || !parsed.monto || !parsed.fecha) { results.errors++; results.errors_detail.push(`${tx.id}: parseo fallido`); continue; }
+      await completarComercio(parsed, userId);
 
       await db.run(
         `UPDATE transacciones_extraidas SET
           banco = $1, tipo_movimiento = $2, tipo_tarjeta = $3, monto = $4,
           comercio = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $5 ELSE transacciones_extraidas.comercio END,
+          comercio_original = COALESCE(transacciones_extraidas.comercio_original, $11),
           fecha = $6,
           categoria = CASE WHEN transacciones_extraidas.revisado = FALSE THEN $7 ELSE transacciones_extraidas.categoria END,
           tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE THEN CAST($8 AS TEXT) ELSE transacciones_extraidas.tipo_transaccion END
          WHERE id = $9 AND user_id = $10 AND (revisado = FALSE OR revisado IS NULL)`,
         parsed.banco || 'Otros', parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto,
         parsed.comercio, parsed.fecha, parsed.categoria, parsed.tipo_transaccion_auto || 'gasto',
-        tx.id, userId
+        tx.id, userId, parsed.comercio_original || null
       );
 
       results.processed++;

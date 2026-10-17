@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Shield, Trash2, Key, X, Loader2, ArrowLeft, Mail, Ban, CheckCircle, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { notifyOk, notifyError } from './lib/notify.js';
+import LimpiezaComercios from './components/LimpiezaComercios.jsx';
 
 const AdminPanel = ({ onBack, token }) => {
   const [users, setUsers] = useState([]);
@@ -348,6 +349,8 @@ const AdminPanel = ({ onBack, token }) => {
             </div>
         )}
       </div>
+
+      <LimpiezaComercios token={token} />
 
       {showCreateModal && (
         <div className="fixed inset-0 bg-white/60 dark:bg-zinc-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">

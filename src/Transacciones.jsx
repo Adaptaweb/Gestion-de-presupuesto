@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import ManualTransactionPanel from './ManualTransactionPanel.jsx';
 import LogoK from './components/LogoK.jsx';
+import NombreComercio from './components/NombreComercio.jsx';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal.jsx';
 import { Calendar } from '@/components/ui/calendar';
 import { Skeleton } from 'boneyard-js/react';
@@ -369,8 +370,8 @@ const ReviewCard = ({
             <div className={`relative text-4xl sm:text-5xl font-black tracking-tight ${amountColor}`}>
               {amountSign}{formatCurrency2(tx.monto)}
             </div>
-            <div className="relative text-xl font-extrabold text-slate-800 dark:text-white">
-              {tx.comercio || 'Comercio no detectado'}
+            <div className="relative text-xl font-extrabold text-slate-800 dark:text-white max-w-full">
+              <NombreComercio tx={tx} vacio="Comercio no detectado" alineacion="centro" tamanoIcono={16} />
             </div>
             <div className="relative text-xl font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
               <span>{formatDate2(tx.fecha)}</span>
@@ -755,8 +756,8 @@ const TransactionCard = ({
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className={`truncate text-[15px] font-bold leading-tight ${isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'}`}>
-          {tx.comercio || 'Sin comercio'}
+        <p className={`flex min-w-0 text-[15px] font-bold leading-tight ${isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'}`}>
+          <NombreComercio tx={tx} />
         </p>
         <p className={`mt-0.5 truncate text-xs font-medium ${isMuted ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
           {metaParts.join(' · ')}
@@ -897,7 +898,7 @@ const TransactionDetailModal = ({
           <h3 className={`mt-4 text-xl font-black leading-tight ${
             isMuted ? 'italic text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-white'
           }`}>
-            {t.comercio || 'Sin comercio'}
+            <NombreComercio tx={t} tamanoIcono={16} />
           </h3>
 
           <div className="mt-2 flex flex-wrap items-center gap-1.5">

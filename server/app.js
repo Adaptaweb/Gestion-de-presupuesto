@@ -12,6 +12,7 @@ import { Resend } from 'resend';
 import crypto from 'crypto';
 import { sendPushToUser, saveSubscription, removeSubscription } from './push.js';
 import { setDb as setEmbeddingsDb } from './embeddings.js';
+import { setDb as setComerciosDb, completarComercio, aprenderNombre, limpiarComercio } from './comercios.js';
 import { extractWithTemplateSystem, saveTemplateFromExtraction } from './templateEngine.js';
 import { esCorreoNoTransaccional } from './emailFilters.js';
 import { detectBankFromSender } from './bankMapping.js';
@@ -23,6 +24,7 @@ import { registerBilling } from './billing.js';
 import { trialEndDate } from '../src/constants/pricing.js';
 
 setEmbeddingsDb(db);
+setComerciosDb(db);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -587,6 +589,80 @@ app.delete('/api/admin/users/:id', authenticateToken, requireAdmin, async (req, 
   }
 });
 
+// Limpieza de nombres de comercio sobre lo ya guardado. Primero se simula (solo
+// lectura): cada nombre distinto, cuantos movimientos y usuarios tiene y como
+// quedaria. Solo los que el admin aprueba se aplican, guardando antes el texto
+// original en comercio_original.
+app.get('/api/admin/comercios/simulacion', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const filas = await db.all(
+      `SELECT comercio, COUNT(*) AS movimientos, COUNT(DISTINCT user_id) AS usuarios,
+              SUM(CASE WHEN revisado = TRUE THEN 1 ELSE 0 END) AS revisados
+       FROM transacciones_extraidas
+       WHERE deleted_at IS NULL AND comercio_original IS NULL AND comercio IS NOT NULL AND comercio != ''
+       GROUP BY comercio ORDER BY COUNT(*) DESC`
+    );
+    const total = await db.get(
+      "SELECT COUNT(*) AS movimientos, COUNT(DISTINCT user_id) AS usuarios, SUM(CASE WHEN comercio_original IS NULL THEN 1 ELSE 0 END) AS sin_procesar FROM transacciones_extraidas WHERE deleted_at IS NULL"
+    );
+    const nombres = filas.map(f => {
+      const { nombre, regla } = limpiarComercio(f.comercio);
+      return {
+        actual: f.comercio,
+        propuesto: nombre || f.comercio,
+        regla,
+        movimientos: Number(f.movimientos),
+        usuarios: Number(f.usuarios),
+        revisados: Number(f.revisados),
+      };
+    });
+    const cambian = nombres.filter(n => n.propuesto !== n.actual);
+    res.json({
+      resumen: {
+        movimientos: Number(total?.movimientos || 0),
+        usuarios: Number(total?.usuarios || 0),
+        sinProcesar: Number(total?.sin_procesar || 0),
+        nombresDistintos: nombres.length,
+        nombresQueCambian: cambian.length,
+        movimientosQueCambian: cambian.reduce((t, n) => t + n.movimientos, 0),
+        movimientosRevisadosQueCambian: cambian.reduce((t, n) => t + n.revisados, 0),
+      },
+      cambios: cambian,
+      sinCambio: nombres.filter(n => n.propuesto === n.actual).slice(0, 200),
+    });
+  } catch (error) {
+    console.error('[admin/comercios] simulacion:', error.message);
+    res.status(500).json({ error: 'No se pudo simular la limpieza' });
+  }
+});
+
+app.post('/api/admin/comercios/aplicar', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const cambios = Array.isArray(req.body?.cambios) ? req.body.cambios : [];
+    let renombrados = 0;
+    for (const c of cambios) {
+      if (!c?.actual || !c?.propuesto || c.actual === c.propuesto) continue;
+      const r = await db.run(
+        `UPDATE transacciones_extraidas SET comercio_original = comercio, comercio = $1
+         WHERE comercio = $2 AND comercio_original IS NULL AND deleted_at IS NULL`,
+        String(c.propuesto).slice(0, 120), c.actual
+      );
+      renombrados += r?.changes || 0;
+    }
+    // Lo demas queda marcado como procesado, con su nombre de siempre.
+    let marcados = 0;
+    if (req.body?.marcarResto) {
+      const r = await db.run('UPDATE transacciones_extraidas SET comercio_original = comercio WHERE comercio_original IS NULL AND deleted_at IS NULL');
+      marcados = r?.changes || 0;
+    }
+    cache.delByPattern('tx:');
+    res.json({ success: true, renombrados, marcados });
+  } catch (error) {
+    console.error('[admin/comercios] aplicar:', error.message);
+    res.status(500).json({ error: 'No se pudo aplicar la limpieza' });
+  }
+});
+
 app.post('/api/admin/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { nombre, apellido, name, email, password, role } = req.body;
@@ -1097,6 +1173,15 @@ app.put('/api/transacciones/:id', authenticateToken, async (req, res) => {
     }
     if (comercio !== undefined) {
       await db.run('UPDATE transacciones_extraidas SET comercio = ? WHERE id = ?', comercio, req.params.id);
+      // Renombrar un comercio se aprende para su texto del banco y se aplica a
+      // los otros movimientos con ese texto que aun muestran el nombre anterior.
+      if (tx.comercio_original && comercio && comercio !== tx.comercio) {
+        try {
+          await aprenderNombre(tx.user_id, tx.comercio_original, tx.comercio, comercio, req.params.id);
+        } catch (err) {
+          console.error('[comercios] no se pudo aprender el nombre:', err.message);
+        }
+      }
     }
     if (tipo_tarjeta !== undefined) {
       await db.run('UPDATE transacciones_extraidas SET tipo_tarjeta = ? WHERE id = ?', tipo_tarjeta, req.params.id);
@@ -1315,6 +1400,9 @@ app.post('/api/webhook/email', async (req, res) => {
       return res.json({ success: false, reason: 'no_parsed_data' });
     }
 
+    // Nombre legible + texto original del banco + categoria aprendida.
+    await completarComercio(parsed, actualUserId);
+
     const id = `tx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const emailId = messageId || `wb-${Date.now()}`;
     const subjectSafe = (subject || '').slice(0, 200);
@@ -1325,16 +1413,17 @@ app.post('/api/webhook/email', async (req, res) => {
     ));
 
     await db.run(
-      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13)
+      `INSERT INTO transacciones_extraidas (id, user_id, banco, tipo_movimiento, tipo_tarjeta, monto, comercio, fecha, categoria, asunto, email_id, fecha_extraccion, revisado, tipo_transaccion, gmail_msg_id, comercio_original)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), FALSE, $12, $13, $14)
        ON CONFLICT (email_id) DO UPDATE SET
          asunto = EXCLUDED.asunto,
          tipo_tarjeta = EXCLUDED.tipo_tarjeta,
          gmail_msg_id = EXCLUDED.gmail_msg_id,
          fecha_extraccion = NOW(),
          comercio = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.comercio != '' THEN EXCLUDED.comercio ELSE transacciones_extraidas.comercio END,
+         comercio_original = COALESCE(transacciones_extraidas.comercio_original, EXCLUDED.comercio_original),
          tipo_transaccion = CASE WHEN transacciones_extraidas.revisado = FALSE AND EXCLUDED.tipo_transaccion IS NOT NULL THEN EXCLUDED.tipo_transaccion ELSE transacciones_extraidas.tipo_transaccion END`,
-       id, actualUserId, parsed.banco || 'Otros', parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`
+       id, actualUserId, parsed.banco || 'Otros', parsed.tipo_movimiento, parsed.tipo_tarjeta || '', parsed.monto, parsed.comercio, parsed.fecha, parsed.categoria, subjectSafe, emailId, parsed.tipo_transaccion_auto || 'gasto', `wb-${Date.now()}`, parsed.comercio_original || null
     );
 
     try {
